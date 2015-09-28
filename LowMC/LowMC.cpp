@@ -122,6 +122,14 @@ void LowMC::instantiate_LowMC () {
         invLinMatrices.push_back(invert_Matrix (LinMatrices.back()));
     }
 
+    /*std::cout << "Linear Matrix coming through!:" << std::endl;
+    for(int i=0; i<LinMatrices.size();++i){
+        for(int j=0; j<LinMatrices[i].size(); ++j){
+            std::cout << LinMatrices[i][j] << std::endl;
+        }
+        std::cout << std::endl;
+    }*/
+
     // Create roundconstants
     roundconstants.clear();
     for (unsigned r = 0; r < rounds; ++r) {
@@ -143,13 +151,13 @@ void LowMC::instantiate_LowMC () {
         } while ( rank_of_Matrix_Key(mat) < std::min(blocksize, keysize) );
         KeyMatrices.push_back(mat);
     }
-    std::cout << "Key Matrix coming through!:" << std::endl;
+    /*std::cout << "Key Matrix coming through!:" << std::endl;
     for(int i=0; i<KeyMatrices.size();++i){
         for(int j=0; j<KeyMatrices[i].size(); ++j){
             std::cout << KeyMatrices[i][j] << std::endl;
         }
         std::cout << std::endl;
-    }
+    }*/
     
     
     return;
