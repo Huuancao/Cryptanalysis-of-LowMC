@@ -38,6 +38,8 @@ block LowMC::decrypt (const block message) {
 
 void LowMC::set_key (keyblock k) {
     key = k;
+
+    std::cout << "Key: " << key << std::endl;
     keyschedule();
 }
 
@@ -45,7 +47,15 @@ void LowMC::set_key (keyblock k) {
 // Custom private functions //
 //////////////////////////////
 
-
+void setLastPartMatrix( std::vector<block>& mat){
+    block tempMatrixLine;
+    tempMatrixLine.reset();
+    tempMatrixLine[9]=1;
+    for(int i=0; i<7; ++i){
+        mat.push_back(tempMatrixLine);       
+        tempMatrixLine <<= 1;
+    }
+}
 
 void printMatrix(std::vector<std::vector<block>> matrix){
     std::cout << "Linear Matrix coming through!:" << std::endl;
@@ -64,11 +74,18 @@ void printMatrix(std::vector<std::vector<block>> matrix){
 
 block LowMC::Substitution (const block message) {
     block temp = 0;
+
+    //std::cout<<"temp Mask : "<<temp<<std::endl;
     //Get the identity part of the message
     temp ^= (message >> 3*numofboxes);
+
+    //std::cout<<"Shifted message : "<<(message >> 3*numofboxes)<<std::endl;
+    //std::cout<<"identity Part : "<<temp<<std::endl;
     //Get the rest through the Sboxes
     for (unsigned i = 1; i <= numofboxes; ++i) {
         temp <<= 3;
+        //std::cout<<"Sbox Part " << i << ": "<< (message >> 3*(numofboxes-i)) <<std::endl;
+        //std::cout<<"Sbox Part " << i << ": "<< ((message >> 3*(numofboxes-i))& block(0x7)).to_ulong() <<std::endl;
         temp ^= Sbox[ ((message >> 3*(numofboxes-i))
                       & block(0x7)).to_ulong()];
     }
@@ -117,17 +134,7 @@ void LowMC::keyschedule () {
     return;
 }
 
-void setLastPartMatrix( std::vector<block>& mat){
-    block tempMatrixLine;
-    tempMatrixLine.reset();
-    tempMatrixLine[9]=1;
-    for(int i=0; i<7; ++i){
-        mat.push_back(tempMatrixLine);       
-        tempMatrixLine <<= 1;
-    }
 
-
-}
 
 void LowMC::instantiate_LowMC () {
     // Create LinMatrices and invLinMatrices
@@ -152,7 +159,7 @@ void LowMC::instantiate_LowMC () {
         invLinMatrices.push_back(invert_Matrix (LinMatrices.back()));
     }
 
-    printMatrix(LinMatrices);
+    //printMatrix(LinMatrices);
 
     // Create roundconstants
     roundconstants.clear();
