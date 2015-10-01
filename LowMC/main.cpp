@@ -2,30 +2,71 @@
 #include <iostream>
 #include <vector>
 #include <bitset>
+#include <string>
 
-#define MAX 512
+#define MAX 128
+using namespace std;
 //////////////////
 //     MAIN     //
 //////////////////
-
-void generateInputs(std::vector<block>& inputs){
-    block input(0);
-    for(int i=0; i < MAX; ++i){
-        input=i;
-        inputs.push_back(input << blocksize - tail);
-
+unsigned int reverseBits(unsigned int num){;
+    unsigned int reverseNum = 0;
+    for (int i = 0; i < blocksize; i++){
+            if((num & (1 << i)))
+               reverseNum |= 1 << ((blocksize - 1) - i);  
     }
-    /*for(int j=0; j< inputs.size(); ++j){
-        std::cout << "Input n" << j <<": " << inputs[j]<< std::endl;
+    return reverseNum;
+}
+
+void generatePlaintexts(std::vector<block>& plaintexts, string mode){
+
+    for(int i=0; i < MAX; ++i){
+        if(mode == "reverse"){      
+            plaintexts.push_back(reverseBits(i));
+        }
+        else{
+            block input(i);
+            plaintexts.push_back(input << blocksize - tail);
+        }
+        
+        
+    }
+    /*for(int j=0; j< plaintexts.size(); ++j){
+        std::cout << "Input n" << j <<": " << plaintexts[j]<< std::endl;
     }*/
+}
+
+void printSequences(std::vector<block>& sequences){
+    for(int i=0; i< sequences.size(); ++i){
+        cout << "Entry n" <<i << ": " << sequences[i] << endl;
+    }
+}
+void generateCiphertexts(const vector<block> plaintexts, vector<block>& ciphertexts, LowMC cipher){
+    for(int i=0; i< plaintexts.size(); ++i){
+        block a = cipher.encrypt(plaintexts[i]);
+        ciphertexts.push_back(a);
+        /*
+        std::cout << "Plaintext:" << std::endl;
+        std::cout << plaintexts[i] << std::endl;
+        std::cout << "Ciphertext:" << std::endl;
+        std::cout << a << std::endl;
+        a = cipher.decrypt( a );
+        std::cout << "Encryption followed by decryption of plaintext:" << std::endl;
+        std::cout << a << std::endl;
+        */
+    }
 }
 
 int main () {
     LowMC cipher(0);
-    std::vector<block> Inputs;
-    generateInputs(Inputs);
+    std::vector<block> plaintexts;
+    std::vector<block> ciphertexts;
+    string mode("reverse");
+    generatePlaintexts(plaintexts, mode);
+    //printSequences(plaintexts);
+    generateCiphertexts(plaintexts, ciphertexts, cipher);
 
-    block a = 0xABCD;
+    /*block a = 0xABCD;
 
     std::cout << "Plaintext:" << std::endl;
     std::cout << a << std::endl;
@@ -35,6 +76,6 @@ int main () {
     a = cipher.decrypt( a );
     std::cout << "Encryption followed by decryption of plaintext:" << std::endl;
     std::cout << a << std::endl;
-
+    */
     return 0;
 }
