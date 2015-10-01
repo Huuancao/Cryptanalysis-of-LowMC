@@ -10,6 +10,10 @@ using namespace std;
 //////////////////
 //     MAIN     //
 //////////////////
+
+/*
+Reverse the bits order in identity part of inputs.
+*/
 unsigned int reverseBits(unsigned int num){;
     unsigned int reverseNum = 0;
     for (int i = 0; i < blocksize; i++){
@@ -19,6 +23,9 @@ unsigned int reverseBits(unsigned int num){;
     return reverseNum;
 }
 
+/*
+No brain generator of bits sequences in reverse order -> input n°1 : 1000000000000000.
+*/
 void generatePlaintexts(std::vector<block>& plaintexts, string mode){
 
     for(int i=0; i < MAX; ++i){
@@ -37,11 +44,18 @@ void generatePlaintexts(std::vector<block>& plaintexts, string mode){
     }*/
 }
 
+/*
+Print vector of sequences of bitsets.
+*/
 void printSequences(std::vector<block>& sequences){
     for(int i=0; i< sequences.size(); ++i){
         cout << "Entry n" <<i << ": " << sequences[i] << endl;
     }
 }
+
+/*
+Generate ciphertexts.
+*/
 void generateCiphertexts(const vector<block> plaintexts, vector<block>& ciphertexts, LowMC cipher){
     for(int i=0; i< plaintexts.size(); ++i){
         block a = cipher.encrypt(plaintexts[i]);
@@ -58,6 +72,9 @@ void generateCiphertexts(const vector<block> plaintexts, vector<block>& cipherte
     }
 }
 
+/*
+Write plaintexts in file. (Could be merged with writeCiphertexts, whatever...)
+*/
 void writePlaintexts(const vector<block>& plaintexts){
     ofstream myFile;
     myFile.open("plaintexts.txt");
@@ -67,6 +84,9 @@ void writePlaintexts(const vector<block>& plaintexts){
     myFile.close();
 }
 
+/*
+Write ciphertexts in file. (Could be merged with writePlaintexts, whatever...)
+*/
 void writeCiphertexts(const vector<block>& ciphertexts){
     ofstream myFile;
     myFile.open("ciphertexts.txt");
@@ -77,10 +97,10 @@ void writeCiphertexts(const vector<block>& ciphertexts){
 }
 
 int main () {
-    LowMC cipher(0);
+    LowMC cipher(0); //Set key to 0
     std::vector<block> plaintexts;
     std::vector<block> ciphertexts;
-    string mode("reverse");
+    string mode("reverse"); //Type "reverse" to reverse inputs, else type anything different
     generatePlaintexts(plaintexts, mode);
     writePlaintexts(plaintexts);
 

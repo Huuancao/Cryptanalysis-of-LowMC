@@ -26,12 +26,19 @@ typedef std::bitset<keysize> keyblock;
 //////////////////
 //   FUNCTIONS  //
 //////////////////
+
+/*
+Print vector of sequences of bitsets.
+*/
 void printSequences(std::vector<block>& sequences){
     for(int i=0; i< sequences.size(); ++i){
         cout << "Entry n" <<i << ": " << sequences[i] << endl;
     }
 }
 
+/*
+Read file and set inputs in vector of blocks.
+*/
 void initInputs(vector<block>& textfile, string filePath){
     ifstream myFile(filePath.c_str());
     if(myFile)
