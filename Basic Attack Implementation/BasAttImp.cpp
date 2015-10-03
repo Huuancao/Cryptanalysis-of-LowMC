@@ -11,6 +11,7 @@ const unsigned blocksize = 16;   // Block size in bits
 const unsigned keysize = 6; // Key size in bits
 const unsigned rounds = 6; // Number of rounds
 const unsigned tail = 7; // Number of bits in tail
+const unsigned dimension = 12; //Dimension of vector space
 
 const string plainPath = "../LowMC/plaintexts.txt";
 const string cipherPath = "../LowMC/ciphertexts.txt";
@@ -19,6 +20,7 @@ const unsigned identitysize = blocksize - 3*numofboxes;
 
 typedef std::bitset<blocksize> block; // Store messages and states
 typedef std::bitset<keysize> keyblock;
+typedef std::bitset<dimension> vecspace;
 
 
 
@@ -26,6 +28,23 @@ typedef std::bitset<keysize> keyblock;
 //////////////////
 //   FUNCTIONS  //
 //////////////////
+/*
+Generate combination C(12,8) subspaces
+*/
+void setSubspaces(std::vector<vecspace>& subspaces){
+
+}
+/*
+Generate vector space 12x16
+*/
+void setVectorSpace(std::vector<block>& base){
+    block tempVector(0);
+    tempVector[0]=1;
+    for(int i=0; i<dimension; ++i){
+        base.push_back(tempVector);
+        tempVector = tempVector << 1;
+    }
+}
 
 /*
 Print vector of sequences of bitsets.
@@ -70,8 +89,14 @@ void initInputs(vector<block>& textfile, string filePath){
 int main(int argc, const char * argv[]) {
     vector<block> plaintexts;
     vector<block> ciphertexts;
-    initInputs(plaintexts, plainPath);
-    initInputs(ciphertexts, cipherPath);
+    vector<block> base;
+    vector<vecspace> subspaces;
+    //initInputs(plaintexts, plainPath);
+    //initInputs(ciphertexts, cipherPath);
+    setVectorSpace(base);
+
+    
+    //printSequences(base);
     //printSequences(plaintexts);
     //printSequences(ciphertexts);
 
