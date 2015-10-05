@@ -4,8 +4,9 @@
 #include <bitset>
 #include <string>
 #include <fstream>
+#include <cmath>
 
-#define MAX 128
+
 using namespace std;
 //////////////////
 //     MAIN     //
@@ -26,15 +27,15 @@ unsigned int reverseBits(unsigned int num){;
 /*
 No brain generator of bits sequences in reverse order -> input n°1 : 1000000000000000.
 */
-void generatePlaintexts(std::vector<block>& plaintexts, string mode){
+void generatePlaintexts(std::vector<block>& plaintexts,const string mode, const int maxPlaintexts){
 
-    for(int i=0; i < MAX; ++i){
+    for(int i=0; i < maxPlaintexts; ++i){
         if(mode == "reverse"){      
             plaintexts.push_back(reverseBits(i));
         }
         else{
             block input(i);
-            plaintexts.push_back(input << blocksize - tail);
+            plaintexts.push_back(input);
         }
         
         
@@ -89,7 +90,8 @@ Write ciphertexts in file. (Could be merged with writePlaintexts, whatever...)
 */
 void writeCiphertexts(const vector<block>& ciphertexts){
     ofstream myFile;
-    myFile.open("ciphertexts.txt");
+    //myFile.open("ciphertexts.txt");
+    myFile.open("partialCiphertexts.txt");
     for(int i=0; i< ciphertexts.size(); ++i){
         myFile << ciphertexts[i] << endl;
     }
@@ -100,8 +102,9 @@ int main () {
     LowMC cipher(0); //Set key to 0
     std::vector<block> plaintexts;
     std::vector<block> ciphertexts;
-    string mode("reverse"); //Type "reverse" to reverse inputs, else type anything different
-    generatePlaintexts(plaintexts, mode);
+    int maxPlaintexts(pow(2,12));
+    string mode("no"); //Type "reverse" to reverse inputs, else type anything different
+    generatePlaintexts(plaintexts, mode, maxPlaintexts);
     writePlaintexts(plaintexts);
 
     //printSequences(plaintexts);

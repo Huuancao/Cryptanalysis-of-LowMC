@@ -47,6 +47,9 @@ void LowMC::set_key (keyblock k) {
 // Custom private functions //
 //////////////////////////////
 
+/*
+Set last 7 lines to identity matrix' lines in order to "eat" a layer in degree.
+*/
 void setLastPartMatrix( std::vector<block>& mat){
     block tempMatrixLine;
     tempMatrixLine.reset();
@@ -57,6 +60,9 @@ void setLastPartMatrix( std::vector<block>& mat){
     }
 }
 
+/*
+Print Matrix.
+*/
 void printMatrix(std::vector<std::vector<block>> matrix){
     std::cout << "Linear Matrix coming through!:" << std::endl;
     for(int i=0; i<matrix.size();++i){
