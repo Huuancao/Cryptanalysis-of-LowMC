@@ -132,13 +132,14 @@ int main(int argc, const char * argv[]) {
     initInputs(partialCiphertexts, partialCipherPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
-    
+    cout << "coucouc" << endl;
+
 
     //printSequencesVecspaces(subspaces);
     //printSequencesBlocks(base);
     //printSequencesBlocks(plaintexts);
     //printSequencesBlocks(ciphertexts);
-    printSequencesBlocks(partialCiphertexts);
+    //printSequencesBlocks(partialCiphertexts);
 
     return 0;
 }
