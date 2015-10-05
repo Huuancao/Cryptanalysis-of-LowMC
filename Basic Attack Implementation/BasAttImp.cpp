@@ -3,6 +3,7 @@
 #include <bitset>
 #include <string>
 #include <fstream>
+#include <cmath>
 
 using namespace std;
 
@@ -13,19 +14,23 @@ const unsigned rounds = 6; // Number of rounds
 const unsigned partialRounds = 4; // Number of rounds to compute high order constants
 const unsigned tail = 7; // Number of bits in tail
 const unsigned dimension = 12; //Dimension of vector space
-const unsigned maxpermut= 4080;
+const unsigned maxpermut= 4080; //Bound binary:111111110000
+const unsigned numSubspaces= 495; //Combination C(12,8)
+const unsigned numPartialCiphertexts=4096;
 
 
 
 const string plainPath = "../LowMC/plaintexts.txt";
 const string cipherPath = "../LowMC/ciphertexts.txt";
 const string partialCipherPath = "../LowMC/partialCiphertexts.txt";
+const string freeCoefPath= "a0.txt";
 
 const unsigned identitysize = blocksize - 3*numofboxes;
 
 typedef std::bitset<blocksize> block; // Store messages and states
 typedef std::bitset<keysize> keyblock;
 typedef std::bitset<dimension> vecspace;
+typedef std::bitset<numPartialCiphertexts> freeCoef;
 
 
 
@@ -33,6 +38,60 @@ typedef std::bitset<dimension> vecspace;
 //////////////////
 //   FUNCTIONS  //
 //////////////////
+/*
+Compute Rank of a Matrix
+*/
+unsigned rank_of_Matrix (const std::vector<block> matrix) {
+    std::vector<block> mat; //Copy of the matrix 
+    for (auto u : matrix) {
+        mat.push_back(u);
+    }
+    unsigned size = mat[0].size();
+    //Transform to upper triangular matrix
+    unsigned row = 0;
+    for (unsigned col = 1; col <= size; ++col) {
+        if ( !mat[row][size-col] ) {
+            unsigned r = row;
+            while (r < mat.size() && !mat[r][size-col]) {
+                ++r;
+            }
+            if (r >= mat.size()) {
+                continue;
+            } else {
+                auto temp = mat[row];
+                mat[row] = mat[r];
+                mat[r] = temp;
+            }
+        }
+        for (unsigned i = row+1; i < mat.size(); ++i) {
+            if ( mat[i][size-col] ) mat[i] ^= mat[row];
+        }
+        ++row;
+        if (row == size) break;
+    }
+    return row;
+}
+/*
+Compute
+*/
+void preprocessingFreeCoef(vector<int>& a0, const vector<block>& partialCiphertexts, 
+                        const std::vector<block>& base, const vector<vecspace>& subspaces, 
+                        const unsigned int targetBit){
+    for(int i=0; i< partialCiphertexts.size(); ++i){
+        for(int j=0; j< subspaces.size(); ++j){
+            vector<block> tempSubspace;
+            for(int k=0; k < subspaces[j].size(); ++k){
+                if (subspaces[j][k]){
+                    tempSubspace.push_back(base[k]);
+                }
+            }
+            tempSubspace.push_back(partialCiphertexts[i]);
+            if(rank_of_Matrix(tempSubspace)==8){
+                a0[i]=(a0[i]+partialCiphertexts[i][blocksize-7])%2;
+            }
+        }
+    }
+}
 /*
 Generate next lexicographically permutation.
 */
@@ -69,6 +128,15 @@ void setVectorSpace(std::vector<block>& base){
         base.push_back(tempVector);
         tempVector = tempVector << 1;
     }
+}
+/*
+Print vector of integers.
+*/
+void printVector(vector<int>& vector){
+    for(int i=0; i<vector.size();++i){
+        cout<<vector[i];
+    }
+    cout << endl;
 }
 
 /*
@@ -111,6 +179,40 @@ void initInputs(vector<block>& textfile, string filePath){
     myFile.close();
 }
 
+/*
+Read file and set inputs in vector of blocks.
+*/
+void initInputs(freeCoef& inputs, string filePath){
+    ifstream myFile(filePath.c_str());
+    if(myFile)
+    {
+        string bitLine;
+        
+        while (getline(myFile, bitLine))
+        {
+            freeCoef b(bitLine);
+            inputs=b;
+        }
+    }
+    else
+    {
+        cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;
+    }
+    myFile.close();
+}
+
+/*
+Write preprocessed free coef in file.
+*/
+void writeFreeCoef(const vector<int>& a0){
+    ofstream myFile;
+    //myFile.open("ciphertexts.txt");
+    myFile.open(freeCoefPath.c_str());
+    for(int i=0; i< a0.size(); ++i){
+        myFile << a0[i];
+    }
+    myFile.close();
+}
 
 
 //////////////////
@@ -127,14 +229,27 @@ int main(int argc, const char * argv[]) {
 
     vector<block> base;
     vector<vecspace> subspaces;
+    //vector<int> a0(numPartialCiphertexts ,0);
+    freeCoef a0;
+    unsigned int targetBit(9);
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
+    initInputs(a0, freeCoefPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
+<<<<<<< HEAD
     cout << "coucouc" << endl;
 
+=======
+>>>>>>> One-Style
 
+
+    //preprocessingFreeCoef(a0, partialCiphertexts, base, subspaces, targetBit);
+    //writeFreeCoef(a0);
+    
+    //cout << a0 << endl;
+    //printVector(a0);
     //printSequencesVecspaces(subspaces);
     //printSequencesBlocks(base);
     //printSequencesBlocks(plaintexts);
