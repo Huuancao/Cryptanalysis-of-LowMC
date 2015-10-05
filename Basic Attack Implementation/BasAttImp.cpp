@@ -6,16 +6,20 @@
 
 using namespace std;
 
-const unsigned numofboxes = 3;    // Number of Sboxes
-const unsigned blocksize = 16;   // Block size in bits
+const unsigned numofboxes = 3; // Number of Sboxes
+const unsigned blocksize = 16; // Block size in bits
 const unsigned keysize = 6; // Key size in bits
 const unsigned rounds = 6; // Number of rounds
+const unsigned partialRounds = 4; // Number of rounds to compute high order constants
 const unsigned tail = 7; // Number of bits in tail
 const unsigned dimension = 12; //Dimension of vector space
 const unsigned maxpermut= 4080;
 
+
+
 const string plainPath = "../LowMC/plaintexts.txt";
 const string cipherPath = "../LowMC/ciphertexts.txt";
+const string partialCipherPath = "../LowMC/partialCiphertexts.txt";
 
 const unsigned identitysize = blocksize - 3*numofboxes;
 
@@ -119,18 +123,22 @@ void initInputs(vector<block>& textfile, string filePath){
 int main(int argc, const char * argv[]) {
     vector<block> plaintexts;
     vector<block> ciphertexts;
+    vector<block> partialCiphertexts;
+
     vector<block> base;
     vector<vecspace> subspaces;
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
+    initInputs(partialCiphertexts, partialCipherPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
     
 
     //printSequencesVecspaces(subspaces);
-    //printSequences(base);
-    //printSequences(plaintexts);
-    //printSequences(ciphertexts);
+    //printSequencesBlocks(base);
+    //printSequencesBlocks(plaintexts);
+    //printSequencesBlocks(ciphertexts);
+    printSequencesBlocks(partialCiphertexts);
 
     return 0;
 }
