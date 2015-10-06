@@ -17,6 +17,7 @@ const unsigned dimension = 12; //Dimension of vector space
 const unsigned maxpermut= 4080; //Bound binary:111111110000
 const unsigned numSubspaces= 495; //Combination C(12,8)
 const unsigned numPartialCiphertexts=4096;
+const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
 
 
 
@@ -214,6 +215,58 @@ void writeFreeCoef(const vector<int>& a0){
     myFile.close();
 }
 
+bool fullAdder(bool bit1, bool bit2, bool& carry){
+    bool sum = (bit1^bit2)^carry;
+    carry = ((bit1 && bit2) || (bit1 && carry) || (bit2 && carry));
+    return sum;
+}
+
+void bitsetAdd(block& x, const block& y){
+    bool carry = false;
+    for(int i=0; i < x.size(); ++i){
+        x[i]= fullAdder(x[i], y[i], carry);
+    }
+}
+void bitsetMultiply(block& result, const block& x, const block& y){
+    block temp = x;
+    result.reset();
+    if(temp.count() < y.count()){
+        for (int i=0; i < result.size(); ++i){
+            if (x[i]) {
+                bitsetAdd(result , y << i);
+            }
+        }
+    }
+    else{
+        for (int i=0; i < result.size(); i++){
+            if (y[i]) {
+                bitsetAdd(result, temp << i);
+            }
+        }
+    }
+}
+/*
+Generate monomials.
+*/
+void generateMonomials(vector<block>& monomials){
+    block firstMonomial(1);
+    for(int i=0; i<blocksize; ++i){
+        monomials.push_back(firstMonomial<<i);
+    }
+    for(int j=0; j<numofboxes; ++j){
+        for(int k=0; k<numofboxes; ++k){
+            block temp(0);
+            temp ^= Sbox[ ((monomials[3*j+k] >> 3*j)
+                      & block(0x7)).to_ulong()];
+            temp = temp << 3*j;
+            if(temp.count() == 2){
+                monomials.push_back(temp);
+            }
+        }
+    }
+}
+
+
 
 //////////////////
 //     MAIN     //
@@ -229,6 +282,8 @@ int main(int argc, const char * argv[]) {
 
     vector<block> base;
     vector<vecspace> subspaces;
+
+    vector<block> monomials;
     //vector<int> a0(numPartialCiphertexts ,0);
     freeCoef a0;
     unsigned int targetBit(9);
@@ -238,6 +293,8 @@ int main(int argc, const char * argv[]) {
     initInputs(a0, freeCoefPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
+    generateMonomials(monomials);
+
 
 
     //preprocessingFreeCoef(a0, partialCiphertexts, base, subspaces, targetBit);
