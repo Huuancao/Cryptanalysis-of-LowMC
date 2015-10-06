@@ -214,6 +214,33 @@ void writeFreeCoef(const vector<int>& a0){
     myFile.close();
 }
 
+vector<vecspaces> nullspaces;
+void nullspace(vector<vecspace>& subspaces){
+    
+    for (int i = 0; i < subspaces.size(); ++i)
+    {
+        //add library
+        nullspaces[i]=null(subspaces[i])
+    }
+
+}
+
+bool isInSubspace(vector<vecspace>& subspaces, block v){
+    bool isIn= true;
+    for (int i = 0; i < subspaces.size(); ++i)
+    {
+        for (int j = 0; j < blocksize; ++j)
+        {
+            if (subspaces[i][j]*v[j]=1)
+            {
+                isIn=false;
+                return isIn;
+                break;
+            }
+        }
+    }
+    return isIn;
+}
 
 //////////////////
 //     MAIN     //
