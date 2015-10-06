@@ -40,7 +40,37 @@ typedef std::bitset<numPartialCiphertexts> freeCoef;
 //   FUNCTIONS  //
 //////////////////
 /*
-Compute Rank of a Matrix
+Computes GCD.
+*/
+unsigned long long
+gcd(unsigned long long x, unsigned long long y)
+{
+    while (y != 0)
+    {
+        unsigned long long t = x % y;
+        x = y;
+        y = t;
+    }
+    return x;
+}
+/*
+Compute number of combinations.
+*/
+unsigned long long
+choose(unsigned long long n, unsigned long long k){
+
+    unsigned long long r(1);
+    for (unsigned long long d=1; d <= k; ++d, --n)
+    {
+        unsigned long long g = gcd(r, d);
+        r /= g;
+        unsigned long long t = n / (d / g);
+        r *= t;
+    }
+    return r;
+}
+/*
+Compute Rank of a Matrix.
 */
 unsigned rank_of_Matrix (const std::vector<block> matrix) {
     std::vector<block> mat; //Copy of the matrix 
@@ -215,6 +245,9 @@ void writeFreeCoef(const vector<int>& a0){
     myFile.close();
 }
 
+/*
+Functions to multiply bitsets.
+*/
 bool fullAdder(bool bit1, bool bit2, bool& carry){
     bool sum = (bit1^bit2)^carry;
     carry = ((bit1 && bit2) || (bit1 && carry) || (bit2 && carry));
@@ -264,6 +297,16 @@ void generateMonomials(vector<block>& monomials){
             }
         }
     }
+    unsigned int current(3);
+    unsigned int sizeMonomials = monomials.size();
+    for(int l=0;l<sizeMonomials; ++l){
+        for (int m=l+1; m<sizeMonomials; ++m){
+            block resultMult(0);
+            bitsetMultiply(resultMult, monomials[l], monomials[m]);
+            if(resultMult!=0)
+                monomials.push_back(resultMult);
+        }
+    }
 }
 
 
@@ -294,6 +337,7 @@ int main(int argc, const char * argv[]) {
     setVectorSpace(base);
     setSubspaces(subspaces);
     generateMonomials(monomials);
+    printSequencesBlocks(monomials);
 
 
 
