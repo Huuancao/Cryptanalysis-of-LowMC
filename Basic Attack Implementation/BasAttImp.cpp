@@ -297,7 +297,28 @@ void generateMonomials(vector<block>& monomials){
             }
         }
     }
+    /*
     unsigned int current(3);
+    unsigned int max(49152);
+    std::vector<block> combinationsMono;
+    do{
+        combinationsMono.push_back(current);
+        nextPermut(current);
+    }while(current<=max);
+    for(int l=0; l< combinationsMono.size(); ++l){
+        vector<block> tempMonomial;
+        for(int m=0; m<blocksize; ++m){
+            if(combinationsMono[l][m]){
+                tempMonomial.push_back(monomials[m]);            
+            }
+        }
+        block resultMult(0);
+        bitsetMultiply(resultMult, tempMonomial[0], tempMonomial[1]);
+        if(resultMult!=0){
+            monomials.push_back(resultMult);
+        }
+    }
+    */
     unsigned int sizeMonomials = monomials.size();
     for(int l=0;l<sizeMonomials; ++l){
         for (int m=l+1; m<sizeMonomials; ++m){
