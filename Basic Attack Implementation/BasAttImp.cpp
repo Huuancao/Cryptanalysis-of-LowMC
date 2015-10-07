@@ -17,6 +17,7 @@ const unsigned dimension = 12; //Dimension of vector space
 const unsigned maxpermut= 4080; //Bound binary:111111110000
 const unsigned numSubspaces= 495; //Combination C(12,8)
 const unsigned numPartialCiphertexts=4096;
+const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
 
 
 
@@ -39,7 +40,37 @@ typedef std::bitset<numPartialCiphertexts> freeCoef;
 //   FUNCTIONS  //
 //////////////////
 /*
-Compute Rank of a Matrix
+Computes GCD.
+*/
+unsigned long long
+gcd(unsigned long long x, unsigned long long y)
+{
+    while (y != 0)
+    {
+        unsigned long long t = x % y;
+        x = y;
+        y = t;
+    }
+    return x;
+}
+/*
+Compute number of combinations.
+*/
+unsigned long long
+choose(unsigned long long n, unsigned long long k){
+
+    unsigned long long r(1);
+    for (unsigned long long d=1; d <= k; ++d, --n)
+    {
+        unsigned long long g = gcd(r, d);
+        r /= g;
+        unsigned long long t = n / (d / g);
+        r *= t;
+    }
+    return r;
+}
+/*
+Compute Rank of a Matrix.
 */
 unsigned rank_of_Matrix (const std::vector<block> matrix) {
     std::vector<block> mat; //Copy of the matrix 
@@ -214,16 +245,6 @@ void writeFreeCoef(const vector<int>& a0){
     myFile.close();
 }
 
-vector<vecspaces> nullspaces;
-void nullspace(vector<vecspace>& subspaces){
-    
-    for (int i = 0; i < subspaces.size(); ++i)
-    {
-        //add library
-        nullspaces[i]=null(subspaces[i])
-    }
-
-}
 
 bool isInSubspace(vector<vecspace>& subspaces, block v){
     bool isIn= true;
@@ -241,6 +262,71 @@ bool isInSubspace(vector<vecspace>& subspaces, block v){
     }
     return isIn;
 }
+/*
+Functions to multiply bitsets.
+*/
+bool fullAdder(bool bit1, bool bit2, bool& carry){
+    bool sum = (bit1^bit2)^carry;
+    carry = ((bit1 && bit2) || (bit1 && carry) || (bit2 && carry));
+    return sum;
+}
+
+void bitsetAdd(block& x, const block& y){
+    bool carry = false;
+    for(int i=0; i < x.size(); ++i){
+        x[i]= fullAdder(x[i], y[i], carry);
+    }
+}
+void bitsetMultiply(block& result, const block& x, const block& y){
+    block temp = x;
+    result.reset();
+    if(temp.count() < y.count()){
+        for (int i=0; i < result.size(); ++i){
+            if (x[i]) {
+                bitsetAdd(result , y << i);
+            }
+        }
+    }
+    else{
+        for (int i=0; i < result.size(); i++){
+            if (y[i]) {
+                bitsetAdd(result, temp << i);
+            }
+        }
+    }
+}
+/*
+Generate monomials.
+*/
+void generateMonomials(vector<block>& monomials){
+    block firstMonomial(1);
+    for(int i=0; i<blocksize; ++i){
+        monomials.push_back(firstMonomial<<i);
+    }
+    for(int j=0; j<numofboxes; ++j){
+        for(int k=0; k<numofboxes; ++k){
+            block temp(0);
+            temp ^= Sbox[ ((monomials[3*j+k] >> 3*j)
+                      & block(0x7)).to_ulong()];
+            temp = temp << 3*j;
+            if(temp.count() == 2){
+                monomials.push_back(temp);
+            }
+        }
+    }
+    unsigned int current(3);
+    unsigned int sizeMonomials = monomials.size();
+    for(int l=0;l<sizeMonomials; ++l){
+        for (int m=l+1; m<sizeMonomials; ++m){
+            block resultMult(0);
+            bitsetMultiply(resultMult, monomials[l], monomials[m]);
+            if(resultMult!=0)
+                monomials.push_back(resultMult);
+        }
+    }
+}
+
+
 
 //////////////////
 //     MAIN     //
@@ -256,6 +342,8 @@ int main(int argc, const char * argv[]) {
 
     vector<block> base;
     vector<vecspace> subspaces;
+
+    vector<block> monomials;
     //vector<int> a0(numPartialCiphertexts ,0);
     freeCoef a0;
     unsigned int targetBit(9);
@@ -265,11 +353,10 @@ int main(int argc, const char * argv[]) {
     initInputs(a0, freeCoefPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
-<<<<<<< HEAD
-    cout << "coucouc" << endl;
 
-=======
->>>>>>> One-Style
+    generateMonomials(monomials);
+    printSequencesBlocks(monomials);
+
 
 
     //preprocessingFreeCoef(a0, partialCiphertexts, base, subspaces, targetBit);
