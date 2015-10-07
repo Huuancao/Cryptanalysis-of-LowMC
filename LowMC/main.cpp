@@ -74,26 +74,14 @@ void generateCiphertexts(const vector<block> plaintexts, vector<block>& cipherte
 }
 
 /*
-Write plaintexts in file. (Could be merged with writeCiphertexts, whatever...)
+Write blocks in file.
 */
-void writePlaintexts(const vector<block>& plaintexts){
-    ofstream myFile;
-    myFile.open("plaintexts.txt");
-    for(int i=0; i< plaintexts.size(); ++i){
-        myFile << plaintexts[i] << endl;
-    }
-    myFile.close();
-}
-
-/*
-Write ciphertexts in file. (Could be merged with writePlaintexts, whatever...)
-*/
-void writeCiphertexts(const vector<block>& ciphertexts){
+void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName){
     ofstream myFile;
     //myFile.open("ciphertexts.txt");
-    myFile.open("partialCiphertexts.txt");
-    for(int i=0; i< ciphertexts.size(); ++i){
-        myFile << ciphertexts[i] << endl;
+    myFile.open(fileName.c_str());
+    for(int i=0; i< vectorBlocks.size(); ++i){
+        myFile << vectorBlocks[i] << endl;
     }
     myFile.close();
 }
@@ -105,12 +93,12 @@ int main () {
     int maxPlaintexts(pow(2,12));
     string mode("no"); //Type "reverse" to reverse inputs, else type anything different
     generatePlaintexts(plaintexts, mode, maxPlaintexts);
-    writePlaintexts(plaintexts);
+    writeVectorsBlocks(plaintexts, "plaintexts.txt");
 
     //printSequences(plaintexts);
     generateCiphertexts(plaintexts, ciphertexts, cipher);
-    writeCiphertexts(ciphertexts);
 
+    writeVectorsBlocks(ciphertexts, "ciphertexts.txt");
 
 
     /*block a = 0xABCD;
