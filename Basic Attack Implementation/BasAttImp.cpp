@@ -25,6 +25,7 @@ const string plainPath = "../LowMC/plaintexts.txt";
 const string cipherPath = "../LowMC/ciphertexts.txt";
 const string partialCipherPath = "../LowMC/partialCiphertexts.txt";
 const string freeCoefPath= "a0.txt";
+const string monomialsPath = "monomials.txt";
 
 const unsigned identitysize = blocksize - 3*numofboxes;
 
@@ -330,7 +331,18 @@ void generateMonomials(vector<block>& monomials){
     }
 }
 
-
+/*
+Write blocks in file.
+*/
+void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName){
+    ofstream myFile;
+    //myFile.open("ciphertexts.txt");
+    myFile.open(fileName.c_str());
+    for(int i=0; i< vectorBlocks.size(); ++i){
+        myFile << vectorBlocks[i] << endl;
+    }
+    myFile.close();
+}
 
 //////////////////
 //     MAIN     //
@@ -355,10 +367,12 @@ int main(int argc, const char * argv[]) {
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
     initInputs(a0, freeCoefPath);
+    initInputs(monomials, monomialsPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
-    generateMonomials(monomials);
+    //generateMonomials(monomials);
     printSequencesBlocks(monomials);
+    //writeVectorsBlocks(monomials, monomialsPath);
 
 
 
