@@ -246,6 +246,23 @@ void writeFreeCoef(const vector<int>& a0){
     myFile.close();
 }
 
+
+bool isInSubspace(vector<vecspace>& subspaces, block v){
+    bool isIn= true;
+    for (int i = 0; i < subspaces.size(); ++i)
+    {
+        for (int j = 0; j < blocksize; ++j)
+        {
+            if (subspaces[i][j]*v[j]==1)
+            {
+                isIn=false;
+                return isIn;
+                break;
+            }
+        }
+    }
+    return isIn;
+}
 /*
 Functions to multiply bitsets.
 */
@@ -344,6 +361,92 @@ void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName
     myFile.close();
 }
 
+
+void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vector<block>& A){
+    for (int i = 0; i < ciphertexts.size(); ++i)
+    {
+        for (int j = 0; j < monomials.size(); ++j)
+        {
+            for (int k = 0; k < blocksize; ++k)
+            {
+                if (ciphertexts[i][k]==0 && monomials[j][k]==1)
+                {
+                    A[i][j]=0;
+                    //A[i].push_back(0);
+                    break;
+                }else{
+                    A[i][j]=1;
+                    //A[i].push_back(1);
+                }
+            }
+        }
+    }
+}
+
+void generateMatrixE(vector<block>& A, const vector<vecspace>& subspaces,const std::vector<block>& base, vector<block>& E){
+    for (int i = 0; i < subspaces.size(); ++i)
+    {
+        vector<block> tempSubspace;
+        for(int k=0; k < subspaces[i].size(); ++k){
+                if (subspaces[i][k]){
+                    tempSubspace.push_back(base[k]);
+                }
+            }
+        for (int j = 0; j < A.size(); ++j)
+        {
+            tempSubspace.push_back(A[j]);
+            if(rank_of_Matrix(tempSubspace)==8){
+                E[i]=E[i]^A[j];
+            }
+            tempSubspace.pop_back();
+        }
+            
+        }
+        
+}
+
+void setUpEquation(vector<block>& E, const vector<int>& a0){
+    for (int i = 0; i < E.size(); ++i)
+    {
+        E[i].set(E.size(),a0[i]);
+    }
+}
+void swapRow(vector<block>& E,int i, int j){
+    block temp= E[i];
+    E[i]=E[j];
+    E[j]=temp;
+}
+
+void solveEquation(vector<block>& E){
+    for (int i = 0; i < E.size(); ++i)
+    {
+        int k = 0;
+        while(E[k][i] != 1) k++;
+        swapRow(E,k,i);
+        for (int j = i+1; j < E.size(); ++j)
+        {
+            if (E[j][i]==1)
+            {
+                E[j]=E[i]^E[j];
+            }
+            
+        }
+    }
+    for (int i = E.size()-1; i >= 0; --i)
+    {
+        for (int j = i-1;  j>=0; --j)
+        {
+            if (E[j][i]==1)
+            {
+                E[j]=E[i]^E[j];
+            }
+        }
+    }
+
+}
+
+
+
 //////////////////
 //     MAIN     //
 //////////////////
@@ -371,10 +474,9 @@ int main(int argc, const char * argv[]) {
     setVectorSpace(base);
     setSubspaces(subspaces);
 
+    generateMonomials(monomials);
 
 
-
-    //generateMonomials(monomials);
     printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
 
