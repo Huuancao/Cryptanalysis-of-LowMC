@@ -351,28 +351,29 @@ void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName
     }
     myFile.close();
 }
-
-
+/*
+Generate Matrix A, according to Mu.
+*/
 void generateMatrixA(const vector<block>& monomials, const vector<block>& ciphertexts, vector<block>& A){
     for (int i = 0; i < ciphertexts.size(); ++i){
+        A.push_back(0);
         for (int j = 0; j < monomials.size(); ++j){
             for (int k = 0; k < blocksize; ++k){
                 if (!ciphertexts[i][k] && monomials[j][k]){
                     A[i][j]=0;
-                    //A[i].push_back(0);
                     break;
                 }else{
                     A[i][j]=1;
-                    //A[i].push_back(1);
                 }
             }
         }
     }
 }
 
-void generateMatrixE(vector<block>& A, const vector<vecspace>& subspaces, const vector<block>& base, vector<block>& E){
+void generateMatrixE(const vector<block>& A, const vector<vecspace>& subspaces, const vector<block>& base, vector<block>& E){
     for (int i = 0; i < subspaces.size(); ++i){
         vector<block> tempSubspace;
+        E.push_back(0);
         for(int k=0; k < subspaces[i].size(); ++k){
             if (subspaces[i][k]){
                tempSubspace.push_back(base[k]);
@@ -439,6 +440,10 @@ int main(int argc, const char * argv[]) {
     vector<vecspace> subspaces;
 
     vector<block> monomials;
+
+    vector<block> A;
+    vector<block> E;
+
     //vector<int> a0(numPartialCiphertexts ,0);
     freeCoef a0;
     unsigned int targetBit(9);
@@ -452,8 +457,12 @@ int main(int argc, const char * argv[]) {
 
     generateMonomials(monomials);
 
+    generateMatrixA(monomials, ciphertexts, A);
+    
+    generateMatrixE(A, subspaces, base, E);
 
-
+    printSequencesBlocks(E);
+    //printSequencesBlocks(A);
 
     //printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
