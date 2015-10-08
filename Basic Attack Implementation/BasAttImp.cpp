@@ -332,8 +332,9 @@ void generateMonomials(vector<block>& monomials){
         for (int m=l+1; m<sizeMonomials; ++m){
             block resultMult(0);
             bitsetMultiply(resultMult, monomials[l], monomials[m]);
-            if(resultMult!=0)
+            if(resultMult!=0){
                 monomials.push_back(resultMult);
+            }
         }
     }
 }
@@ -352,7 +353,7 @@ void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName
 }
 
 
-void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vector<block>& A){
+void generateMatrixA(const vector<block>& monomials, const vector<block>& ciphertexts, vector<block>& A){
     for (int i = 0; i < ciphertexts.size(); ++i){
         for (int j = 0; j < monomials.size(); ++j){
             for (int k = 0; k < blocksize; ++k){
@@ -369,7 +370,7 @@ void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vecto
     }
 }
 
-void generateMatrixE(vector<block>& A, const vector<vecspace> subspaces, const vector<block> base, vector<block>& E){
+void generateMatrixE(vector<block>& A, const vector<vecspace>& subspaces, const vector<block>& base, vector<block>& E){
     for (int i = 0; i < subspaces.size(); ++i){
         vector<block> tempSubspace;
         for(int k=0; k < subspaces[i].size(); ++k){
@@ -387,7 +388,7 @@ void generateMatrixE(vector<block>& A, const vector<vecspace> subspaces, const v
     } 
 }
 
-void setUpEquation(vector<block>& E, const vector<int> a0){
+void setUpEquation(vector<block>& E, const vector<int>& a0){
     for (int i = 0; i < E.size(); ++i){
         E[i].set(E.size(),a0[i]);
     }
@@ -401,7 +402,7 @@ void swapRow(vector<block>& E,const int i, const int j){
 void solveEquation(vector<block>& E){
     for (int i = 0; i < E.size(); ++i){
         int k = 0;
-        while(!E[k][i]) {
+        while(!E[k][i]){
             ++k;
         }
         swapRow(E,k,i);
@@ -452,7 +453,9 @@ int main(int argc, const char * argv[]) {
     generateMonomials(monomials);
 
 
-    printSequencesBlocks(monomials);
+
+
+    //printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
 
 
