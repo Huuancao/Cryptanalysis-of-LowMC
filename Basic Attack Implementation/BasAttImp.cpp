@@ -461,8 +461,8 @@ int main(int argc, const char * argv[]) {
     
     generateMatrixE(A, subspaces, base, E);
 
-    printSequencesBlocks(E);
-    //printSequencesBlocks(A);
+    //printSequencesBlocks(E);
+    printSequencesBlocks(A);
 
     //printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
