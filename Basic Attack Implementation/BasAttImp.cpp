@@ -46,7 +46,8 @@ Computes GCD.
 unsigned long long
 gcd(unsigned long long x, unsigned long long y)
 {
-    while (y != 0){
+    while (y != 0)
+    {
         unsigned long long t = x % y;
         x = y;
         y = t;
@@ -60,7 +61,8 @@ unsigned long long
 choose(unsigned long long n, unsigned long long k){
 
     unsigned long long r(1);
-    for (unsigned long long d=1; d <= k; ++d, --n){
+    for (unsigned long long d=1; d <= k; ++d, --n)
+    {
         unsigned long long g = gcd(r, d);
         r /= g;
         unsigned long long t = n / (d / g);
@@ -192,10 +194,12 @@ Read file and set inputs in vector of blocks.
 */
 void initInputs(vector<block>& textfile, string filePath){
     ifstream myFile(filePath.c_str());
-    if(myFile){
+    if(myFile)
+    {
         string bitLine;
         
-        while (getline(myFile, bitLine)){
+        while (getline(myFile, bitLine))
+        {
             block b(bitLine);
             textfile.push_back(b);
         }
@@ -212,15 +216,18 @@ Read file and set inputs in vector of blocks.
 */
 void initInputs(freeCoef& inputs, string filePath){
     ifstream myFile(filePath.c_str());
-    if(myFile){
+    if(myFile)
+    {
         string bitLine;
         
-        while (getline(myFile, bitLine)){
+        while (getline(myFile, bitLine))
+        {
             freeCoef b(bitLine);
             inputs=b;
         }
     }
-    else{
+    else
+    {
         cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;
     }
     myFile.close();
@@ -242,9 +249,12 @@ void writeFreeCoef(const vector<int>& a0){
 
 bool isInSubspace(vector<vecspace>& subspaces, block v){
     bool isIn= true;
-    for (int i = 0; i < subspaces.size(); ++i){
-        for (int j = 0; j < blocksize; ++j){
-            if (subspaces[i][j]*v[j]==1){
+    for (int i = 0; i < subspaces.size(); ++i)
+    {
+        for (int j = 0; j < blocksize; ++j)
+        {
+            if (subspaces[i][j]*v[j]==1)
+            {
                 isIn=false;
                 return isIn;
                 break;
@@ -332,9 +342,8 @@ void generateMonomials(vector<block>& monomials){
         for (int m=l+1; m<sizeMonomials; ++m){
             block resultMult(0);
             bitsetMultiply(resultMult, monomials[l], monomials[m]);
-            if(resultMult!=0){
+            if(resultMult!=0)
                 monomials.push_back(resultMult);
-            }
         }
     }
 }
@@ -351,75 +360,89 @@ void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName
     }
     myFile.close();
 }
-/*
-Generate Matrix A, according to Mu.
-*/
-void generateMatrixA(const vector<block>& monomials, const vector<block>& ciphertexts, vector<block>& A){
-    for (int i = 0; i < ciphertexts.size(); ++i){
-        A.push_back(0);
-        for (int j = 0; j < monomials.size(); ++j){
-            for (int k = 0; k < blocksize; ++k){
-                if (!ciphertexts[i][k] && monomials[j][k]){
+
+
+void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vector<block>& A){
+    for (int i = 0; i < ciphertexts.size(); ++i)
+    {
+        for (int j = 0; j < monomials.size(); ++j)
+        {
+            for (int k = 0; k < blocksize; ++k)
+            {
+                if (ciphertexts[i][k]==0 && monomials[j][k]==1)
+                {
                     A[i][j]=0;
+                    //A[i].push_back(0);
                     break;
                 }else{
                     A[i][j]=1;
+                    //A[i].push_back(1);
                 }
             }
         }
     }
 }
 
-void generateMatrixE(const vector<block>& A, const vector<vecspace>& subspaces, const vector<block>& base, vector<block>& E){
-    for (int i = 0; i < subspaces.size(); ++i){
+void generateMatrixE(vector<block>& A, const vector<vecspace>& subspaces,const std::vector<block>& base, vector<block>& E){
+    for (int i = 0; i < subspaces.size(); ++i)
+    {
         vector<block> tempSubspace;
-        E.push_back(0);
         for(int k=0; k < subspaces[i].size(); ++k){
-            if (subspaces[i][k]){
-               tempSubspace.push_back(base[k]);
+                if (subspaces[i][k]){
+                    tempSubspace.push_back(base[k]);
+                }
             }
-        }
-        for (int j = 0; j < A.size(); ++j){
+        for (int j = 0; j < A.size(); ++j)
+        {
             tempSubspace.push_back(A[j]);
             if(rank_of_Matrix(tempSubspace)==8){
                 E[i]=E[i]^A[j];
             }
             tempSubspace.pop_back();
-        }           
-    } 
+        }
+            
+        }
+        
 }
 
 void setUpEquation(vector<block>& E, const vector<int>& a0){
-    for (int i = 0; i < E.size(); ++i){
+    for (int i = 0; i < E.size(); ++i)
+    {
         E[i].set(E.size(),a0[i]);
     }
 }
-void swapRow(vector<block>& E,const int i, const int j){
+void swapRow(vector<block>& E,int i, int j){
     block temp= E[i];
     E[i]=E[j];
     E[j]=temp;
 }
 
 void solveEquation(vector<block>& E){
-    for (int i = 0; i < E.size(); ++i){
+    for (int i = 0; i < E.size(); ++i)
+    {
         int k = 0;
-        while(!E[k][i]){
-            ++k;
-        }
+        while(E[k][i] != 1) k++;
         swapRow(E,k,i);
-        for (int j = i+1; j < E.size(); ++j){
-            if (E[j][i]){
+        for (int j = i+1; j < E.size(); ++j)
+        {
+            if (E[j][i]==1)
+            {
                 E[j]=E[i]^E[j];
+            }
+            
+        }
+    }
+    for (int i = E.size()-1; i >= 0; --i)
+    {
+        for (int j = i-1;  j>=0; --j)
+        {
+            if (E[j][i]==1)
+            {
+                E[j]=E[i]^E[j]; 
             }
         }
     }
-    for (int i = E.size()-1; i >= 0; --i){
-        for (int j = i-1;  j>=0; --j){
-            if (E[j][i]){
-                E[j]=E[i]^E[j];
-            }
-        }
-    }
+
 }
 
 
@@ -440,12 +463,10 @@ int main(int argc, const char * argv[]) {
     vector<vecspace> subspaces;
 
     vector<block> monomials;
-
-    vector<block> A;
-    vector<block> E;
-
     //vector<int> a0(numPartialCiphertexts ,0);
     freeCoef a0;
+    vector<block> A;
+    vector<block> E;
     unsigned int targetBit(9);
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
@@ -456,17 +477,12 @@ int main(int argc, const char * argv[]) {
     setSubspaces(subspaces);
 
     generateMonomials(monomials);
-
-    generateMatrixA(monomials, ciphertexts, A);
-    
-    generateMatrixE(A, subspaces, base, E);
-
-    //printSequencesBlocks(E);
-    printSequencesBlocks(A);
-
+    //generateMonomials(monomials);
     //printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
-
+    //generateMatrixA(monomials,ciphertexts ,A);
+   // generateMatrixE(A,subspaces, base, E);
+   // solveEquation(E);
 
 
     //preprocessingFreeCoef(a0, partialCiphertexts, base, subspaces, targetBit);
