@@ -365,16 +365,17 @@ void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName
 void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vector<block>& A){
     for (int i = 0; i < ciphertexts.size(); ++i)
     {
+        A.push_back(0);
         for (int j = 0; j < monomials.size(); ++j)
         {
             for (int k = 0; k < blocksize; ++k)
             {
-                if (ciphertexts[i][k]==0 && monomials[j][k]==1)
+                if (!ciphertexts[i][k] && monomials[j][k])
                 {
                     A[i][j]=0;
                     //A[i].push_back(0);
                     break;
-                }else{
+                }else{    
                     A[i][j]=1;
                     //A[i].push_back(1);
                 }
@@ -387,6 +388,7 @@ void generateMatrixE(vector<block>& A, const vector<vecspace>& subspaces,const s
     for (int i = 0; i < subspaces.size(); ++i)
     {
         vector<block> tempSubspace;
+        E.push_back(0);
         for(int k=0; k < subspaces[i].size(); ++k){
                 if (subspaces[i][k]){
                     tempSubspace.push_back(base[k]);
@@ -421,26 +423,33 @@ void solveEquation(vector<block>& E){
     for (int i = 0; i < E.size(); ++i)
     {
         int k = 0;
-        while(E[k][i] != 1) k++;
+
+        while(!E[k][i]) k++;
         swapRow(E,k,i);
         for (int j = i+1; j < E.size(); ++j)
         {
-            if (E[j][i]==1)
+            if (E[j][i])
             {
                 E[j]=E[i]^E[j];
             }
             
         }
     }
-    for (int i = E.size()-1; i >= 0; --i)
+    for (int i = E.size(); i >= 0; --i)
     {
-        for (int j = i-1;  j>=0; --j)
+        int k=0;
+        while(!E[i][k] && k<E.size()) k++; 
+        if (k< E.size())
         {
-            if (E[j][i]==1)
+            for (int j = i-1;  j>=0; --j)
+        {
+            if (E[j][k])
             {
                 E[j]=E[i]^E[j]; 
             }
         }
+        }
+        
     }
 
 }
@@ -465,7 +474,13 @@ int main(int argc, const char * argv[]) {
     vector<block> monomials;
     //vector<int> a0(numPartialCiphertexts ,0);
     freeCoef a0;
+    std::bitset<16> foo (0x8fa2);
+    std::bitset<16> fro (0x7f23);
+    std::bitset<16> flo (0x0234);
     vector<block> A;
+    A.push_back(fro);
+    A.push_back(foo);
+    A.push_back(flo);
     vector<block> E;
     unsigned int targetBit(9);
     initInputs(plaintexts, plainPath);
@@ -481,8 +496,11 @@ int main(int argc, const char * argv[]) {
     //printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
     //generateMatrixA(monomials,ciphertexts ,A);
-   // generateMatrixE(A,subspaces, base, E);
-   // solveEquation(E);
+    //printSequencesBlocks(A);
+    //generateMatrixE(A,subspaces, base, E);
+    //printSequencesBlocks(E);
+    solveEquation(A);
+    printSequencesBlocks(A);
 
 
     //preprocessingFreeCoef(a0, partialCiphertexts, base, subspaces, targetBit);
