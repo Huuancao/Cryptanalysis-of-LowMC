@@ -406,7 +406,7 @@ void solveEquation(vector<block>& E){
         }
         swapRow(E,k,i);
         for (int j = i+1; j < E.size(); ++j){
-            if (E[j][i]==1){
+            if (E[j][i]){
                 E[j]=E[i]^E[j];
             }
         }
