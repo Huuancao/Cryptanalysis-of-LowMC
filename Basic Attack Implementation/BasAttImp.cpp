@@ -370,6 +370,10 @@ int main(int argc, const char * argv[]) {
     initInputs(monomials, monomialsPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
+
+
+
+
     //generateMonomials(monomials);
     printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
