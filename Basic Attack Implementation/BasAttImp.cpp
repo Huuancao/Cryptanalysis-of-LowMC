@@ -15,7 +15,8 @@ const unsigned partialRounds = 4; // Number of rounds to compute high order cons
 const unsigned tail = 7; // Number of bits in tail
 const unsigned dimension = 12; //Dimension of vector space
 const unsigned maxpermut= 4080; //Bound binary:111111110000
-const unsigned numSubspaces= 495; //Combination C(12,8)
+const unsigned numSubspaces=495; //Combination C(12,8)
+const unsigned nummonomials=125;
 const unsigned numPartialCiphertexts=4096;
 const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
 
@@ -32,6 +33,7 @@ const unsigned identitysize = blocksize - 3*numofboxes;
 typedef std::bitset<blocksize> block; // Store messages and states
 typedef std::bitset<keysize> keyblock;
 typedef std::bitset<dimension> vecspace;
+typedef std::bitset<nummonomials> monomatrix;
 typedef std::bitset<numPartialCiphertexts> freeCoef;
 
 
@@ -190,6 +192,15 @@ void printSequencesVecspaces(std::vector<vecspace>& sequences){
 }
 
 /*
+Print vector of sequences of vecspaces.
+*/
+void printSequencesMonoMatrices(std::vector<monomatrix>& sequences){
+    for(int i=0; i< sequences.size(); ++i){
+        cout << "Entry n" <<i << ": " << sequences[i] << endl;
+    }
+}
+
+/*
 Read file and set inputs in vector of blocks.
 */
 void initInputs(vector<block>& textfile, string filePath){
@@ -246,15 +257,12 @@ void writeFreeCoef(const vector<int>& a0){
     myFile.close();
 }
 
-
+/*
 bool isInSubspace(vector<vecspace>& subspaces, block v){
     bool isIn= true;
-    for (int i = 0; i < subspaces.size(); ++i)
-    {
-        for (int j = 0; j < blocksize; ++j)
-        {
-            if (subspaces[i][j]*v[j]==1)
-            {
+    for (int i = 0; i < subspaces.size(); ++i){
+        for (int j = 0; j < blocksize; ++j){
+            if (subspaces[i][j]*v[j]){
                 isIn=false;
                 return isIn;
                 break;
@@ -262,7 +270,7 @@ bool isInSubspace(vector<vecspace>& subspaces, block v){
         }
     }
     return isIn;
-}
+}*/
 /*
 Functions to multiply bitsets.
 */
@@ -362,54 +370,47 @@ void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName
 }
 
 
-void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vector<block>& A){
-    for (int i = 0; i < ciphertexts.size(); ++i)
-    {
-        A.push_back(0);
-        for (int j = 0; j < monomials.size(); ++j)
-        {
-            for (int k = 0; k < blocksize; ++k)
-            {
-                if (!ciphertexts[i][k] && monomials[j][k])
-                {
-                    A[i][j]=0;
+void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vector<monomatrix>& matrixA){
+    cout << monomials.size() << endl;
+    for (int i = 0; i < ciphertexts.size(); ++i){
+        matrixA.push_back(0);
+        for (int j = 0; j < monomials.size(); ++j){
+            for (int k = 0; k < blocksize; ++k){
+                //cout << j << " " << k << endl;
+                if (!ciphertexts[i][k] && monomials[j][k]){
+                    matrixA[i][j]=0;
                     //A[i].push_back(0);
                     break;
                 }else{    
-                    A[i][j]=1;
+                    matrixA[i][j]=1;
                     //A[i].push_back(1);
                 }
             }
         }
     }
 }
-
-void generateMatrixE(vector<block>& A, const vector<vecspace>& subspaces,const std::vector<block>& base, vector<block>& E){
-    for (int i = 0; i < subspaces.size(); ++i)
-    {
+/*
+void generateMatrixE(vector<monomatrix>& A, const vector<vecspace>& subspaces,const std::vector<block>& base, vector<monomatrix>& E){
+    for (int i = 0; i < subspaces.size(); ++i){
         vector<block> tempSubspace;
         E.push_back(0);
         for(int k=0; k < subspaces[i].size(); ++k){
-                if (subspaces[i][k]){
-                    tempSubspace.push_back(base[k]);
-                }
+            if (subspaces[i][k]){
+                tempSubspace.push_back(base[k]);
             }
-        for (int j = 0; j < A.size(); ++j)
-        {
+        }
+        for (int j = 0; j < A.size(); ++j){
             tempSubspace.push_back(A[j]);
             if(rank_of_Matrix(tempSubspace)==8){
                 E[i]=E[i]^A[j];
             }
-            tempSubspace.pop_back();
-        }
-            
-        }
-        
-}
+        tempSubspace.pop_back();
+        }        
+    }      
+}*/
 
 void setUpEquation(vector<block>& E, const vector<int>& a0){
-    for (int i = 0; i < E.size(); ++i)
-    {
+    for (int i = 0; i < E.size(); ++i){
         E[i].set(E.size(),a0[i]);
     }
 }
@@ -420,38 +421,28 @@ void swapRow(vector<block>& E,int i, int j){
 }
 
 void solveEquation(vector<block>& E){
-    for (int i = 0; i < E.size(); ++i)
-    {
+    for (int i = 0; i < E.size(); ++i){
         int k = 0;
 
         while(!E[k][i]) k++;
         swapRow(E,k,i);
-        for (int j = i+1; j < E.size(); ++j)
-        {
-            if (E[j][i])
-            {
+        for (int j = i+1; j < E.size(); ++j){
+            if (E[j][i]){
                 E[j]=E[i]^E[j];
-            }
-            
+            }  
         }
     }
-    for (int i = E.size(); i >= 0; --i)
-    {
+    for (int i = E.size(); i >= 0; --i){
         int k=0;
         while(!E[i][k] && k<E.size()) k++; 
-        if (k< E.size())
-        {
-            for (int j = i-1;  j>=0; --j)
-        {
-            if (E[j][k])
-            {
-                E[j]=E[i]^E[j]; 
+        if (k< E.size()){
+            for (int j = i-1;  j>=0; --j){
+                if (E[j][k]){
+                    E[j]=E[i]^E[j]; 
+                }
             }
-        }
-        }
-        
+        }       
     }
-
 }
 
 
@@ -474,14 +465,9 @@ int main(int argc, const char * argv[]) {
     vector<block> monomials;
     //vector<int> a0(numPartialCiphertexts ,0);
     freeCoef a0;
-    std::bitset<16> foo (0x8fa2);
-    std::bitset<16> fro (0x7f23);
-    std::bitset<16> flo (0x0234);
-    vector<block> A;
-    A.push_back(fro);
-    A.push_back(foo);
-    A.push_back(flo);
-    vector<block> E;
+
+    
+
     unsigned int targetBit(9);
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
@@ -491,16 +477,20 @@ int main(int argc, const char * argv[]) {
     setVectorSpace(base);
     setSubspaces(subspaces);
 
-    generateMonomials(monomials);
     //generateMonomials(monomials);
+
+
     //printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
-    //generateMatrixA(monomials,ciphertexts ,A);
-    //printSequencesBlocks(A);
+    vector<monomatrix> matrixA;
+    //vector<monomatrix> E;
+    generateMatrixA(monomials, ciphertexts, matrixA);
+    printSequencesMonoMatrices(matrixA);
     //generateMatrixE(A,subspaces, base, E);
-    //printSequencesBlocks(E);
-    solveEquation(A);
-    printSequencesBlocks(A);
+    //printSequencesMonoMatrices(E);
+    
+    //solveEquation(A);
+    //printSequencesBlocks(A);
 
 
     //preprocessingFreeCoef(a0, partialCiphertexts, base, subspaces, targetBit);
