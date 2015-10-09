@@ -15,7 +15,8 @@ const unsigned partialRounds = 4; // Number of rounds to compute high order cons
 const unsigned tail = 7; // Number of bits in tail
 const unsigned dimension = 12; //Dimension of vector space
 const unsigned maxpermut= 4080; //Bound binary:111111110000
-const unsigned numSubspaces= 495; //Combination C(12,8)
+const unsigned numSubspaces=495; //Combination C(12,8)
+const unsigned nummonomials=34;
 const unsigned numPartialCiphertexts=4096;
 const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
 
@@ -32,6 +33,7 @@ const unsigned identitysize = blocksize - 3*numofboxes;
 typedef std::bitset<blocksize> block; // Store messages and states
 typedef std::bitset<keysize> keyblock;
 typedef std::bitset<dimension> vecspace;
+typedef std::bitset<nummonomials> monomatrix;
 typedef std::bitset<numPartialCiphertexts> freeCoef;
 
 
@@ -46,7 +48,8 @@ Computes GCD.
 unsigned long long
 gcd(unsigned long long x, unsigned long long y)
 {
-    while (y != 0){
+    while (y != 0)
+    {
         unsigned long long t = x % y;
         x = y;
         y = t;
@@ -60,7 +63,8 @@ unsigned long long
 choose(unsigned long long n, unsigned long long k){
 
     unsigned long long r(1);
-    for (unsigned long long d=1; d <= k; ++d, --n){
+    for (unsigned long long d=1; d <= k; ++d, --n)
+    {
         unsigned long long g = gcd(r, d);
         r /= g;
         unsigned long long t = n / (d / g);
@@ -188,14 +192,25 @@ void printSequencesVecspaces(std::vector<vecspace>& sequences){
 }
 
 /*
+Print vector of sequences of vecspaces.
+*/
+void printSequencesMonoMatrices(std::vector<monomatrix>& sequences){
+    for(int i=0; i< sequences.size(); ++i){
+        cout << "Entry n" <<i << ": " << sequences[i] << endl;
+    }
+}
+
+/*
 Read file and set inputs in vector of blocks.
 */
 void initInputs(vector<block>& textfile, string filePath){
     ifstream myFile(filePath.c_str());
-    if(myFile){
+    if(myFile)
+    {
         string bitLine;
         
-        while (getline(myFile, bitLine)){
+        while (getline(myFile, bitLine))
+        {
             block b(bitLine);
             textfile.push_back(b);
         }
@@ -212,15 +227,18 @@ Read file and set inputs in vector of blocks.
 */
 void initInputs(freeCoef& inputs, string filePath){
     ifstream myFile(filePath.c_str());
-    if(myFile){
+    if(myFile)
+    {
         string bitLine;
         
-        while (getline(myFile, bitLine)){
+        while (getline(myFile, bitLine))
+        {
             freeCoef b(bitLine);
             inputs=b;
         }
     }
-    else{
+    else
+    {
         cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;
     }
     myFile.close();
@@ -239,12 +257,12 @@ void writeFreeCoef(const vector<int>& a0){
     myFile.close();
 }
 
-
+/*
 bool isInSubspace(vector<vecspace>& subspaces, block v){
     bool isIn= true;
     for (int i = 0; i < subspaces.size(); ++i){
         for (int j = 0; j < blocksize; ++j){
-            if (subspaces[i][j]*v[j]==1){
+            if (subspaces[i][j]*v[j]){
                 isIn=false;
                 return isIn;
                 break;
@@ -252,7 +270,7 @@ bool isInSubspace(vector<vecspace>& subspaces, block v){
         }
     }
     return isIn;
-}
+}*/
 /*
 Functions to multiply bitsets.
 */
@@ -330,9 +348,15 @@ void generateMonomials(vector<block>& monomials){
     unsigned int sizeMonomials = monomials.size();
     for(int l=0;l<sizeMonomials; ++l){
         for (int m=l+1; m<sizeMonomials; ++m){
+            bool alreadyIn(false);
             block resultMult(0);
             bitsetMultiply(resultMult, monomials[l], monomials[m]);
-            if(resultMult!=0){
+            for(int n=0; n<monomials.size(); ++n){
+                if(resultMult==monomials[n]){
+                    alreadyIn=true;
+                }
+            }
+            if(resultMult!=0 && !alreadyIn){
                 monomials.push_back(resultMult);
             }
         }
@@ -353,29 +377,33 @@ void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName
 }
 
 
-void generateMatrixA(const vector<block>& monomials, const vector<block>& ciphertexts, vector<block>& A){
+void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vector<monomatrix>& matrixA){
+    cout << monomials.size() << endl;
     for (int i = 0; i < ciphertexts.size(); ++i){
+        matrixA.push_back(0);
         for (int j = 0; j < monomials.size(); ++j){
             for (int k = 0; k < blocksize; ++k){
+                //cout << j << " " << k << endl;
                 if (!ciphertexts[i][k] && monomials[j][k]){
-                    A[i][j]=0;
+                    matrixA[i][j]=0;
                     //A[i].push_back(0);
                     break;
-                }else{
-                    A[i][j]=1;
+                }else{    
+                    matrixA[i][j]=1;
                     //A[i].push_back(1);
                 }
             }
         }
     }
 }
-
-void generateMatrixE(vector<block>& A, const vector<vecspace>& subspaces, const vector<block>& base, vector<block>& E){
+/*
+void generateMatrixE(vector<monomatrix>& A, const vector<vecspace>& subspaces,const std::vector<block>& base, vector<monomatrix>& E){
     for (int i = 0; i < subspaces.size(); ++i){
         vector<block> tempSubspace;
+        E.push_back(0);
         for(int k=0; k < subspaces[i].size(); ++k){
             if (subspaces[i][k]){
-               tempSubspace.push_back(base[k]);
+                tempSubspace.push_back(base[k]);
             }
         }
         for (int j = 0; j < A.size(); ++j){
@@ -383,17 +411,17 @@ void generateMatrixE(vector<block>& A, const vector<vecspace>& subspaces, const 
             if(rank_of_Matrix(tempSubspace)==8){
                 E[i]=E[i]^A[j];
             }
-            tempSubspace.pop_back();
-        }           
-    } 
-}
+        tempSubspace.pop_back();
+        }        
+    }      
+}*/
 
 void setUpEquation(vector<block>& E, const vector<int>& a0){
     for (int i = 0; i < E.size(); ++i){
         E[i].set(E.size(),a0[i]);
     }
 }
-void swapRow(vector<block>& E,const int i, const int j){
+void swapRow(vector<block>& E,int i, int j){
     block temp= E[i];
     E[i]=E[j];
     E[j]=temp;
@@ -402,22 +430,25 @@ void swapRow(vector<block>& E,const int i, const int j){
 void solveEquation(vector<block>& E){
     for (int i = 0; i < E.size(); ++i){
         int k = 0;
-        while(!E[k][i]){
-            ++k;
-        }
+
+        while(!E[k][i]) k++;
         swapRow(E,k,i);
         for (int j = i+1; j < E.size(); ++j){
             if (E[j][i]){
                 E[j]=E[i]^E[j];
-            }
+            }  
         }
     }
-    for (int i = E.size()-1; i >= 0; --i){
-        for (int j = i-1;  j>=0; --j){
-            if (E[j][i]){
-                E[j]=E[i]^E[j];
+    for (int i = E.size(); i >= 0; --i){
+        int k=0;
+        while(!E[i][k] && k<E.size()) k++; 
+        if (k< E.size()){
+            for (int j = i-1;  j>=0; --j){
+                if (E[j][k]){
+                    E[j]=E[i]^E[j]; 
+                }
             }
-        }
+        }       
     }
 }
 
@@ -441,6 +472,11 @@ int main(int argc, const char * argv[]) {
     vector<block> monomials;
     //vector<int> a0(numPartialCiphertexts ,0);
     freeCoef a0;
+
+    vector<monomatrix> matrixA;
+    vector<monomatrix> matrixE;
+    
+
     unsigned int targetBit(9);
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
@@ -450,14 +486,21 @@ int main(int argc, const char * argv[]) {
     setVectorSpace(base);
     setSubspaces(subspaces);
 
-    generateMonomials(monomials);
+    //generateMonomials(monomials);
 
 
 
-
-    //printSequencesBlocks(monomials);
+    printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
 
+
+    generateMatrixA(monomials, ciphertexts, matrixA);
+    printSequencesMonoMatrices(matrixA);
+    //generateMatrixE(A,subspaces, base, E);
+    //printSequencesMonoMatrices(E);
+    
+    //solveEquation(A);
+    //printSequencesBlocks(A);
 
 
     //preprocessingFreeCoef(a0, partialCiphertexts, base, subspaces, targetBit);
