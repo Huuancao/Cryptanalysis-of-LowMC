@@ -16,7 +16,7 @@ const unsigned tail = 7; // Number of bits in tail
 const unsigned dimension = 12; //Dimension of vector space
 const unsigned maxpermut= 4080; //Bound binary:111111110000
 const unsigned numSubspaces=495; //Combination C(12,8)
-const unsigned nummonomials=125;
+const unsigned nummonomials=34;
 const unsigned numPartialCiphertexts=4096;
 const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
 
@@ -348,10 +348,17 @@ void generateMonomials(vector<block>& monomials){
     unsigned int sizeMonomials = monomials.size();
     for(int l=0;l<sizeMonomials; ++l){
         for (int m=l+1; m<sizeMonomials; ++m){
+            bool alreadyIn(false);
             block resultMult(0);
             bitsetMultiply(resultMult, monomials[l], monomials[m]);
-            if(resultMult!=0)
+            for(int n=0; n<monomials.size(); ++n){
+                if(resultMult==monomials[n]){
+                    alreadyIn=true;
+                }
+            }
+            if(resultMult!=0 && !alreadyIn){
                 monomials.push_back(resultMult);
+            }
         }
     }
 }
@@ -466,6 +473,8 @@ int main(int argc, const char * argv[]) {
     //vector<int> a0(numPartialCiphertexts ,0);
     freeCoef a0;
 
+    vector<monomatrix> matrixA;
+    vector<monomatrix> matrixE;
     
 
     unsigned int targetBit(9);
@@ -480,10 +489,11 @@ int main(int argc, const char * argv[]) {
     //generateMonomials(monomials);
 
 
-    //printSequencesBlocks(monomials);
+
+    printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
-    vector<monomatrix> matrixA;
-    //vector<monomatrix> E;
+
+
     generateMatrixA(monomials, ciphertexts, matrixA);
     printSequencesMonoMatrices(matrixA);
     //generateMatrixE(A,subspaces, base, E);
