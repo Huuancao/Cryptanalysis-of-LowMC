@@ -8,6 +8,7 @@
 using namespace std;
 
 const unsigned numofboxes = 3; // Number of Sboxes
+const unsigned boxsize = 3; //Number of bits in Sbox
 const unsigned blocksize = 16; // Block size in bits
 const unsigned keysize = 6; // Key size in bits
 const unsigned rounds = 6; // Number of rounds
@@ -272,8 +273,7 @@ bool isInSubspace(vector<vecspace>& subspaces, block v){
     return isIn;
 }*/
 /*
-Functions to multiply bitsets.
-*/
+Bitset multiplication functions
 bool fullAdder(bool bit1, bool bit2, bool& carry){
     bool sum = (bit1^bit2)^carry;
     carry = ((bit1 && bit2) || (bit1 && carry) || (bit2 && carry));
@@ -303,48 +303,34 @@ void bitsetMultiply(block& result, const block& x, const block& y){
             }
         }
     }
+}*/
+/*
+Functions to multiply bitsets.
+*/
+void bitsetMultiply(block& result, const block& x, const block& y){
+    result = x|y;
 }
 /*
 Generate monomials.
 */
 void generateMonomials(vector<block>& monomials){
+    //u1 generation
     block firstMonomial(1);
     for(int i=0; i<blocksize; ++i){
         monomials.push_back(firstMonomial<<i);
     }
+    //u2 generation
     for(int j=0; j<numofboxes; ++j){
-        for(int k=0; k<numofboxes; ++k){
-            block temp(0);
-            temp ^= Sbox[ ((monomials[3*j+k] >> 3*j)
-                      & block(0x7)).to_ulong()];
-            temp = temp << 3*j;
-            if(temp.count() == 2){
-                monomials.push_back(temp);
-            }
+        int permut(3);
+        for(int k=0; k<boxsize; ++k){
+            block tempMono(permut);
+            tempMono <<= (numofboxes-1-j)*boxsize;
+            monomials.push_back(tempMono);
+            permut=nextPermut(permut);
         }
     }
-    /*
-    unsigned int current(3);
-    unsigned int max(49152);
-    std::vector<block> combinationsMono;
-    do{
-        combinationsMono.push_back(current);
-        nextPermut(current);
-    }while(current<=max);
-    for(int l=0; l< combinationsMono.size(); ++l){
-        vector<block> tempMonomial;
-        for(int m=0; m<blocksize; ++m){
-            if(combinationsMono[l][m]){
-                tempMonomial.push_back(monomials[m]);            
-            }
-        }
-        block resultMult(0);
-        bitsetMultiply(resultMult, tempMonomial[0], tempMonomial[1]);
-        if(resultMult!=0){
-            monomials.push_back(resultMult);
-        }
-    }
-    */
+
+    //u3 generation
     unsigned int sizeMonomials = monomials.size();
     for(int l=0;l<sizeMonomials; ++l){
         for (int m=l+1; m<sizeMonomials; ++m){
@@ -494,8 +480,8 @@ int main(int argc, const char * argv[]) {
     //writeVectorsBlocks(monomials, monomialsPath);
 
 
-    generateMatrixA(monomials, ciphertexts, matrixA);
-    printSequencesMonoMatrices(matrixA);
+    //generateMatrixA(monomials, ciphertexts, matrixA);
+    //printSequencesMonoMatrices(matrixA);
     //generateMatrixE(A,subspaces, base, E);
     //printSequencesMonoMatrices(E);
     
