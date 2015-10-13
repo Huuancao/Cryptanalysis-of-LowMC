@@ -36,7 +36,7 @@ typedef std::bitset<blocksize> block; // Store messages and states
 typedef std::bitset<keysize> keyblock;
 typedef std::bitset<dimension> vecspace;
 typedef std::bitset<nummonomials> monomatrix;
-typedef std::bitset<numPartialCiphertexts> freeCoef;
+typedef std::bitset<numSubspaces> freeCoef;
 
 
 
@@ -110,21 +110,22 @@ unsigned rank_of_Matrix (const std::vector<block> matrix) {
 /*
 Compute
 */
-void preprocessingFreeCoef(vector<int>& a0, const vector<block>& partialCiphertexts, 
+void preprocessingFreeCoef(freeCoef& a0, const vector<block>& partialCiphertexts, 
                         const std::vector<block>& base, const vector<vecspace>& subspaces, 
                         const unsigned int targetBit){
-    for(int i=0; i< partialCiphertexts.size(); ++i){
-        for(int j=0; j< subspaces.size(); ++j){
-            vector<block> tempSubspace;
-            for(int k=0; k < subspaces[j].size(); ++k){
-                if (subspaces[j][k]){
-                    tempSubspace.push_back(base[k]);
-                }
+    for(int i=0; i< subspaces.size(); ++i){
+        vector<block> tempSubspace;
+        for(int j=0; j < subspaces[i].size(); ++j){
+            if (subspaces[i][j]){
+                tempSubspace.push_back(base[j]);
             }
-            tempSubspace.push_back(partialCiphertexts[i]);
+        }
+        for(int k=0; k<partialCiphertexts.size(); ++k){
+            tempSubspace.push_back(partialCiphertexts[k]);
             if(rank_of_Matrix(tempSubspace)==8){
-                a0[i]=(a0[i]+partialCiphertexts[i][blocksize-7])%2;
+                a0[i]=a0[i]^partialCiphertexts[k][targetBit];
             }
+            tempSubspace.pop_back();
         }
     }
 }
@@ -168,7 +169,7 @@ void setVectorSpace(std::vector<block>& base){
 /*
 Print vector of integers.
 */
-void printVector(vector<int>& vector){
+void printVector(freeCoef& vector){
     for(int i=0; i<vector.size();++i){
         cout<<vector[i];
     }
@@ -249,7 +250,7 @@ void initInputs(freeCoef& inputs, string filePath){
 /*
 Write preprocessed free coef in file.
 */
-void writeFreeCoef(const vector<int>& a0){
+void writeFreeCoef(const freeCoef& a0){
     ofstream myFile;
     //myFile.open("ciphertexts.txt");
     myFile.open(freeCoefPath.c_str());
@@ -438,9 +439,48 @@ void solveEquation(vector<block>& E){
     }
 }
 
-void sboxToANF(){
+vector<unsigned> components(int n){
+    vector<unsigned> list;
+    for(int i=0; i < n+1; i++){
+        if (n&i == i){
+            list.push_back(i);
+        }
+    }
+    return list;
+}
+
+vector<vector<unsigned>> sboxToANF(){
     unsigned num = Sbox.size();
-    unsigned dim = 
+    unsigned dim = log2(num);
+    if(2^dim != num){
+        cout << "Invalid size of sbox!" << endl;
+    }
+    vector<vector<unsigned>> ls;
+    for(int i=0; i < dim; ++i){
+        vector<unsigned> dc;
+        for(int j=0; j< num; ++j){
+            unsigned sign(0);
+            vector<unsigned> compo = components(j);
+            for(int k=0; k<compo.size(); ++k){
+                sign=sign^((Sbox[compo[k]]>>i) & 0x1);
+            }
+            dc.push_back(sign);
+        }
+        ls.push_back(dc);
+    }
+}
+
+void printANF(){
+    cout << "Printing our the ANF equations." << endl;
+    vector<vector<unsigned>> anf = sboxToANF();
+    for(int i=0; i < anf.size(); ++i){
+        cout << "y" << i << " = ";
+        bool firstTime(true);
+        vector<unsigned> ls = anf[i];
+        for(int j=0; j<ls.size(); ++j){
+
+        }
+    }
 }
 
 
@@ -462,7 +502,7 @@ int main(int argc, const char * argv[]) {
 
     vector<block> monomials;
     //vector<int> a0(numPartialCiphertexts ,0);
-    freeCoef a0;
+    freeCoef a0(0);
 
     vector<monomatrix> matrixA;
     vector<monomatrix> matrixE;
@@ -472,7 +512,7 @@ int main(int argc, const char * argv[]) {
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
-    initInputs(a0, freeCoefPath);
+    //initInputs(a0, freeCoefPath);
     initInputs(monomials, monomialsPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
@@ -485,20 +525,20 @@ int main(int argc, const char * argv[]) {
     //writeVectorsBlocks(monomials, monomialsPath);
 
 
-    generateMatrixA(monomials, ciphertexts, matrixA);
+    //generateMatrixA(monomials, ciphertexts, matrixA);
     //printSequencesMonoMatrices(matrixA);
-    generateMatrixE(matrixA,ciphertexts,subspaces, base, matrixE);
-    printSequencesMonoMatrices(matrixE);
+    //generateMatrixE(matrixA,ciphertexts,subspaces, base, matrixE);
+    //printSequencesMonoMatrices(matrixE);
     
     //solveEquation(A);
     //printSequencesBlocks(A);
 
 
-    //preprocessingFreeCoef(a0, partialCiphertexts, base, subspaces, targetBit);
-    //writeFreeCoef(a0);
+    preprocessingFreeCoef(a0, partialCiphertexts, base, subspaces, targetBit);
+    writeFreeCoef(a0);
     
     //cout << a0 << endl;
-    //printVector(a0);
+    printVector(a0);
     //printSequencesVecspaces(subspaces);
     //printSequencesBlocks(base);
     //printSequencesBlocks(plaintexts);
