@@ -442,15 +442,15 @@ void solveEquation(vector<block>& E){
 vector<unsigned> components(int n){
     vector<unsigned> list;
     for(int i=0; i < n+1; i++){
-        if (n&i == i){
+        if ((n&i) == i){
             list.push_back(i);
         }
     }
     return list;
 }
 
-vector<vector<unsigned>> sboxToANF(){
-    unsigned num = Sbox.size();
+vector<vector<unsigned>> sboxToANF(vector<unsigned> Box){
+    unsigned num = Box.size();
     unsigned dim = log2(num);
     if(pow(2,dim) != num){
         cout << "Invalid size of sbox!" << endl;
@@ -462,17 +462,25 @@ vector<vector<unsigned>> sboxToANF(){
             unsigned sign(0);
             vector<unsigned> compo = components(j);
             for(int k=0; k<compo.size(); ++k){
-                sign=sign^((Sbox[compo[k]]>>i) & 0x1);
+                sign=sign^((Box[compo[k]]>>i) & 0x1);
             }
             dc.push_back(sign);
         }
         ls.push_back(dc);
     }
+    return ls;
 }
 
-void printANF(){
+void printANF(string mode){
+    vector<unsigned> Box;
+    if(mode == "reverse"){
+        Box=invSbox;
+    }
+    else{
+        Box=Sbox;
+    }
     cout << "Printing our the ANF equations." << endl;
-    vector<vector<unsigned>> anf = sboxToANF();
+    vector<vector<unsigned>> anf = sboxToANF(Box);
     for(int i=0; i < anf.size(); ++i){
         cout << "y" << i << " = ";
         bool firstTime(true);
@@ -490,8 +498,8 @@ void printANF(){
                 }
                 else{
                     unsigned mask = 0x1;
-                    while(mask < j){
-                        if(mask&j > 0){
+                    while(mask <= j){
+                        if((mask&j) > 0){
                             cout << "x" << int(log2(mask));
                         }
                         mask <<= 1;
@@ -543,7 +551,7 @@ int main(int argc, const char * argv[]) {
     //generateMonomials(monomials);
 
 
-    printANF();
+    printANF("reverse");
 
     //printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
