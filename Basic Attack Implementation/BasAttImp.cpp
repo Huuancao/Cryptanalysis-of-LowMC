@@ -17,9 +17,10 @@ const unsigned tail = 7; // Number of bits in tail
 const unsigned dimension = 12; //Dimension of vector space
 const unsigned maxpermut= 4080; //Bound binary:111111110000
 const unsigned numSubspaces=495; //Combination C(12,8)
-const unsigned nummonomials=34;
+const unsigned nummonomials=283;
 const unsigned numPartialCiphertexts=4096;
 const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
+const std::vector<unsigned> invSbox = {0x00, 0x01, 0x07, 0x02, 0x05, 0x06, 0x03, 0x04}; // Invers Sboxes
 
 
 
@@ -364,7 +365,6 @@ void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName
 
 
 void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vector<monomatrix>& matrixA){
-    cout << monomials.size() << endl;
     for (int i = 0; i < ciphertexts.size(); ++i){
         matrixA.push_back(0);
         for (int j = 0; j < monomials.size(); ++j){
@@ -382,8 +382,8 @@ void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vecto
         }
     }
 }
-/*
-void generateMatrixE(vector<monomatrix>& A, const vector<vecspace>& subspaces,const std::vector<block>& base, vector<monomatrix>& E){
+
+void generateMatrixE(const vector<monomatrix>& A, const vector<block>& ciphertexts, const vector<vecspace>& subspaces,const std::vector<block>& base, vector<monomatrix>& E){
     for (int i = 0; i < subspaces.size(); ++i){
         vector<block> tempSubspace;
         E.push_back(0);
@@ -392,15 +392,15 @@ void generateMatrixE(vector<monomatrix>& A, const vector<vecspace>& subspaces,co
                 tempSubspace.push_back(base[k]);
             }
         }
-        for (int j = 0; j < A.size(); ++j){
-            tempSubspace.push_back(A[j]);
+        for (int j = 0; j < ciphertexts.size(); ++j){
+            tempSubspace.push_back(ciphertexts[j]);
             if(rank_of_Matrix(tempSubspace)==8){
                 E[i]=E[i]^A[j];
             }
         tempSubspace.pop_back();
         }        
     }      
-}*/
+}
 
 void setUpEquation(vector<block>& E, const vector<int>& a0){
     for (int i = 0; i < E.size(); ++i){
@@ -436,6 +436,11 @@ void solveEquation(vector<block>& E){
             }
         }       
     }
+}
+
+void sboxToANF(){
+    unsigned num = Sbox.size();
+    unsigned dim = 
 }
 
 
@@ -476,14 +481,14 @@ int main(int argc, const char * argv[]) {
 
 
 
-    printSequencesBlocks(monomials);
+    //printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
 
 
-    //generateMatrixA(monomials, ciphertexts, matrixA);
+    generateMatrixA(monomials, ciphertexts, matrixA);
     //printSequencesMonoMatrices(matrixA);
-    //generateMatrixE(A,subspaces, base, E);
-    //printSequencesMonoMatrices(E);
+    generateMatrixE(matrixA,ciphertexts,subspaces, base, matrixE);
+    printSequencesMonoMatrices(matrixE);
     
     //solveEquation(A);
     //printSequencesBlocks(A);
