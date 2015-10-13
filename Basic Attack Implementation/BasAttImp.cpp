@@ -452,7 +452,7 @@ vector<unsigned> components(int n){
 vector<vector<unsigned>> sboxToANF(){
     unsigned num = Sbox.size();
     unsigned dim = log2(num);
-    if(2^dim != num){
+    if(pow(2,dim) != num){
         cout << "Invalid size of sbox!" << endl;
     }
     vector<vector<unsigned>> ls;
@@ -478,8 +478,31 @@ void printANF(){
         bool firstTime(true);
         vector<unsigned> ls = anf[i];
         for(int j=0; j<ls.size(); ++j){
-
+            if(ls[j]){
+                if(firstTime){
+                    firstTime=false;
+                }
+                else{
+                    cout << " + ";
+                }
+                if(j==0){
+                    cout << "1";
+                }
+                else{
+                    unsigned mask = 0x1;
+                    while(mask < j){
+                        if(mask&j > 0){
+                            cout << "x" << int(log2(mask));
+                        }
+                        mask <<= 1;
+                    }
+                }
+            }
         }
+        if(firstTime){
+            cout << "0";
+        }
+        cout << endl;
     }
 }
 
@@ -512,7 +535,7 @@ int main(int argc, const char * argv[]) {
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
-    //initInputs(a0, freeCoefPath);
+    initInputs(a0, freeCoefPath);
     initInputs(monomials, monomialsPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
@@ -520,6 +543,7 @@ int main(int argc, const char * argv[]) {
     //generateMonomials(monomials);
 
 
+    printANF();
 
     //printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
@@ -534,11 +558,11 @@ int main(int argc, const char * argv[]) {
     //printSequencesBlocks(A);
 
 
-    preprocessingFreeCoef(a0, partialCiphertexts, base, subspaces, targetBit);
-    writeFreeCoef(a0);
+    //preprocessingFreeCoef(a0, partialCiphertexts, base, subspaces, targetBit);
+    //writeFreeCoef(a0);
     
     //cout << a0 << endl;
-    printVector(a0);
+    //printVector(a0);
     //printSequencesVecspaces(subspaces);
     //printSequencesBlocks(base);
     //printSequencesBlocks(plaintexts);
