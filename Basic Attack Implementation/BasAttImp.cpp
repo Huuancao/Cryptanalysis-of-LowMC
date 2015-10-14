@@ -480,6 +480,7 @@ void printANF(string mode){
         Box=Sbox;
     }
     cout << "Printing our the ANF equations." << endl;
+    cout << "x0 = c, x1 = b, x2 = a" << endl;
     vector<vector<unsigned>> anf = sboxToANF(Box);
     for(int i=0; i < anf.size(); ++i){
         cout << "y" << i << " = ";
@@ -502,7 +503,7 @@ void printANF(string mode){
                         if((mask&j) > 0){
                             cout << "x" << int(log2(mask));
                         }
-                        mask <<= 1;
+                        mask = mask << 1;
                     }
                 }
             }
@@ -551,7 +552,7 @@ int main(int argc, const char * argv[]) {
     //generateMonomials(monomials);
 
 
-    printANF("reverse");
+    printANF("");
 
     //printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
