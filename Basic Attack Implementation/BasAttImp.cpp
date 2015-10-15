@@ -5,6 +5,7 @@
 #include <fstream>
 #include <cmath>
 
+
 using namespace std;
 
 const unsigned numofboxes = 3; // Number of Sboxes
@@ -108,7 +109,7 @@ unsigned rank_of_Matrix (const std::vector<block> matrix) {
     return row;
 }
 /*
-Compute
+Compute preprocessed free coefs.
 */
 void preprocessingFreeCoef(freeCoef& a0, const vector<block>& partialCiphertexts, 
                         const std::vector<block>& base, const vector<vecspace>& subspaces, 
@@ -173,7 +174,7 @@ void printVectorVectors(vector<vector<double>>& vector){
     for(int i=0; i< vector.size(); ++i){
         cout << "Entry n" <<i << ": ";
         for(int j=0; j< vector[i].size(); ++j){
-            cout << vector[i][j] << " ";
+            cout << vector[i][j];
         }
         cout << endl;
     }
@@ -446,8 +447,12 @@ void setUpEquation(vector<monomatrix>& E, vector<vector<double>>& linearSystem, 
     }
 }
 
+/*
+Gaussian elimination
+*/
 void gauss(vector< vector<double> >& A) {
     int n = A.size();
+    int m = A[0].size();
 
     for (int i=0; i<n; i++) {
         // Search for maximum in this column
@@ -461,7 +466,7 @@ void gauss(vector< vector<double> >& A) {
         }
 
         // Swap maximum row with current row (column by column)
-        for (int k=i; k<n+1;k++) {
+        for (int k=i; k<m;k++) {
             double tmp = A[maxRow][k];
             A[maxRow][k] = A[i][k];
             A[i][k] = tmp;
@@ -469,17 +474,17 @@ void gauss(vector< vector<double> >& A) {
 
         // Make all rows below this one 0 in current column
         for (int k=i+1; k<n; k++) {
-            double c = -A[k][i]/A[i][i];
-            for (int j=i; j<n+1; j++) {
+            double c = A[k][i]/A[i][i];
+            for (int j=i; j<m; j++) {
                 if (i==j) {
                     A[k][j] = 0;
                 } else {
-                    A[k][j] += c * A[i][j];
+                    A[k][j] = fmod(A[k][j] + A[i][j], 2);
                 }
             }
         }
     }
-/*
+    /*
     // Solve equation Ax=b for an upper triangular matrix A
     vector<double> x(n);
     for (int i=n-1; i>=0; i--) {
@@ -489,8 +494,8 @@ void gauss(vector< vector<double> >& A) {
         }
     }
     return x;
+    */
 
-*/
 }
 
 void swapRow(vector<block>& E,int i, int j){
