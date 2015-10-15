@@ -30,6 +30,8 @@ const string cipherPath = "../LowMC/ciphertexts.txt";
 const string partialCipherPath = "../LowMC/partialCiphertexts.txt";
 const string freeCoefPath= "a0.txt";
 const string monomialsPath = "monomials.txt";
+const string matlabPath1 = "matlab1.txt";
+const string matlabPath2 = "matlab2.txt";
 
 const unsigned identitysize = blocksize - 3*numofboxes;
 
@@ -282,6 +284,28 @@ void writeFreeCoef(const freeCoef& a0){
     }
     myFile.close();
 }
+writeMatlab(vector<vector <double>>& linearSystem, freeCoef& a0){
+    cout << a0 << endl;
+    ofstream myFile;
+    myFile.open(matlabPath1.c_str());
+    myFile << "[ ";
+    for(int i=0; i< linearSystem.size(); ++i){
+        for(int j=0; j< linearSystem[0].size()-1; ++j){
+            myFile << linearSystem[i][j]<< " ";
+        }
+        if(i != linearSystem.size()-1) myFile << "; ";
+    }
+    myFile << "]" << endl;
+    myFile.close();
+    myFile.open(matlabPath2.c_str());
+    myFile << "[ ";
+    for(int k=0; k< a0.size(); ++k){
+        myFile << a0[k] << " ";
+        if(k != a0.size()-1) myFile << "; ";
+    }
+    myFile << "]";
+    myFile.close();
+}
 
 /*
 bool isInSubspace(vector<vecspace>& subspaces, block v){
@@ -474,7 +498,7 @@ void gauss(vector< vector<double> >& A) {
 
         // Make all rows below this one 0 in current column
         for (int k=i+1; k<n; k++) {
-            double c = A[k][i]/A[i][i];
+            double c = A[k][i];
             for (int j=i; j<m; j++) {
                 if (i==j) {
                     A[k][j] = 0;
@@ -665,10 +689,12 @@ int main(int argc, const char * argv[]) {
     //printSequencesMonoMatrices(matrixE);
 
     setUpEquation(matrixE, linearSystem, a0);
-    gauss(linearSystem);
+    //gauss(linearSystem);
 
     //linearSystemSolution=gauss(linearSystem);
-    printVectorVectors(linearSystem);
+    //printVectorVectors(linearSystem);
+
+    writeMatlab(linearSystem, a0);
     
     //solveEquation(A);
     //printSequencesBlocks(A);
