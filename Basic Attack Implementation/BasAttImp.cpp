@@ -167,9 +167,31 @@ void setVectorSpace(std::vector<block>& base){
     }
 }
 /*
+Print vector of vectors
+*/
+void printVectorVectors(vector<vector<double>>& vector){
+    for(int i=0; i< vector.size(); ++i){
+        cout << "Entry n" <<i << ": ";
+        for(int j=0; j< vector[i].size(); ++j){
+            cout << vector[i][j] << " ";
+        }
+        cout << endl;
+    }
+}
+/*
+Print Bitset freeCoef.
+*/
+void printFreeCoef(freeCoef& vector){
+    for(int i=0; i<vector.size();++i){
+        cout<<vector[i];
+    }
+    cout << endl;
+}
+
+/*
 Print vector of integers.
 */
-void printVector(freeCoef& vector){
+void printVector(vector<double>& vector){
     for(int i=0; i<vector.size();++i){
         cout<<vector[i];
     }
@@ -179,7 +201,7 @@ void printVector(freeCoef& vector){
 /*
 Print vector of sequences of blocks.
 */
-void printSequencesBlocks(std::vector<block>& sequences){
+void printSequencesBlocks(const std::vector<block>& sequences){
     for(int i=0; i< sequences.size(); ++i){
         cout << "Entry n" <<i << ": " << sequences[i] << endl;
     }
@@ -188,7 +210,7 @@ void printSequencesBlocks(std::vector<block>& sequences){
 /*
 Print vector of sequences of vecspaces.
 */
-void printSequencesVecspaces(std::vector<vecspace>& sequences){
+void printSequencesVecspaces(const std::vector<vecspace>& sequences){
     for(int i=0; i< sequences.size(); ++i){
         cout << "Entry n" <<i << ": " << sequences[i] << endl;
     }
@@ -197,7 +219,7 @@ void printSequencesVecspaces(std::vector<vecspace>& sequences){
 /*
 Print vector of sequences of vecspaces.
 */
-void printSequencesMonoMatrices(std::vector<monomatrix>& sequences){
+void printSequencesMonoMatrices(const std::vector<monomatrix>& sequences){
     for(int i=0; i< sequences.size(); ++i){
         cout << "Entry n" <<i << ": " << sequences[i] << endl;
     }
@@ -388,7 +410,9 @@ void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vecto
 /*
 Generate Matrix E by testing if ciphertext J belong to subspace i and then adding the corresponding jth row of A in the ith-row of E
 */
-void generateMatrixE(const vector<monomatrix>& A, const vector<block>& ciphertexts, const vector<vecspace>& subspaces,const std::vector<block>& base, vector<monomatrix>& E){
+void generateMatrixE(const vector<monomatrix>& A, const vector<block>& ciphertexts, 
+                    const vector<vecspace>& subspaces,const std::vector<block>& base, 
+                    vector<monomatrix>& E){
     for (int i = 0; i < subspaces.size(); ++i){
         vector<block> tempSubspace;
         E.push_back(0);
@@ -407,44 +431,22 @@ void generateMatrixE(const vector<monomatrix>& A, const vector<block>& ciphertex
     }      
 }
 
-void setUpEquation(vector<block>& E, const vector<int>& a0){
+void setUpEquation(vector<monomatrix>& E, vector<vector<double>>& linearSystem, const freeCoef& a0){
     for (int i = 0; i < E.size(); ++i){
-        E[i].set(E.size(),a0[i]);
-    }
-}
-void swapRow(vector<block>& E,int i, int j){
-    block temp= E[i];
-    E[i]=E[j];
-    E[j]=temp;
-}
-
-void solveEquation(vector<block>& E){
-    for (int i = 0; i < E.size(); ++i){
-        int k = 0;
-
-        while(!E[k][i]) k++;
-        swapRow(E,k,i);
-        for (int j = i+1; j < E.size(); ++j){
-            if (E[j][i]){
-                E[j]=E[i]^E[j];
-            }  
-        }
-    }
-    for (int i = E.size(); i >= 0; --i){
-        int k=0;
-        while(!E[i][k] && k<E.size()) k++; 
-        if (k< E.size()){
-            for (int j = i-1;  j>=0; --j){
-                if (E[j][k]){
-                    E[j]=E[i]^E[j]; 
-                }
+        for(int j =0; j < E[i].size(); ++j){
+            if(E[i][j]){
+                linearSystem[i].push_back(1);
             }
-        }       
+            else linearSystem[i].push_back(0);
+        }
+        if(a0[i]){
+            linearSystem[i].push_back(1);
+        }
+        else linearSystem[i].push_back(0);
     }
 }
 
-//TODO transform this
-vector<double> gauss(vector< vector<double> > A) {
+void gauss(vector< vector<double> >& A) {
     int n = A.size();
 
     for (int i=0; i<n; i++) {
@@ -477,7 +479,7 @@ vector<double> gauss(vector< vector<double> > A) {
             }
         }
     }
-
+/*
     // Solve equation Ax=b for an upper triangular matrix A
     vector<double> x(n);
     for (int i=n-1; i>=0; i--) {
@@ -487,7 +489,41 @@ vector<double> gauss(vector< vector<double> > A) {
         }
     }
     return x;
+
+*/
 }
+
+void swapRow(vector<block>& E,int i, int j){
+    block temp= E[i];
+    E[i]=E[j];
+    E[j]=temp;
+}
+
+void solveEquation(vector<block>& E){
+    for (int i = 0; i < E.size(); ++i){
+        int k = 0;
+
+        while(!E[k][i]) k++;
+        swapRow(E,k,i);
+        for (int j = i+1; j < E.size(); ++j){
+            if (E[j][i]){
+                E[j]=E[i]^E[j];
+            }  
+        }
+    }
+    for (int i = E.size(); i >= 0; --i){
+        int k=0;
+        while(!E[i][k] && k<E.size()) k++; 
+        if (k< E.size()){
+            for (int j = i-1;  j>=0; --j){
+                if (E[j][k]){
+                    E[j]=E[i]^E[j]; 
+                }
+            }
+        }       
+    }
+}
+
 
 
 /*
@@ -574,7 +610,6 @@ void printANF(string mode){
 }
 
 
-
 //////////////////
 //     MAIN     //
 //////////////////
@@ -596,6 +631,8 @@ int main(int argc, const char * argv[]) {
 
     vector<monomatrix> matrixA;
     vector<monomatrix> matrixE;
+    vector<vector <double>> linearSystem(numSubspaces);
+    vector<double> linearSystemSolution;
     
 
     unsigned int targetBit(9);
@@ -607,6 +644,7 @@ int main(int argc, const char * argv[]) {
     setVectorSpace(base);
     setSubspaces(subspaces);
 
+
     //generateMonomials(monomials);
 
 
@@ -616,10 +654,16 @@ int main(int argc, const char * argv[]) {
     //writeVectorsBlocks(monomials, monomialsPath);
 
 
-    //generateMatrixA(monomials, ciphertexts, matrixA);
+    generateMatrixA(monomials, ciphertexts, matrixA);
     //printSequencesMonoMatrices(matrixA);
-    //generateMatrixE(matrixA,ciphertexts,subspaces, base, matrixE);
+    generateMatrixE(matrixA,ciphertexts,subspaces, base, matrixE);
     //printSequencesMonoMatrices(matrixE);
+
+    setUpEquation(matrixE, linearSystem, a0);
+    gauss(linearSystem);
+
+    //linearSystemSolution=gauss(linearSystem);
+    printVectorVectors(linearSystem);
     
     //solveEquation(A);
     //printSequencesBlocks(A);
