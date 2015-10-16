@@ -286,6 +286,10 @@ void writeFreeCoef(const freeCoef& a0){
     }
     myFile.close();
 }
+
+/*
+Write Inputs for Matlab, namely matrix E and vector a0.
+*/
 writeMatlab(vector<vector <double>>& linearSystem, freeCoef& a0){
     cout << a0 << endl;
     ofstream myFile;
@@ -308,6 +312,9 @@ writeMatlab(vector<vector <double>>& linearSystem, freeCoef& a0){
     myFile << "]";
     myFile.close();
 }
+/*
+Write Inputs for Sage.
+*/
 writePython(vector<vector <double>>& linearSystem, freeCoef& a0){
     cout << a0 << endl;
     ofstream myFile;
@@ -498,7 +505,9 @@ void generateMatrixE(const vector<monomatrix>& A, const vector<block>& ciphertex
         }        
     }      
 }
-
+/*
+Set up the linear equations system by appending a0.
+*/
 void setUpEquation(vector<monomatrix>& E, vector<vector<double>>& linearSystem, const freeCoef& a0){
     for (int i = 0; i < E.size(); ++i){
         for(int j =0; j < E[i].size(); ++j){
@@ -515,7 +524,7 @@ void setUpEquation(vector<monomatrix>& E, vector<vector<double>>& linearSystem, 
 }
 
 /*
-Gaussian elimination
+Gaussian elimination.
 */
 void gauss(vector< vector<double> >& A) {
     int n = A.size();
@@ -579,48 +588,6 @@ void gauss(vector< vector<double> >& A) {
     }
     return x;
     */
-
-}
-
-void swapRow(vector<vector<double>>& linearSystem,int i, int j){
-    vector<double> temp = linearSystem[i];
-    linearSystem[i]=linearSystem[j];
-    linearSystem[j]=temp;
-}
-
-void solveEquation(vector<vector<double>>&  linearSystem){
-    for (int i = 0; i < linearSystem.size(); ++i){
-        int k = 0;
-
-        while(linearSystem[k][i]==0 && k <= linearSystem.size()) k++;
-        swapRow(linearSystem,k,i);
-        for (int j = i+1; j < linearSystem.size(); ++j){
-            if (linearSystem[j][i]==1){
-                for (int a = i; a < linearSystem[i].size(); ++a){
-                    
-                    linearSystem[j][a]=fmod(linearSystem[i][a]+linearSystem[j][a],2);
-                
-                }
-                
-            }  
-        }
-    }
-    
-    for (int i = linearSystem.size(); i >= 0; --i){
-        int k=0;
-        while(linearSystem[i][k] = 1  && k<linearSystem.size()) k++; 
-        if (k < linearSystem.size()){
-            for (int j = i-1;  j>=0; --j){
-                if (linearSystem[j][k]=1){
-                    for (int a = k; linearSystem[i].size() ; ++a)
-                    {
-                        linearSystem[j][a]=fmod(linearSystem[i][a]+linearSystem[j][a],2);
-                    }
-                     
-                }
-            }
-        }       
-    }
 }
 
 
@@ -757,24 +724,7 @@ int main(int argc, const char * argv[]) {
     //printSequencesMonoMatrices(matrixA);
     generateMatrixE(matrixA,ciphertexts,subspaces, base, matrixE);
     //printSequencesMonoMatrices(matrixE);
-    vector<vector<double> > vec;
-    vector<double> p;
-    vector<double> v;
-    vector<double> t;
-    p.push_back(1);
-    p.push_back(0);
-    p.push_back(1);
-    v.push_back(0);
-    v.push_back(0);
-    v.push_back(1);
-    t.push_back(1);
-    t.push_back(1);
-    t.push_back(1);
-    vec.push_back(t);
-    vec.push_back(p);
-    vec.push_back(v);
 
-    printVectorVectors(vec);
     //solveEquation(vec);
     //gauss(vec);
     //printVectorVectors(vec);
