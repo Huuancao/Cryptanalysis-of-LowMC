@@ -32,6 +32,8 @@ const string freeCoefPath= "a0.txt";
 const string monomialsPath = "monomials.txt";
 const string matlabPath1 = "matlab1.txt";
 const string matlabPath2 = "matlab2.txt";
+const string pythonPath1="python1.txt";
+const string pythonPath2="python2.txt";
 
 const unsigned identitysize = blocksize - 3*numofboxes;
 
@@ -288,7 +290,7 @@ writeMatlab(vector<vector <double>>& linearSystem, freeCoef& a0){
     cout << a0 << endl;
     ofstream myFile;
     myFile.open(matlabPath1.c_str());
-    myFile << "[ ";
+    myFile << "[";
     for(int i=0; i< linearSystem.size(); ++i){
         for(int j=0; j< linearSystem[0].size()-1; ++j){
             myFile << linearSystem[i][j]<< " ";
@@ -304,6 +306,47 @@ writeMatlab(vector<vector <double>>& linearSystem, freeCoef& a0){
         if(k != a0.size()-1) myFile << "; ";
     }
     myFile << "]";
+    myFile.close();
+}
+writePython(vector<vector <double>>& linearSystem, freeCoef& a0){
+    cout << a0 << endl;
+    ofstream myFile;
+    myFile.open(pythonPath1.c_str());
+    myFile << "[";
+    for(int i=0; i< linearSystem.size(); ++i){
+        myFile << "[";
+        for(int j=0; j< linearSystem[0].size()-1; ++j){
+            if (j==linearSystem[0].size()-2){
+                myFile << linearSystem[i][j];
+        }else{
+             myFile << linearSystem[i][j]<< ",";
+        }
+    }
+    if(i != linearSystem.size()-1) 
+        {
+            myFile << "],";
+    }else{
+        myFile << "]";
+    }
+    }
+    
+    myFile << "]" << endl;
+    myFile.close();
+    myFile.open(pythonPath2.c_str());
+    myFile << " (";
+    for(int k=0; k< a0.size(); ++k){
+        if(k == a0.size()-1)
+            {
+                myFile << a0[k];
+
+        }else{
+            myFile << a0[k] << ",";
+
+        
+        }
+        
+    }
+    myFile << ")";
     myFile.close();
 }
 
@@ -507,6 +550,23 @@ void gauss(vector< vector<double> >& A) {
                 }
             }
         }
+
+
+    }
+    for (int i = A.size()-1; i >= 0; --i){
+        int k=0;
+        while(A[i][k] == 0  && k< A[i].size()) k++; 
+        if (k < A[i].size()){
+            for (int j = i-1;  j>=0; --j){
+                if (A[j][k]==1){
+                    for (int a = k; a < A[i].size() ; ++a)
+                    {
+                        A[j][a]=fmod(A[i][a]+A[j][a],2);
+                    }
+                     
+                }
+            }
+        }       
     }
     /*
     // Solve equation Ax=b for an upper triangular matrix A
@@ -522,31 +582,41 @@ void gauss(vector< vector<double> >& A) {
 
 }
 
-void swapRow(vector<block>& E,int i, int j){
-    block temp= E[i];
-    E[i]=E[j];
-    E[j]=temp;
+void swapRow(vector<vector<double>>& linearSystem,int i, int j){
+    vector<double> temp = linearSystem[i];
+    linearSystem[i]=linearSystem[j];
+    linearSystem[j]=temp;
 }
 
-void solveEquation(vector<block>& E){
-    for (int i = 0; i < E.size(); ++i){
+void solveEquation(vector<vector<double>>&  linearSystem){
+    for (int i = 0; i < linearSystem.size(); ++i){
         int k = 0;
 
-        while(!E[k][i]) k++;
-        swapRow(E,k,i);
-        for (int j = i+1; j < E.size(); ++j){
-            if (E[j][i]){
-                E[j]=E[i]^E[j];
+        while(linearSystem[k][i]==0 && k <= linearSystem.size()) k++;
+        swapRow(linearSystem,k,i);
+        for (int j = i+1; j < linearSystem.size(); ++j){
+            if (linearSystem[j][i]==1){
+                for (int a = i; a < linearSystem[i].size(); ++a){
+                    
+                    linearSystem[j][a]=fmod(linearSystem[i][a]+linearSystem[j][a],2);
+                
+                }
+                
             }  
         }
     }
-    for (int i = E.size(); i >= 0; --i){
+    
+    for (int i = linearSystem.size(); i >= 0; --i){
         int k=0;
-        while(!E[i][k] && k<E.size()) k++; 
-        if (k< E.size()){
+        while(linearSystem[i][k] = 1  && k<linearSystem.size()) k++; 
+        if (k < linearSystem.size()){
             for (int j = i-1;  j>=0; --j){
-                if (E[j][k]){
-                    E[j]=E[i]^E[j]; 
+                if (linearSystem[j][k]=1){
+                    for (int a = k; linearSystem[i].size() ; ++a)
+                    {
+                        linearSystem[j][a]=fmod(linearSystem[i][a]+linearSystem[j][a],2);
+                    }
+                     
                 }
             }
         }       
@@ -687,10 +757,34 @@ int main(int argc, const char * argv[]) {
     //printSequencesMonoMatrices(matrixA);
     generateMatrixE(matrixA,ciphertexts,subspaces, base, matrixE);
     //printSequencesMonoMatrices(matrixE);
+    vector<vector<double> > vec;
+    vector<double> p;
+    vector<double> v;
+    vector<double> t;
+    p.push_back(1);
+    p.push_back(0);
+    p.push_back(1);
+    v.push_back(0);
+    v.push_back(0);
+    v.push_back(1);
+    t.push_back(1);
+    t.push_back(1);
+    t.push_back(1);
+    vec.push_back(t);
+    vec.push_back(p);
+    vec.push_back(v);
+
+    printVectorVectors(vec);
+    //solveEquation(vec);
+    //gauss(vec);
+    //printVectorVectors(vec);
 
     setUpEquation(matrixE, linearSystem, a0);
+    writePython(linearSystem, a0);
     //gauss(linearSystem);
-
+    printVectorVectors(linearSystem);
+    //
+    //solveEquation(linearSystem);
     //linearSystemSolution=gauss(linearSystem);
     //printVectorVectors(linearSystem);
 
