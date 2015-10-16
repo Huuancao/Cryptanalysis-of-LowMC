@@ -730,15 +730,14 @@ int main(int argc, const char * argv[]) {
     //printVectorVectors(vec);
 
     setUpEquation(matrixE, linearSystem, a0);
-    writePython(linearSystem, a0);
+    //writePython(linearSystem, a0);
     //gauss(linearSystem);
-    printVectorVectors(linearSystem);
-    //
+    //printVectorVectors(linearSystem);
     //solveEquation(linearSystem);
     //linearSystemSolution=gauss(linearSystem);
     //printVectorVectors(linearSystem);
 
-    writeMatlab(linearSystem, a0);
+    //writeMatlab(linearSystem, a0);
     
     //solveEquation(A);
     //printSequencesBlocks(A);
