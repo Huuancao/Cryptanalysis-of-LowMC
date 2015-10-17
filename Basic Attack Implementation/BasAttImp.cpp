@@ -326,7 +326,7 @@ writePython(vector<vector <double>>& linearSystem, freeCoef& a0){
             if (j==linearSystem[0].size()-2){
                 myFile << linearSystem[i][j];
         }else{
-             myFile << linearSystem[i][j]<< ",";
+             myFile << linearSystem[i][j]<< " ";
         }
     }
     if(i != linearSystem.size()-1) 
@@ -337,10 +337,10 @@ writePython(vector<vector <double>>& linearSystem, freeCoef& a0){
     }
     }
     
-    myFile << "]" << endl;
+    myFile << "]";
     myFile.close();
     myFile.open(pythonPath2.c_str());
-    myFile << " (";
+    myFile << " [";
     for(int k=0; k< a0.size(); ++k){
         if(k == a0.size()-1)
             {
@@ -353,7 +353,7 @@ writePython(vector<vector <double>>& linearSystem, freeCoef& a0){
         }
         
     }
-    myFile << ")";
+    myFile << "]";
     myFile.close();
 }
 
@@ -730,7 +730,7 @@ int main(int argc, const char * argv[]) {
     //printVectorVectors(vec);
 
     setUpEquation(matrixE, linearSystem, a0);
-    //writePython(linearSystem, a0);
+    writePython(linearSystem, a0);
     //gauss(linearSystem);
     //printVectorVectors(linearSystem);
     //solveEquation(linearSystem);
