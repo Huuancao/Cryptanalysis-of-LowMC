@@ -92,15 +92,16 @@ int main () {
     std::vector<block> ciphertexts;
     int maxPlaintexts(pow(2,12));
     string mode("no"); //Type "reverse" to reverse inputs, else type anything different
-    //generatePlaintexts(plaintexts, mode, maxPlaintexts);
+    generatePlaintexts(plaintexts, mode, maxPlaintexts);
     //writeVectorsBlocks(plaintexts, "plaintexts.txt");
 
     //printSequences(plaintexts);
-    //generateCiphertexts(plaintexts, ciphertexts, cipher);
+    generateCiphertexts(plaintexts, ciphertexts, cipher);
+    //printSequences(ciphertexts);
 
     //writeVectorsBlocks(ciphertexts, "ciphertexts.txt");
 
-
+    /*
     block a = 0xABCD;
 
     std::cout << "Plaintext:" << std::endl;
@@ -111,6 +112,7 @@ int main () {
     a = cipher.decrypt( a );
     std::cout << "Encryption followed by decryption of plaintext:" << std::endl;
     std::cout << a << std::endl;
+    */
     
     return 0;
 }

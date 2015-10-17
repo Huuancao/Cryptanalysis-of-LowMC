@@ -247,6 +247,7 @@ unsigned rank_of_Matrix (const std::vector<block> matrix) {
 Compute preprocessed free coefs.
 */
 void preprocessingFreeCoef(vector<freeCoef>& a0, const vector<block>& partialCiphertexts, 
+                        const vector<block>& plaintexts,
                         const std::vector<block>& base, const vector<vecspace>& subspaces){
     for(int i=0; i< subspaces.size(); ++i){
         vector<block> tempSubspace;
@@ -255,8 +256,8 @@ void preprocessingFreeCoef(vector<freeCoef>& a0, const vector<block>& partialCip
                 tempSubspace.push_back(base[j]);
             }
         }
-        for(int k=0; k<partialCiphertexts.size(); ++k){
-            tempSubspace.push_back(partialCiphertexts[k]);
+        for(int k=0; k<plaintexts.size(); ++k){
+            tempSubspace.push_back(plaintexts[k]);
             if(rank_of_Matrix(tempSubspace)==8){
                 for(int l=0; l< a0.size(); ++l){
                     a0[l][i]=a0[l][i]^partialCiphertexts[k][l];
@@ -560,17 +561,13 @@ Generate Matrix A, Prod c_i^u_i
 */
 void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vector<monomatrix>& matrixA){
     for (int i = 0; i < ciphertexts.size(); ++i){
-        matrixA.push_back(0);
         for (int j = 0; j < monomials.size(); ++j){
             for (int k = 0; k < blocksize; ++k){
-                //cout << j << " " << k << endl;
                 if (!ciphertexts[i][k] && monomials[j][k]){
                     matrixA[i][j]=0;
-                    //A[i].push_back(0);
                     break;
                 }else{    
                     matrixA[i][j]=1;
-                    //A[i].push_back(1);
                 }
             }
         }
@@ -584,7 +581,6 @@ void generateMatrixE(const vector<monomatrix>& A, const vector<block>& ciphertex
                     vector<monomatrix>& E){
     for (int i = 0; i < subspaces.size(); ++i){
         vector<block> tempSubspace;
-        E.push_back(0);
         for(int k=0; k < subspaces[i].size(); ++k){
             if (subspaces[i][k]){
                 tempSubspace.push_back(base[k]);
@@ -700,20 +696,20 @@ int main(int argc, const char * argv[]) {
     vector<vecspace> subspaces;
 
     vector<block> monomials;
-    vector<freeCoef> a0(blocksize);
+    vector<freeCoef> a0(blocksize, 0);
 
-    vector<monomatrix> matrixA;
-    vector<monomatrix> matrixE;
+    vector<monomatrix> matrixA(numPartialCiphertexts,0);
+    vector<monomatrix> matrixE(numSubspaces, 0);
 
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
-    initInputs(a0, freeCoefPath);
+    //initInputs(a0, freeCoefPath);
     initInputs(monomials, monomialsPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
-    //preprocessingFreeCoef(a0, partialCiphertexts, base, subspaces);
-    //writeFreeCoef(a0);
+    preprocessingFreeCoef(a0, partialCiphertexts, plaintexts, base, subspaces);
+    writeFreeCoef(a0);
     //generateMonomials(monomials);
     //printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
