@@ -44,7 +44,138 @@ typedef std::bitset<nummonomials> monomatrix;
 typedef std::bitset<numSubspaces> freeCoef;
 
 
+//////////////////
+//  USELESS FUN //
+//////////////////
+/*
+Set up the linear equations system by appending a0.
+void setUpEquation(vector<monomatrix>& E, vector<vector<double>>& linearSystem, const freeCoef& a0){
+    for (int i = 0; i < E.size(); ++i){
+        for(int j =0; j < E[i].size(); ++j){
+            if(E[i][j]){
+                linearSystem[i].push_back(1);
+            }
+            else linearSystem[i].push_back(0);
+        }
+        if(a0[i]){
+            linearSystem[i].push_back(1);
+        }
+        else linearSystem[i].push_back(0);
+    }
+}
 
+/*
+Gaussian elimination.
+
+void gauss(vector< vector<double> >& A) {
+    int n = A.size();
+    int m = A[0].size();
+
+    for (int i=0; i<n; i++) {
+        // Search for maximum in this column
+        double maxEl = abs(A[i][i]);
+        int maxRow = i;
+        for (int k=i+1; k<n; k++) {
+            if (abs(A[k][i]) > maxEl) {
+                maxEl = abs(A[k][i]);
+                maxRow = k;
+            }
+        }
+
+        // Swap maximum row with current row (column by column)
+        for (int k=i; k<m;k++) {
+            double tmp = A[maxRow][k];
+            A[maxRow][k] = A[i][k];
+            A[i][k] = tmp;
+        }
+
+        // Make all rows below this one 0 in current column
+        for (int k=i+1; k<n; k++) {
+            double c = A[k][i];
+            for (int j=i; j<m; j++) {
+                if (i==j) {
+                    A[k][j] = 0;
+                } else {
+                    A[k][j] = fmod(A[k][j] + A[i][j], 2);
+                }
+            }
+        }
+
+
+    }
+    for (int i = A.size()-1; i >= 0; --i){
+        int k=0;
+        while(A[i][k] == 0  && k< A[i].size()) k++; 
+        if (k < A[i].size()){
+            for (int j = i-1;  j>=0; --j){
+                if (A[j][k]==1){
+                    for (int a = k; a < A[i].size() ; ++a)
+                    {
+                        A[j][a]=fmod(A[i][a]+A[j][a],2);
+                    }
+                     
+                }
+            }
+        }       
+    }
+    // Solve equation Ax=b for an upper triangular matrix A
+    vector<double> x(n);
+    for (int i=n-1; i>=0; i--) {
+        x[i] = A[i][n]/A[i][i];
+        for (int k=i-1;k>=0; k--) {
+            A[k][n] -= A[k][i] * x[i];
+        }
+    }
+    return x;
+    
+}
+*/
+/*
+bool isInSubspace(vector<vecspace>& subspaces, block v){
+    bool isIn= true;
+    for (int i = 0; i < subspaces.size(); ++i){
+        for (int j = 0; j < blocksize; ++j){
+            if (subspaces[i][j]*v[j]){
+                isIn=false;
+                return isIn;
+                break;
+            }
+        }
+    }
+    return isIn;
+}*/
+/*
+Bitset multiplication functions
+bool fullAdder(bool bit1, bool bit2, bool& carry){
+    bool sum = (bit1^bit2)^carry;
+    carry = ((bit1 && bit2) || (bit1 && carry) || (bit2 && carry));
+    return sum;
+}
+
+void bitsetAdd(block& x, const block& y){
+    bool carry = false;
+    for(int i=0; i < x.size(); ++i){
+        x[i]= fullAdder(x[i], y[i], carry);
+    }
+}
+void bitsetMultiply(block& result, const block& x, const block& y){
+    block temp = x;
+    result.reset();
+    if(temp.count() < y.count()){
+        for (int i=0; i < result.size(); ++i){
+            if (x[i]) {
+                bitsetAdd(result , y << i);
+            }
+        }
+    }
+    else{
+        for (int i=0; i < result.size(); i++){
+            if (y[i]) {
+                bitsetAdd(result, temp << i);
+            }
+        }
+    }
+}*/
 
 //////////////////
 //   FUNCTIONS  //
@@ -364,74 +495,8 @@ writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
     }
     myFile << "]";
     myFile.close();
-    
-
-    /*
-    
-    myFile << " [";
-    for(int k=0; k< a0.size(); ++k){
-        if(k == a0.size()-1)
-            {
-                myFile << a0[k];
-
-        }else{
-            myFile << a0[k] << ",";
-
-        
-        }
-        
-    }
-    myFile << "]";
-    myFile.close();
-    */
 }
 
-/*
-bool isInSubspace(vector<vecspace>& subspaces, block v){
-    bool isIn= true;
-    for (int i = 0; i < subspaces.size(); ++i){
-        for (int j = 0; j < blocksize; ++j){
-            if (subspaces[i][j]*v[j]){
-                isIn=false;
-                return isIn;
-                break;
-            }
-        }
-    }
-    return isIn;
-}*/
-/*
-Bitset multiplication functions
-bool fullAdder(bool bit1, bool bit2, bool& carry){
-    bool sum = (bit1^bit2)^carry;
-    carry = ((bit1 && bit2) || (bit1 && carry) || (bit2 && carry));
-    return sum;
-}
-
-void bitsetAdd(block& x, const block& y){
-    bool carry = false;
-    for(int i=0; i < x.size(); ++i){
-        x[i]= fullAdder(x[i], y[i], carry);
-    }
-}
-void bitsetMultiply(block& result, const block& x, const block& y){
-    block temp = x;
-    result.reset();
-    if(temp.count() < y.count()){
-        for (int i=0; i < result.size(); ++i){
-            if (x[i]) {
-                bitsetAdd(result , y << i);
-            }
-        }
-    }
-    else{
-        for (int i=0; i < result.size(); i++){
-            if (y[i]) {
-                bitsetAdd(result, temp << i);
-            }
-        }
-    }
-}*/
 /*
 Functions to multiply bitsets.
 */
@@ -534,92 +599,6 @@ void generateMatrixE(const vector<monomatrix>& A, const vector<block>& ciphertex
         }        
     }      
 }
-/*
-Set up the linear equations system by appending a0.
-
-void setUpEquation(vector<monomatrix>& E, vector<vector<double>>& linearSystem, const freeCoef& a0){
-    for (int i = 0; i < E.size(); ++i){
-        for(int j =0; j < E[i].size(); ++j){
-            if(E[i][j]){
-                linearSystem[i].push_back(1);
-            }
-            else linearSystem[i].push_back(0);
-        }
-        if(a0[i]){
-            linearSystem[i].push_back(1);
-        }
-        else linearSystem[i].push_back(0);
-    }
-}
-
-/*
-Gaussian elimination.
-
-void gauss(vector< vector<double> >& A) {
-    int n = A.size();
-    int m = A[0].size();
-
-    for (int i=0; i<n; i++) {
-        // Search for maximum in this column
-        double maxEl = abs(A[i][i]);
-        int maxRow = i;
-        for (int k=i+1; k<n; k++) {
-            if (abs(A[k][i]) > maxEl) {
-                maxEl = abs(A[k][i]);
-                maxRow = k;
-            }
-        }
-
-        // Swap maximum row with current row (column by column)
-        for (int k=i; k<m;k++) {
-            double tmp = A[maxRow][k];
-            A[maxRow][k] = A[i][k];
-            A[i][k] = tmp;
-        }
-
-        // Make all rows below this one 0 in current column
-        for (int k=i+1; k<n; k++) {
-            double c = A[k][i];
-            for (int j=i; j<m; j++) {
-                if (i==j) {
-                    A[k][j] = 0;
-                } else {
-                    A[k][j] = fmod(A[k][j] + A[i][j], 2);
-                }
-            }
-        }
-
-
-    }
-    for (int i = A.size()-1; i >= 0; --i){
-        int k=0;
-        while(A[i][k] == 0  && k< A[i].size()) k++; 
-        if (k < A[i].size()){
-            for (int j = i-1;  j>=0; --j){
-                if (A[j][k]==1){
-                    for (int a = k; a < A[i].size() ; ++a)
-                    {
-                        A[j][a]=fmod(A[i][a]+A[j][a],2);
-                    }
-                     
-                }
-            }
-        }       
-    }
-    // Solve equation Ax=b for an upper triangular matrix A
-    vector<double> x(n);
-    for (int i=n-1; i>=0; i--) {
-        x[i] = A[i][n]/A[i][i];
-        for (int k=i-1;k>=0; k--) {
-            A[k][n] -= A[k][i] * x[i];
-        }
-    }
-    return x;
-    
-}
-*/
-
-
 
 /*
 Generate all components of a given integer such that n&i == i
@@ -725,9 +704,6 @@ int main(int argc, const char * argv[]) {
 
     vector<monomatrix> matrixA;
     vector<monomatrix> matrixE;
-    vector<vector <double>> linearSystem(numSubspaces);
-    vector<double> linearSystemSolution;
-    
 
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
@@ -744,10 +720,8 @@ int main(int argc, const char * argv[]) {
 
     //printANF("");
 
-
     generateMatrixA(monomials, ciphertexts, matrixA);
     generateMatrixE(matrixA,ciphertexts,subspaces, base, matrixE);
-
 
     //printSequencesMonoMatrices(matrixA);
     //printSequencesMonoMatrices(matrixE);
