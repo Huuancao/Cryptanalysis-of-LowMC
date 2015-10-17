@@ -115,9 +115,8 @@ unsigned rank_of_Matrix (const std::vector<block> matrix) {
 /*
 Compute preprocessed free coefs.
 */
-void preprocessingFreeCoef(freeCoef& a0, const vector<block>& partialCiphertexts, 
-                        const std::vector<block>& base, const vector<vecspace>& subspaces, 
-                        const unsigned int targetBit){
+void preprocessingFreeCoef(vector<freeCoef>& a0, const vector<block>& partialCiphertexts, 
+                        const std::vector<block>& base, const vector<vecspace>& subspaces){
     for(int i=0; i< subspaces.size(); ++i){
         vector<block> tempSubspace;
         for(int j=0; j < subspaces[i].size(); ++j){
@@ -128,7 +127,12 @@ void preprocessingFreeCoef(freeCoef& a0, const vector<block>& partialCiphertexts
         for(int k=0; k<partialCiphertexts.size(); ++k){
             tempSubspace.push_back(partialCiphertexts[k]);
             if(rank_of_Matrix(tempSubspace)==8){
-                a0[i]=a0[i]^partialCiphertexts[k][targetBit];
+                for(int l=0; l< a0.size(); ++l){
+                    a0[l][i]=a0[l][i]^partialCiphertexts[k][l];
+                    /*if (l==13&& i==subspaces.size()-2){
+                        cout << rank_of_Matrix(tempSubspace) <<  " " << partialCiphertexts[k][l]<< endl;
+                    }*/
+                }
             }
             tempSubspace.pop_back();
         }
@@ -255,16 +259,18 @@ void initInputs(vector<block>& textfile, string filePath){
 /*
 Read file and set inputs in vector of blocks.
 */
-void initInputs(freeCoef& inputs, string filePath){
+void initInputs(vector<freeCoef>& inputs, string filePath){
     ifstream myFile(filePath.c_str());
     if(myFile)
     {
         string bitLine;
+        int increment(0);
         
         while (getline(myFile, bitLine))
         {
             freeCoef b(bitLine);
-            inputs=b;
+            inputs[increment]=b;
+            ++increment;
         }
     }
     else
@@ -277,12 +283,15 @@ void initInputs(freeCoef& inputs, string filePath){
 /*
 Write preprocessed free coefs in file.
 */
-void writeFreeCoef(const freeCoef& a0){
+void writeFreeCoef(const vector<freeCoef>& a0){
     ofstream myFile;
-    //myFile.open("ciphertexts.txt");
+    remove(freeCoefPath.c_str());
     myFile.open(freeCoefPath.c_str());
     for(int i=0; i< a0.size(); ++i){
-        myFile << a0[i];
+        for(int j=0; j< a0[i].size(); ++j){
+            myFile << a0[i][j];
+        }
+        myFile << endl;
     }
     myFile.close();
 }
@@ -315,31 +324,53 @@ writeMatlab(vector<vector <double>>& linearSystem, freeCoef& a0){
 /*
 Write Inputs for Sage.
 */
-writePython(vector<vector <double>>& linearSystem, freeCoef& a0){
-    cout << a0 << endl;
+writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
     ofstream myFile;
     myFile.open(pythonPath1.c_str());
     myFile << "[";
-    for(int i=0; i< linearSystem.size(); ++i){
+    for(int i=0; i< matrixE.size(); ++i){
         myFile << "[";
-        for(int j=0; j< linearSystem[0].size()-1; ++j){
-            if (j==linearSystem[0].size()-2){
-                myFile << linearSystem[i][j];
+        for(int j=0; j< matrixE[0].size(); ++j){
+            if (j==matrixE[0].size()-1){
+                    myFile << matrixE[i][j];
+            }else{
+                 myFile << matrixE[i][j]<< " ";
+            }
+        }
+        if(i != matrixE.size()) 
+            {
+                myFile << "],";
         }else{
-             myFile << linearSystem[i][j]<< " ";
+            myFile << "]";
         }
     }
-    if(i != linearSystem.size()-1) 
-        {
-            myFile << "],";
-    }else{
-        myFile << "]";
-    }
-    }
-    
     myFile << "]";
     myFile.close();
+
     myFile.open(pythonPath2.c_str());
+    myFile << "[";
+    for(int i=0; i< a0.size(); ++i){
+        myFile << "[";
+        for(int j=0; j< a0[0].size(); ++j){
+            if (j==a0[0].size()){
+                    myFile << a0[i][j];
+            }else{
+                 myFile << a0[i][j]<< " ";
+            }
+        }
+        if(i != a0.size()-1) 
+            {
+                myFile << "],";
+        }else{
+            myFile << "]";
+        }
+    }
+    myFile << "]";
+    myFile.close();
+    
+
+    /*
+    
     myFile << " [";
     for(int k=0; k< a0.size(); ++k){
         if(k == a0.size()-1)
@@ -355,6 +386,7 @@ writePython(vector<vector <double>>& linearSystem, freeCoef& a0){
     }
     myFile << "]";
     myFile.close();
+    */
 }
 
 /*
@@ -525,7 +557,7 @@ void setUpEquation(vector<monomatrix>& E, vector<vector<double>>& linearSystem, 
 
 /*
 Gaussian elimination.
-*/
+
 void gauss(vector< vector<double> >& A) {
     int n = A.size();
     int m = A[0].size();
@@ -577,7 +609,6 @@ void gauss(vector< vector<double> >& A) {
             }
         }       
     }
-    /*
     // Solve equation Ax=b for an upper triangular matrix A
     vector<double> x(n);
     for (int i=n-1; i>=0; i--) {
@@ -587,8 +618,9 @@ void gauss(vector< vector<double> >& A) {
         }
     }
     return x;
-    */
+    
 }
+*/
 
 
 
@@ -693,7 +725,7 @@ int main(int argc, const char * argv[]) {
 
     vector<block> monomials;
     //vector<int> a0(numPartialCiphertexts ,0);
-    freeCoef a0(0);
+    vector<freeCoef> a0(blocksize);
 
     vector<monomatrix> matrixA;
     vector<monomatrix> matrixE;
@@ -701,7 +733,6 @@ int main(int argc, const char * argv[]) {
     vector<double> linearSystemSolution;
     
 
-    unsigned int targetBit(9);
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
@@ -709,8 +740,8 @@ int main(int argc, const char * argv[]) {
     initInputs(monomials, monomialsPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
-
-
+    //preprocessingFreeCoef(a0, partialCiphertexts, base, subspaces);
+    //writeFreeCoef(a0);
     //generateMonomials(monomials);
 
 
@@ -729,8 +760,8 @@ int main(int argc, const char * argv[]) {
     //gauss(vec);
     //printVectorVectors(vec);
 
-    setUpEquation(matrixE, linearSystem, a0);
-    writePython(linearSystem, a0);
+    //setUpEquation(matrixE, linearSystem, a0);
+    writePython(matrixE, a0);
     //gauss(linearSystem);
     //printVectorVectors(linearSystem);
     //solveEquation(linearSystem);
@@ -743,8 +774,7 @@ int main(int argc, const char * argv[]) {
     //printSequencesBlocks(A);
 
 
-    //preprocessingFreeCoef(a0, partialCiphertexts, base, subspaces, targetBit);
-    //writeFreeCoef(a0);
+    
     
     //cout << a0 << endl;
     //printVector(a0);
