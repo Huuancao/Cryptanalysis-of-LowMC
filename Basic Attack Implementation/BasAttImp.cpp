@@ -129,9 +129,6 @@ void preprocessingFreeCoef(vector<freeCoef>& a0, const vector<block>& partialCip
             if(rank_of_Matrix(tempSubspace)==8){
                 for(int l=0; l< a0.size(); ++l){
                     a0[l][i]=a0[l][i]^partialCiphertexts[k][l];
-                    /*if (l==13&& i==subspaces.size()-2){
-                        cout << rank_of_Matrix(tempSubspace) <<  " " << partialCiphertexts[k][l]<< endl;
-                    }*/
                 }
             }
             tempSubspace.pop_back();
@@ -539,7 +536,7 @@ void generateMatrixE(const vector<monomatrix>& A, const vector<block>& ciphertex
 }
 /*
 Set up the linear equations system by appending a0.
-*/
+
 void setUpEquation(vector<monomatrix>& E, vector<vector<double>>& linearSystem, const freeCoef& a0){
     for (int i = 0; i < E.size(); ++i){
         for(int j =0; j < E[i].size(); ++j){
@@ -724,7 +721,6 @@ int main(int argc, const char * argv[]) {
     vector<vecspace> subspaces;
 
     vector<block> monomials;
-    //vector<int> a0(numPartialCiphertexts ,0);
     vector<freeCoef> a0(blocksize);
 
     vector<monomatrix> matrixA;
@@ -743,41 +739,22 @@ int main(int argc, const char * argv[]) {
     //preprocessingFreeCoef(a0, partialCiphertexts, base, subspaces);
     //writeFreeCoef(a0);
     //generateMonomials(monomials);
-
-
-    //printANF("");
-
     //printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
 
+    //printANF("");
+
 
     generateMatrixA(monomials, ciphertexts, matrixA);
-    //printSequencesMonoMatrices(matrixA);
     generateMatrixE(matrixA,ciphertexts,subspaces, base, matrixE);
+
+
+    //printSequencesMonoMatrices(matrixA);
     //printSequencesMonoMatrices(matrixE);
 
-    //solveEquation(vec);
-    //gauss(vec);
-    //printVectorVectors(vec);
 
-    //setUpEquation(matrixE, linearSystem, a0);
-    writePython(matrixE, a0);
-    //gauss(linearSystem);
-    //printVectorVectors(linearSystem);
-    //solveEquation(linearSystem);
-    //linearSystemSolution=gauss(linearSystem);
-    //printVectorVectors(linearSystem);
-
-    //writeMatlab(linearSystem, a0);
+    //writePython(matrixE, a0);
     
-    //solveEquation(A);
-    //printSequencesBlocks(A);
-
-
-    
-    
-    //cout << a0 << endl;
-    //printVector(a0);
     //printSequencesVecspaces(subspaces);
     //printSequencesBlocks(base);
     //printSequencesBlocks(plaintexts);
