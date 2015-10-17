@@ -63,9 +63,21 @@ void setLastPartMatrix( std::vector<block>& mat){
 /*
 Write Matrices.
 */
-void writeMatrices(std::vector<std::vector<block>> matrix){
+void writeMatrices(std::vector<std::vector<block>> matrix, std::string fileName){
     std::ofstream myFile;
-    myFile.open("matrices.txt");
+    myFile.open(fileName.c_str());
+
+    for(int i=0; i<matrix.size();++i){
+        for(int j=0; j<matrix[i].size(); ++j){
+            myFile << matrix[i][j] << std::endl;
+        }
+        myFile << std::endl;
+    }
+    myFile.close();
+}
+void writeMatrices(std::vector<std::vector<keyblock>> matrix, std::string fileName){
+    std::ofstream myFile;
+    myFile.open(fileName.c_str());
 
     for(int i=0; i<matrix.size();++i){
         for(int j=0; j<matrix[i].size(); ++j){
@@ -180,7 +192,7 @@ void LowMC::instantiate_LowMC () {
         invLinMatrices.push_back(invert_Matrix (LinMatrices.back()));
     }
 
-    writeMatrices(LinMatrices);
+    writeMatrices(LinMatrices, "linmatrices.txt");
 
     //printMatrix(LinMatrices);
 
@@ -205,7 +217,7 @@ void LowMC::instantiate_LowMC () {
         } while ( rank_of_Matrix_Key(mat) < std::min(blocksize, keysize) );
         KeyMatrices.push_back(mat);
     }
-    
+    writeMatrices(KeyMatrices, "keymatrices.txt");
     //printMatrix(KeyMatrices);
     
     return;
