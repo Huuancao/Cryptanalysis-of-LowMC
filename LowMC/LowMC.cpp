@@ -61,17 +61,31 @@ void setLastPartMatrix( std::vector<block>& mat){
 }
 
 /*
-Print Matrix.
+Write Matrices.
 */
-void printMatrix(std::vector<std::vector<block>> matrix){
-    std::cout << "Linear Matrix coming through!:" << std::endl;
+void writeMatrices(std::vector<std::vector<block>> matrix){
+    std::ofstream myFile;
+    myFile.open("matrices.txt");
+
     for(int i=0; i<matrix.size();++i){
-        std::cout << "Matrix n" << i << ":" << std::endl;
         for(int j=0; j<matrix[i].size(); ++j){
-            std::cout << matrix[i][j] << std::endl;
+            myFile << matrix[i][j] << std::endl;
         }
-        std::cout << std::endl;
+        myFile << std::endl;
     }
+    myFile.close();
+}
+/*
+Write Roundkeys.
+*/
+void writeRoundKeys(std::vector<block> roundkeys){
+    std::ofstream myFile;
+    myFile.open("roundkeys.txt");
+
+    for(int i=0; i<roundkeys.size();++i){
+            myFile << roundkeys[i] << std::endl;
+    }
+    myFile.close();
 }
 
 /////////////////////////////
@@ -137,6 +151,7 @@ void LowMC::keyschedule () {
     for (unsigned r = 0; r <= rounds; ++r) {
         roundkeys.push_back( MultiplyWithGF2Matrix_Key (KeyMatrices[r], key) );
     }
+    writeRoundKeys(roundkeys);
     return;
 }
 
@@ -164,6 +179,8 @@ void LowMC::instantiate_LowMC () {
         LinMatrices.push_back(mat);
         invLinMatrices.push_back(invert_Matrix (LinMatrices.back()));
     }
+
+    writeMatrices(LinMatrices);
 
     //printMatrix(LinMatrices);
 
