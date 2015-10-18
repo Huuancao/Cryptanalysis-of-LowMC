@@ -459,6 +459,7 @@ writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
     myFile << "[";
     for(int i=0; i< matrixE.size(); ++i){
         myFile << "[";
+<<<<<<< HEAD
         for(int j=0; j< matrixE[0].size(); ++j){
             if (j==matrixE[0].size()-1){
                     myFile << matrixE[i][j];
@@ -467,6 +468,29 @@ writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
             }
         }
         if(i != matrixE.size()-1) 
+=======
+        for(int j=0; j< linearSystem[0].size()-1; ++j){
+            if (j==linearSystem[0].size()-2){
+                myFile << linearSystem[i][j];
+        }else{
+             myFile << linearSystem[i][j]<< " ";
+        }
+    }
+    if(i != linearSystem.size()-1) 
+        {
+            myFile << "],";
+    }else{
+        myFile << "]";
+    }
+    }
+    
+    myFile << "]";
+    myFile.close();
+    myFile.open(pythonPath2.c_str());
+    myFile << " [";
+    for(int k=0; k< a0.size(); ++k){
+        if(k == a0.size()-1)
+>>>>>>> 1b4bf102d780204421642bc3bdb5372c0ef77391
             {
                 myFile << "],";
         }else{
@@ -739,6 +763,7 @@ int main(int argc, const char * argv[]) {
 
     //printSequencesMonoMatrices(matrixA);
     //printSequencesMonoMatrices(matrixE);
+<<<<<<< HEAD
     //test on a_0
     cout << a0[0].size() << endl;
 
@@ -751,6 +776,26 @@ int main(int argc, const char * argv[]) {
     }
     cout << counter << endl;
     cout << monomials.size() << endl;
+=======
+    
+    //solveEquation(vec);
+    //gauss(vec);
+    //printVectorVectors(vec);
+
+    setUpEquation(matrixE, linearSystem, a0);
+    writePython(linearSystem, a0);
+    //gauss(linearSystem);
+    printVectorVectors(linearSystem);
+    //
+    //solveEquation(linearSystem);
+    //linearSystemSolution=gauss(linearSystem);
+    //printVectorVectors(linearSystem);
+
+    writeMatlab(linearSystem, a0);
+    
+    //solveEquation(A);
+    //printSequencesBlocks(A);
+>>>>>>> 1b4bf102d780204421642bc3bdb5372c0ef77391
 
 
     writePython(matrixE, a0);
