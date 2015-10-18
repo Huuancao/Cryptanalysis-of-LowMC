@@ -466,7 +466,7 @@ writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
                  myFile << matrixE[i][j]<< " ";
             }
         }
-        if(i != matrixE.size()) 
+        if(i != matrixE.size()-1) 
             {
                 myFile << "],";
         }else{
@@ -504,6 +504,17 @@ Functions to multiply bitsets.
 void bitsetMultiply(block& result, const block& x, const block& y){
     result = x|y;
 }
+int hammingWeight(const block& ham){
+    int weight=0;
+    for (int i = 0; i < ham.size(); ++i){
+        if (ham[i]){
+            weight = weight+1;
+        }
+    }
+    return weight;
+    
+
+}
 /*
 Generate monomials.
 */
@@ -531,12 +542,14 @@ void generateMonomials(vector<block>& monomials){
             bool alreadyIn(false);
             block resultMult(0);
             bitsetMultiply(resultMult, monomials[l], monomials[m]);
+            int weight= hammingWeight(resultMult);
             for(int n=0; n<monomials.size(); ++n){
                 if(resultMult==monomials[n]){
                     alreadyIn=true;
                 }
             }
-            if(resultMult!=0 && !alreadyIn){
+            cout << "check weight :" << weight << endl;
+            if(resultMult!=0 && !alreadyIn && weight > 2){
                 monomials.push_back(resultMult);
             }
         }
@@ -576,7 +589,7 @@ void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vecto
 /*
 Generate Matrix E by testing if ciphertext J belong to subspace i and then adding the corresponding jth row of A in the ith-row of E
 */
-void generateMatrixE(const vector<monomatrix>& A, const vector<block>& ciphertexts, 
+void generateMatrixE(const vector<monomatrix>& A,const vector<block>& plaintexts, const vector<block>& ciphertexts, 
                     const vector<vecspace>& subspaces,const std::vector<block>& base, 
                     vector<monomatrix>& E){
     for (int i = 0; i < subspaces.size(); ++i){
@@ -587,7 +600,7 @@ void generateMatrixE(const vector<monomatrix>& A, const vector<block>& ciphertex
             }
         }
         for (int j = 0; j < ciphertexts.size(); ++j){
-            tempSubspace.push_back(ciphertexts[j]);
+            tempSubspace.push_back(plaintexts[j]);
             if(rank_of_Matrix(tempSubspace)==8){
                 E[i]=E[i]^A[j];
             }
@@ -704,28 +717,45 @@ int main(int argc, const char * argv[]) {
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
-    //initInputs(a0, freeCoefPath);
+    initInputs(a0, freeCoefPath);
     initInputs(monomials, monomialsPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
-    preprocessingFreeCoef(a0, partialCiphertexts, plaintexts, base, subspaces);
-    writeFreeCoef(a0);
+    //preprocessingFreeCoef(a0, partialCiphertexts, plaintexts, base, subspaces);
+    //writeFreeCoef(a0);
     //generateMonomials(monomials);
     //printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
-
+    printSequencesBlocks(base);
+    
     //printANF("");
 
     generateMatrixA(monomials, ciphertexts, matrixA);
-    generateMatrixE(matrixA,ciphertexts,subspaces, base, matrixE);
+    cout << "A " << matrixA.size() << endl;
+
+    // test with check if the plaintext are in S_i
+    generateMatrixE(matrixA, plaintexts,ciphertexts,subspaces, base, matrixE);
+    cout << "E "  << matrixE.size() << endl;
 
     //printSequencesMonoMatrices(matrixA);
     //printSequencesMonoMatrices(matrixE);
+    //test on a_0
+    cout << a0[0].size() << endl;
+
+    //test on monomials 
+    int counter=0;
+    for (int i= 0; i <monomials.size(); i++){
+        if(hammingWeight(monomials[i])<=2){
+            counter= counter+1;
+        }
+    }
+    cout << counter << endl;
+    cout << monomials.size() << endl;
 
 
-    //writePython(matrixE, a0);
+    writePython(matrixE, a0);
     
-    //printSequencesVecspaces(subspaces);
+    printSequencesVecspaces(subspaces);
     //printSequencesBlocks(base);
     //printSequencesBlocks(plaintexts);
     //printSequencesBlocks(ciphertexts);
