@@ -365,7 +365,90 @@ void printSequencesMonoMatrices(const std::vector<monomatrix>& sequences){
         cout << "Entry n" <<i << ": " << sequences[i] << endl;
     }
 }
-
+/*
+    Print vector of vectors
+*/
+void printVectorVectorsBlock(vector<vector<block>>& vector){
+    cout << "size :" << vector.size() << endl;
+    for(int i=0; i< vector.size(); ++i){
+        cout << "Entry n" <<i << ": ";
+        for(int j=0; j< vector[i].size(); ++j){
+            cout << vector[i][j] << endl;
+        }
+        cout << endl;
+    }
+}
+void printVectorVectorsKeyBlock(vector<vector<keyblock>>& vector){
+    cout << "size :" << vector.size() << endl;
+    for(int i=0; i< vector.size(); ++i){
+        cout << "Entry n" <<i << ": ";
+        for(int j=0; j< vector[i].size(); ++j){
+            cout << vector[i][j] << endl;
+        }
+        cout << endl;
+    }
+}
+/*
+    Read file and set inputs in vector of vector of blocks vector<vector<block> linearMatrices.
+*/
+void initInputsLinearMatrices(vector<vector<block>>& linearMatrices, string filePath){
+    ifstream myFile(filePath.c_str());
+    if(myFile)
+    {
+        block temp(0);
+        vector<block> tempVector;
+        tempVector.push_back(temp);
+        string bitLine;
+        int increment(0);
+        for (int i=0; i < rounds; i++){
+            linearMatrices.push_back(tempVector);
+        }
+        while (getline(myFile, bitLine)){   
+            if(bitLine.empty()){
+                linearMatrices[increment].erase(linearMatrices[increment].begin());
+                ++increment;
+            }else{
+                block b(bitLine);
+                linearMatrices[increment].push_back(b);
+            }
+        }         
+    }
+    else
+    {
+        cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;
+    }
+    myFile.close();
+}
+/*
+    Read file and set inputs in vector of vector of blocks vector<vector<block> linearMatrices.
+*/
+void initInputsKeyMatrices(vector<vector<keyblock>>& keyMatrices, string filePath){
+    ifstream myFile(filePath.c_str());
+    if(myFile){
+        keyblock temp(0);
+        vector<keyblock> tempVector;
+        tempVector.push_back(temp);
+        string bitLine;
+        int increment(0);
+        for (int i=0; i < 7; i++){
+            keyMatrices.push_back(tempVector);
+        }
+        while (getline(myFile, bitLine)){
+            if(bitLine.empty()){
+                keyMatrices[increment].erase(keyMatrices[increment].begin());
+                ++increment;
+            }else{
+                keyblock b(bitLine);
+                keyMatrices[increment].push_back(b);
+            }
+        }      
+    }
+    else
+    {
+        cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;
+    }
+    myFile.close();
+}
 /*
 Read file and set inputs in vector of blocks.
 */
@@ -739,6 +822,7 @@ Initialize inverted matrices of linear matrices.
 void initInvMatrices(const vector<vector<block>>& linearMatrices, vector<vector<block>>& invLinearMatrices){
     for(int i=0; i < linearMatrices.size(); ++i){
         invertMatrix(linearMatrices[i], invLinearMatrices[i]);
+        printSequencesBlocks(invLinearMatrices[i]);
     }
 }
 
@@ -765,7 +849,7 @@ int main(int argc, const char * argv[]) {
 
     vector<vector<block>> linearMatrices;
     vector<vector<block>> invLinearMatrices(rounds, vector<block>(blocksize, 0));
-    vector<vector<block>> keyMatrices;
+    vector<vector<keyblock>> keyMatrices;
     vector<block> roundConstants;
 
     initInputs(plaintexts, plainPath);
@@ -776,6 +860,12 @@ int main(int argc, const char * argv[]) {
     //initInvMatrices(linearMatrices, invLinearMatrices);
     setVectorSpace(base);
     setSubspaces(subspaces);
+    initInputsLinearMatrices(linearMatrices, linMatPath);
+    initInputsKeyMatrices(keyMatrices, keyMatPath);
+    initInputs(roundConstants, roundConstPath);
+    printVectorVectorsBlock(invLinearMatrices);
+    //printVectorVectorsKeyBlock(keyMatrices);
+    //printVectorVectorsBlock(invLinearMatrices);
     //preprocessingFreeCoef(a0, partialCiphertexts, plaintexts, base, subspaces);
     //writeFreeCoef(a0);
     //generateMonomials(monomials);
