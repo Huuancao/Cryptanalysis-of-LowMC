@@ -28,6 +28,9 @@ const std::vector<unsigned> invSbox = {0x00, 0x01, 0x07, 0x02, 0x05, 0x06, 0x03,
 const string plainPath = "../LowMC/plaintexts.txt";
 const string cipherPath = "../LowMC/ciphertexts.txt";
 const string partialCipherPath = "../LowMC/partialCiphertexts.txt";
+const string linMatPath = "../LowMC/linmatrices.txt";
+const string keyMatPath = "../LowMC/keymatrices.txt";
+const string roundConstPath = "../LowMC/roundconstants.txt";
 const string freeCoefPath= "a0.txt";
 const string monomialsPath = "monomials.txt";
 const string matlabPath1 = "matlab1.txt";
@@ -700,6 +703,10 @@ int main(int argc, const char * argv[]) {
 
     vector<monomatrix> matrixA(numPartialCiphertexts,0);
     vector<monomatrix> matrixE(numSubspaces, 0);
+
+    vector<vector<block> linearMatrices;
+    vector<vector<block> keyMatrices;
+    vector<block> roundConstants;
 
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);

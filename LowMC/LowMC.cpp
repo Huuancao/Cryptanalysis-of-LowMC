@@ -61,7 +61,7 @@ void setLastPartMatrix( std::vector<block>& mat){
 }
 
 /*
-Write Matrices.
+Write data functions.
 */
 void writeMatrices(std::vector<std::vector<block>> matrix, std::string fileName){
     std::ofstream myFile;
@@ -84,6 +84,15 @@ void writeMatrices(std::vector<std::vector<keyblock>> matrix, std::string fileNa
             myFile << matrix[i][j] << std::endl;
         }
         myFile << std::endl;
+    }
+    myFile.close();
+}
+void writeConstants(std::vector<block>& roundconstants, std::string fileName){
+    std::ofstream myFile;
+    myFile.open(fileName.c_str());
+
+    for(int i=0; i<roundconstants.size();++i){
+        myFile << roundconstants[i] << std::endl;
     }
     myFile.close();
 }
@@ -201,6 +210,8 @@ void LowMC::instantiate_LowMC () {
     for (unsigned r = 0; r < rounds; ++r) {
         roundconstants.push_back( getrandblock () );
     }
+
+    writeConstants(roundconstants, "roundconstants.txt");
 
     // Create KeyMatrices
     KeyMatrices.clear();
