@@ -374,7 +374,6 @@ void initInputs(vector<block>& textfile, string filePath){
     if(myFile)
     {
         string bitLine;
-        
         while (getline(myFile, bitLine))
         {
             block b(bitLine);
@@ -681,7 +680,67 @@ void printANF(string mode){
         cout << endl;
     }
 }
+/*
+Invert Matrix.
+*/
+vector<block> invertMatrix(const vector<block>& matrix, vector<block> invmat) {
+    vector<block> mat; //Copy of the matrix 
+    for (auto u : matrix) {
+        mat.push_back(u);
+    }
+    for (unsigned i = 0; i < blocksize; ++i) {
+        invmat[i][i] = 1;
+    }
 
+    unsigned size = mat[0].size();
+    //Transform to upper triangular matrix
+    unsigned row = 0;
+    for (unsigned col = 0; col < size; ++col) {
+        if ( !mat[row][col] ) {
+            unsigned r = row+1;
+            while (r < mat.size() && !mat[r][col]) {
+                ++r;
+            }
+            if (r >= mat.size()) {
+                continue;
+            } else {
+                auto temp = mat[row];
+                mat[row] = mat[r];
+                mat[r] = temp;
+                temp = invmat[row];
+                invmat[row] = invmat[r];
+                invmat[r] = temp;
+            }
+        }
+        for (unsigned i = row+1; i < mat.size(); ++i) {
+            if ( mat[i][col] ) {
+                mat[i] ^= mat[row];
+                invmat[i] ^= invmat[row];
+            }
+        }
+        ++row;
+    }
+
+    //Transform to identity matrix
+    for (unsigned col = size; col > 0; --col) {
+        for (unsigned r = 0; r < col-1; ++r) {
+            if (mat[r][col-1]) {
+                mat[r] ^= mat[col-1];
+                invmat[r] ^= invmat[col-1];
+            }
+        }
+    }
+
+    return invmat;
+}
+/*
+Initialize inverted matrices of linear matrices.
+*/
+void initInvMatrices(const vector<vector<block>>& linearMatrices, vector<vector<block>>& invLinearMatrices){
+    for(int i=0; i < linearMatrices.size(); ++i){
+        invertMatrix(linearMatrices[i], invLinearMatrices[i]);
+    }
+}
 
 //////////////////
 //     MAIN     //
@@ -704,27 +763,29 @@ int main(int argc, const char * argv[]) {
     vector<monomatrix> matrixA(numPartialCiphertexts,0);
     vector<monomatrix> matrixE(numSubspaces, 0);
 
-    vector<vector<block> linearMatrices;
-    vector<vector<block> keyMatrices;
+    vector<vector<block>> linearMatrices;
+    vector<vector<block>> invLinearMatrices(rounds, vector<block>(blocksize, 0));
+    vector<vector<block>> keyMatrices;
     vector<block> roundConstants;
 
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
-    //initInputs(a0, freeCoefPath);
+    initInputs(a0, freeCoefPath);
     initInputs(monomials, monomialsPath);
+    //initInvMatrices(linearMatrices, invLinearMatrices);
     setVectorSpace(base);
     setSubspaces(subspaces);
-    preprocessingFreeCoef(a0, partialCiphertexts, plaintexts, base, subspaces);
-    writeFreeCoef(a0);
+    //preprocessingFreeCoef(a0, partialCiphertexts, plaintexts, base, subspaces);
+    //writeFreeCoef(a0);
     //generateMonomials(monomials);
     //printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
 
     //printANF("");
 
-    generateMatrixA(monomials, ciphertexts, matrixA);
-    generateMatrixE(matrixA,ciphertexts,subspaces, base, matrixE);
+    //generateMatrixA(monomials, ciphertexts, matrixA);
+    //generateMatrixE(matrixA,ciphertexts,subspaces, base, matrixE);
 
     //printSequencesMonoMatrices(matrixA);
     //printSequencesMonoMatrices(matrixE);
