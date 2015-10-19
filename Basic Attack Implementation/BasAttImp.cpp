@@ -369,9 +369,8 @@ void printSequencesMonoMatrices(const std::vector<monomatrix>& sequences){
     Print vector of vectors
 */
 void printVectorVectorsBlock(vector<vector<block>>& vector){
-    cout << "size :" << vector.size() << endl;
     for(int i=0; i< vector.size(); ++i){
-        cout << "Entry n" <<i << ": ";
+        cout << "Entry n" <<i << ": "<<endl;
         for(int j=0; j< vector[i].size(); ++j){
             cout << vector[i][j] << endl;
         }
@@ -379,9 +378,8 @@ void printVectorVectorsBlock(vector<vector<block>>& vector){
     }
 }
 void printVectorVectorsKeyBlock(vector<vector<keyblock>>& vector){
-    cout << "size :" << vector.size() << endl;
     for(int i=0; i< vector.size(); ++i){
-        cout << "Entry n" <<i << ": ";
+        cout << "Entry n" <<i << ": " << endl;
         for(int j=0; j< vector[i].size(); ++j){
             cout << vector[i][j] << endl;
         }
@@ -766,11 +764,12 @@ void printANF(string mode){
 /*
 Invert Matrix.
 */
-vector<block> invertMatrix(const vector<block>& matrix, vector<block> invmat) {
-    vector<block> mat; //Copy of the matrix 
+vector<block> invertMatrix(const vector<block>& matrix) {
+    std::vector<block> mat; //Copy of the matrix 
     for (auto u : matrix) {
         mat.push_back(u);
     }
+    std::vector<block> invmat(blocksize, 0); //To hold the inverted matrix
     for (unsigned i = 0; i < blocksize; ++i) {
         invmat[i][i] = 1;
     }
@@ -813,16 +812,14 @@ vector<block> invertMatrix(const vector<block>& matrix, vector<block> invmat) {
             }
         }
     }
-
     return invmat;
 }
 /*
 Initialize inverted matrices of linear matrices.
 */
-void initInvMatrices(const vector<vector<block>>& linearMatrices, vector<vector<block>>& invLinearMatrices){
+void initInvMatrices(vector<vector<block>>& linearMatrices, vector<vector<block>>& invLinearMatrices){
     for(int i=0; i < linearMatrices.size(); ++i){
-        invertMatrix(linearMatrices[i], invLinearMatrices[i]);
-        printSequencesBlocks(invLinearMatrices[i]);
+        invLinearMatrices.push_back(invertMatrix(linearMatrices[i]));
     }
 }
 
@@ -848,7 +845,7 @@ int main(int argc, const char * argv[]) {
     vector<monomatrix> matrixE(numSubspaces, 0);
 
     vector<vector<block>> linearMatrices;
-    vector<vector<block>> invLinearMatrices(rounds, vector<block>(blocksize, 0));
+    vector<vector<block>> invLinearMatrices;
     vector<vector<keyblock>> keyMatrices;
     vector<block> roundConstants;
 
@@ -857,13 +854,14 @@ int main(int argc, const char * argv[]) {
     initInputs(partialCiphertexts, partialCipherPath);
     initInputs(a0, freeCoefPath);
     initInputs(monomials, monomialsPath);
-    //initInvMatrices(linearMatrices, invLinearMatrices);
     setVectorSpace(base);
     setSubspaces(subspaces);
     initInputsLinearMatrices(linearMatrices, linMatPath);
     initInputsKeyMatrices(keyMatrices, keyMatPath);
     initInputs(roundConstants, roundConstPath);
+    initInvMatrices(linearMatrices, invLinearMatrices);
     printVectorVectorsBlock(invLinearMatrices);
+    //printVectorVectorsBlock(linearMatrices);
     //printVectorVectorsKeyBlock(keyMatrices);
     //printVectorVectorsBlock(invLinearMatrices);
     //preprocessingFreeCoef(a0, partialCiphertexts, plaintexts, base, subspaces);
