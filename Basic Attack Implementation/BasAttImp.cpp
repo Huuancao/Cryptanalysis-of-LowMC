@@ -35,8 +35,10 @@ const string freeCoefPath= "a0.txt";
 const string monomialsPath = "monomials.txt";
 const string matlabPath1 = "matlab1.txt";
 const string matlabPath2 = "matlab2.txt";
-const string pythonPath1="python1.txt";
-const string pythonPath2="python2.txt";
+const string pythonPath1 ="python1.txt";
+const string pythonPath2 ="python2.txt";
+const string invLinMatPath ="invlinmatrices.txt";
+const string peelOffCipherPath ="peeledOffCiphertexts.txt";
 
 const unsigned identitysize = blocksize - 3*numofboxes;
 
@@ -365,7 +367,88 @@ void printSequencesMonoMatrices(const std::vector<monomatrix>& sequences){
         cout << "Entry n" <<i << ": " << sequences[i] << endl;
     }
 }
-
+/*
+    Print vector of vectors
+*/
+void printVectorVectorsBlock(vector<vector<block>>& vector){
+    for(int i=0; i< vector.size(); ++i){
+        cout << "Entry n" <<i << ": "<<endl;
+        for(int j=0; j< vector[i].size(); ++j){
+            cout << vector[i][j] << endl;
+        }
+        cout << endl;
+    }
+}
+void printVectorVectorsKeyBlock(vector<vector<keyblock>>& vector){
+    for(int i=0; i< vector.size(); ++i){
+        cout << "Entry n" <<i << ": " << endl;
+        for(int j=0; j< vector[i].size(); ++j){
+            cout << vector[i][j] << endl;
+        }
+        cout << endl;
+    }
+}
+/*
+    Read file and set inputs in vector of vector of blocks vector<vector<block> linearMatrices.
+*/
+void initInputsLinearMatrices(vector<vector<block>>& linearMatrices, string filePath){
+    ifstream myFile(filePath.c_str());
+    if(myFile)
+    {
+        block temp(0);
+        vector<block> tempVector;
+        tempVector.push_back(temp);
+        string bitLine;
+        int increment(0);
+        for (int i=0; i < rounds; i++){
+            linearMatrices.push_back(tempVector);
+        }
+        while (getline(myFile, bitLine)){   
+            if(bitLine.empty()){
+                linearMatrices[increment].erase(linearMatrices[increment].begin());
+                ++increment;
+            }else{
+                block b(bitLine);
+                linearMatrices[increment].push_back(b);
+            }
+        }         
+    }
+    else
+    {
+        cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;
+    }
+    myFile.close();
+}
+/*
+    Read file and set inputs in vector of vector of blocks vector<vector<block> linearMatrices.
+*/
+void initInputsKeyMatrices(vector<vector<keyblock>>& keyMatrices, string filePath){
+    ifstream myFile(filePath.c_str());
+    if(myFile){
+        keyblock temp(0);
+        vector<keyblock> tempVector;
+        tempVector.push_back(temp);
+        string bitLine;
+        int increment(0);
+        for (int i=0; i < 7; i++){
+            keyMatrices.push_back(tempVector);
+        }
+        while (getline(myFile, bitLine)){
+            if(bitLine.empty()){
+                keyMatrices[increment].erase(keyMatrices[increment].begin());
+                ++increment;
+            }else{
+                keyblock b(bitLine);
+                keyMatrices[increment].push_back(b);
+            }
+        }      
+    }
+    else
+    {
+        cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;
+    }
+    myFile.close();
+}
 /*
 Read file and set inputs in vector of blocks.
 */
@@ -374,7 +457,6 @@ void initInputs(vector<block>& textfile, string filePath){
     if(myFile)
     {
         string bitLine;
-        
         while (getline(myFile, bitLine))
         {
             block b(bitLine);
@@ -427,32 +509,6 @@ void writeFreeCoef(const vector<freeCoef>& a0){
     }
     myFile.close();
 }
-
-/*
-Write Inputs for Matlab, namely matrix E and vector a0.
-*/
-writeMatlab(vector<vector <double>>& linearSystem, freeCoef& a0){
-    cout << a0 << endl;
-    ofstream myFile;
-    myFile.open(matlabPath1.c_str());
-    myFile << "[";
-    for(int i=0; i< linearSystem.size(); ++i){
-        for(int j=0; j< linearSystem[0].size()-1; ++j){
-            myFile << linearSystem[i][j]<< " ";
-        }
-        if(i != linearSystem.size()-1) myFile << "; ";
-    }
-    myFile << "]" << endl;
-    myFile.close();
-    myFile.open(matlabPath2.c_str());
-    myFile << "[ ";
-    for(int k=0; k< a0.size(); ++k){
-        myFile << a0[k] << " ";
-        if(k != a0.size()-1) myFile << "; ";
-    }
-    myFile << "]";
-    myFile.close();
-}
 /*
 Write Inputs for Sage.
 */
@@ -479,7 +535,7 @@ writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
     myFile << "]";
     myFile.close();
 
-    myFile.open(pythonPath2.c_str());
+   myFile.open(pythonPath2.c_str());
     myFile << "[";
     for(int i=0; i< a0.size(); ++i){
         myFile << "[";
@@ -558,9 +614,24 @@ void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName
     }
     myFile.close();
 }
+/*
+Write Matrices in file.
+*/
+void writeMatrices(std::vector<std::vector<block>>& matrix, string fileName){
+    std::ofstream myFile;
+    myFile.open(fileName.c_str());
+
+    for(int i=0; i<matrix.size();++i){
+        for(int j=0; j<matrix[i].size(); ++j){
+            myFile << matrix[i][j] << std::endl;
+        }
+        myFile << std::endl;
+    }
+    myFile.close();
+}
 
 /*
-Generate Matrix A, Prod c_i^u_i
+Generate Matrix A, Prod c_i^u_i.
 */
 void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vector<monomatrix>& matrixA){
     for (int i = 0; i < ciphertexts.size(); ++i){
@@ -579,7 +650,7 @@ void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vecto
 /*
 Generate Matrix E by testing if ciphertext J belong to subspace i and then adding the corresponding jth row of A in the ith-row of E
 */
-void generateMatrixE(const vector<monomatrix>& A, const vector<block>& ciphertexts, 
+void generateMatrixE(const vector<monomatrix>& A,const vector<block>& plaintexts,  const vector<block>& ciphertexts, 
                     const vector<vecspace>& subspaces,const std::vector<block>& base, 
                     vector<monomatrix>& E){
     for (int i = 0; i < subspaces.size(); ++i){
@@ -590,7 +661,7 @@ void generateMatrixE(const vector<monomatrix>& A, const vector<block>& ciphertex
             }
         }
         for (int j = 0; j < ciphertexts.size(); ++j){
-            tempSubspace.push_back(ciphertexts[j]);
+            tempSubspace.push_back(plaintexts[j]);
             if(rank_of_Matrix(tempSubspace)==8){
                 E[i]=E[i]^A[j];
             }
@@ -681,7 +752,88 @@ void printANF(string mode){
         cout << endl;
     }
 }
+/*
+Invert Matrix.
+*/
+vector<block> invertMatrix(const vector<block>& matrix) {
+    std::vector<block> mat; //Copy of the matrix 
+    for (auto u : matrix) {
+        mat.push_back(u);
+    }
+    std::vector<block> invmat(blocksize, 0); //To hold the inverted matrix
+    for (unsigned i = 0; i < blocksize; ++i) {
+        invmat[i][i] = 1;
+    }
 
+    unsigned size = mat[0].size();
+    //Transform to upper triangular matrix
+    unsigned row = 0;
+    for (unsigned col = 0; col < size; ++col) {
+        if ( !mat[row][col] ) {
+            unsigned r = row+1;
+            while (r < mat.size() && !mat[r][col]) {
+                ++r;
+            }
+            if (r >= mat.size()) {
+                continue;
+            } else {
+                auto temp = mat[row];
+                mat[row] = mat[r];
+                mat[r] = temp;
+                temp = invmat[row];
+                invmat[row] = invmat[r];
+                invmat[r] = temp;
+            }
+        }
+        for (unsigned i = row+1; i < mat.size(); ++i) {
+            if ( mat[i][col] ) {
+                mat[i] ^= mat[row];
+                invmat[i] ^= invmat[row];
+            }
+        }
+        ++row;
+    }
+
+    //Transform to identity matrix
+    for (unsigned col = size; col > 0; --col) {
+        for (unsigned r = 0; r < col-1; ++r) {
+            if (mat[r][col-1]) {
+                mat[r] ^= mat[col-1];
+                invmat[r] ^= invmat[col-1];
+            }
+        }
+    }
+    return invmat;
+}
+/*
+Initialize inverted matrices of linear matrices.
+*/
+void initInvMatrices(vector<vector<block>>& linearMatrices, vector<vector<block>>& invLinearMatrices){
+    for(int i=0; i < linearMatrices.size(); ++i){
+        invLinearMatrices.push_back(invertMatrix(linearMatrices[i]));
+    }
+}
+/*
+Multiply with matrix in GF(2).
+*/
+block MultiplyWithGF2Matrix(const std::vector<block> matrix, const block message) {
+    block temp = 0;
+    for (unsigned i = 0; i < blocksize; ++i) {
+        temp[i] = (message & matrix[i]).count() % 2;
+    }
+    return temp;
+}
+/*
+Peel off last layer by adding the last round constants and multiplying with inverse of last linear matrix.
+*/
+void peelingOffCiphertexts(const vector<block>& ciphertexts, const block& roundConstant, 
+                        const vector<block>& invLinearMatrix, vector<block>& peeledOffCiphertexts){
+    for(int i=0; i< ciphertexts.size(); ++i){
+        block temp(0);
+        temp=ciphertexts[i]^roundConstant;
+        peeledOffCiphertexts.push_back(MultiplyWithGF2Matrix(invLinearMatrix, temp));
+    }
+}
 
 //////////////////
 //     MAIN     //
@@ -694,6 +846,7 @@ int main(int argc, const char * argv[]) {
     vector<block> plaintexts;
     vector<block> ciphertexts;
     vector<block> partialCiphertexts;
+    vector<block> peeledOffCiphertexts;
 
     vector<block> base;
     vector<vecspace> subspaces;
@@ -704,19 +857,38 @@ int main(int argc, const char * argv[]) {
     vector<monomatrix> matrixA(numPartialCiphertexts,0);
     vector<monomatrix> matrixE(numSubspaces, 0);
 
-    vector<vector<block> linearMatrices;
-    vector<vector<block> keyMatrices;
+    vector<vector<block>> linearMatrices;
+    vector<vector<block>> invLinearMatrices;
+    vector<vector<keyblock>> keyMatrices;
     vector<block> roundConstants;
 
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
-    //initInputs(a0, freeCoefPath);
+    initInputs(a0, freeCoefPath);
     initInputs(monomials, monomialsPath);
+    initInputs(peeledOffCiphertexts, peelOffCipherPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
-    preprocessingFreeCoef(a0, partialCiphertexts, plaintexts, base, subspaces);
-    writeFreeCoef(a0);
+    initInputsLinearMatrices(linearMatrices, linMatPath);
+    initInputsKeyMatrices(keyMatrices, keyMatPath);
+    initInputs(roundConstants, roundConstPath);
+    initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
+
+    //peelingOffCiphertexts(ciphertexts, roundConstants[5], invLinearMatrices[5], peeledOffCiphertexts);
+    //printSequencesBlocks(peeledOffCiphertexts);
+    //writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
+    
+
+    //initInvMatrices(linearMatrices, invLinearMatrices);
+    //printVectorVectorsBlock(invLinearMatrices);
+    //writeMatrices(invLinearMatrices, invLinMatPath);
+
+    //printVectorVectorsBlock(linearMatrices);
+    //printVectorVectorsKeyBlock(keyMatrices);
+    //printVectorVectorsBlock(invLinearMatrices);
+    //preprocessingFreeCoef(a0, partialCiphertexts, plaintexts, base, subspaces);
+    //writeFreeCoef(a0);
     //generateMonomials(monomials);
     //printSequencesBlocks(monomials);
     //writeVectorsBlocks(monomials, monomialsPath);
@@ -724,7 +896,7 @@ int main(int argc, const char * argv[]) {
     //printANF("");
 
     generateMatrixA(monomials, ciphertexts, matrixA);
-    generateMatrixE(matrixA,ciphertexts,subspaces, base, matrixE);
+    generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
 
     //printSequencesMonoMatrices(matrixA);
     //printSequencesMonoMatrices(matrixE);
