@@ -33,8 +33,6 @@ const string keyMatPath = "../LowMC/keymatrices.txt";
 const string roundConstPath = "../LowMC/roundconstants.txt";
 const string freeCoefPath= "a0.txt";
 const string monomialsPath = "monomials.txt";
-const string matlabPath1 = "matlab1.txt";
-const string matlabPath2 = "matlab2.txt";
 const string pythonPath1 ="python1.txt";
 const string pythonPath2 ="python2.txt";
 const string invLinMatPath ="invlinmatrices.txt";
@@ -189,10 +187,8 @@ void bitsetMultiply(block& result, const block& x, const block& y){
 Computes GCD.
 */
 unsigned long long
-gcd(unsigned long long x, unsigned long long y)
-{
-    while (y != 0)
-    {
+gcd(unsigned long long x, unsigned long long y){
+    while (y != 0){
         unsigned long long t = x % y;
         x = y;
         y = t;
@@ -206,8 +202,7 @@ unsigned long long
 choose(unsigned long long n, unsigned long long k){
 
     unsigned long long r(1);
-    for (unsigned long long d=1; d <= k; ++d, --n)
-    {
+    for (unsigned long long d=1; d <= k; ++d, --n){
         unsigned long long g = gcd(r, d);
         r /= g;
         unsigned long long t = n / (d / g);
@@ -330,7 +325,6 @@ void printFreeCoef(freeCoef& vector){
     }
     cout << endl;
 }
-
 /*
 Print vector of integers.
 */
@@ -340,7 +334,6 @@ void printVector(vector<double>& vector){
     }
     cout << endl;
 }
-
 /*
 Print vector of sequences of blocks.
 */
@@ -349,7 +342,6 @@ void printSequencesBlocks(const std::vector<block>& sequences){
         cout << "Entry n" <<i << ": " << sequences[i] << endl;
     }
 }
-
 /*
 Print vector of sequences of vecspaces.
 */
@@ -358,7 +350,6 @@ void printSequencesVecspaces(const std::vector<vecspace>& sequences){
         cout << "Entry n" <<i << ": " << sequences[i] << endl;
     }
 }
-
 /*
 Print vector of sequences of vecspaces.
 */
@@ -368,7 +359,7 @@ void printSequencesMonoMatrices(const std::vector<monomatrix>& sequences){
     }
 }
 /*
-    Print vector of vectors
+Print vector of vectors
 */
 void printVectorVectorsBlock(vector<vector<block>>& vector){
     for(int i=0; i< vector.size(); ++i){
@@ -389,12 +380,11 @@ void printVectorVectorsKeyBlock(vector<vector<keyblock>>& vector){
     }
 }
 /*
-    Read file and set inputs in vector of vector of blocks vector<vector<block> linearMatrices.
+Read file and set inputs in vector of vector of blocks vector<vector<block> linearMatrices.
 */
 void initInputsLinearMatrices(vector<vector<block>>& linearMatrices, string filePath){
     ifstream myFile(filePath.c_str());
-    if(myFile)
-    {
+    if(myFile){
         block temp(0);
         vector<block> tempVector;
         tempVector.push_back(temp);
@@ -413,14 +403,13 @@ void initInputsLinearMatrices(vector<vector<block>>& linearMatrices, string file
             }
         }         
     }
-    else
-    {
+    else{
         cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;
     }
     myFile.close();
 }
 /*
-    Read file and set inputs in vector of vector of blocks vector<vector<block> linearMatrices.
+Read file and set inputs in vector of vector of blocks vector<vector<block> linearMatrices.
 */
 void initInputsKeyMatrices(vector<vector<keyblock>>& keyMatrices, string filePath){
     ifstream myFile(filePath.c_str());
@@ -443,8 +432,7 @@ void initInputsKeyMatrices(vector<vector<keyblock>>& keyMatrices, string filePat
             }
         }      
     }
-    else
-    {
+    else{
         cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;
     }
     myFile.close();
@@ -454,8 +442,7 @@ Read file and set inputs in vector of blocks.
 */
 void initInputs(vector<block>& textfile, string filePath){
     ifstream myFile(filePath.c_str());
-    if(myFile)
-    {
+    if(myFile){
         string bitLine;
         while (getline(myFile, bitLine))
         {
@@ -463,32 +450,27 @@ void initInputs(vector<block>& textfile, string filePath){
             textfile.push_back(b);
         }
     }
-    else
-    {
+    else{
         cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;
     }
     myFile.close();
 }
-
 /*
 Read file and set inputs in vector of blocks.
 */
 void initInputs(vector<freeCoef>& inputs, string filePath){
     ifstream myFile(filePath.c_str());
-    if(myFile)
-    {
+    if(myFile){
         string bitLine;
         int increment(0);
         
-        while (getline(myFile, bitLine))
-        {
+        while (getline(myFile, bitLine)){
             freeCoef b(bitLine);
             inputs[increment]=b;
             ++increment;
         }
     }
-    else
-    {
+    else{
         cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;
     }
     myFile.close();
@@ -535,7 +517,7 @@ writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
     myFile << "]";
     myFile.close();
 
-   myFile.open(pythonPath2.c_str());
+    myFile.open(pythonPath2.c_str());
     myFile << "[";
     for(int i=0; i< a0.size(); ++i){
         myFile << "[";
@@ -556,7 +538,6 @@ writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
     myFile << "]";
     myFile.close();
 }
-
 /*
 Functions to multiply bitsets.
 */
@@ -582,7 +563,6 @@ void generateMonomials(vector<block>& monomials){
             permut=nextPermut(permut);
         }
     }
-
     //u3 generation
     unsigned int sizeMonomials = monomials.size();
     for(int l=0;l<sizeMonomials; ++l){
@@ -601,7 +581,6 @@ void generateMonomials(vector<block>& monomials){
         }
     }
 }
-
 /*
 Write blocks in file.
 */
@@ -629,15 +608,14 @@ void writeMatrices(std::vector<std::vector<block>>& matrix, string fileName){
     }
     myFile.close();
 }
-
 /*
 Generate Matrix A, Prod c_i^u_i.
 */
-void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vector<monomatrix>& matrixA){
-    for (int i = 0; i < ciphertexts.size(); ++i){
+void generateMatrixA(vector<block>& monomials, vector<block>& peeledOffCiphertexts, vector<monomatrix>& matrixA){
+    for (int i = 0; i < peeledOffCiphertexts.size(); ++i){
         for (int j = 0; j < monomials.size(); ++j){
             for (int k = 0; k < blocksize; ++k){
-                if (!ciphertexts[i][k] && monomials[j][k]){
+                if (!peeledOffCiphertexts[i][k] && monomials[j][k]){
                     matrixA[i][j]=0;
                     break;
                 }else{    
@@ -669,7 +647,6 @@ void generateMatrixE(const vector<monomatrix>& A,const vector<block>& plaintexts
         }        
     }      
 }
-
 /*
 Generate all components of a given integer such that n&i == i
 */
@@ -764,7 +741,6 @@ vector<block> invertMatrix(const vector<block>& matrix) {
     for (unsigned i = 0; i < blocksize; ++i) {
         invmat[i][i] = 1;
     }
-
     unsigned size = mat[0].size();
     //Transform to upper triangular matrix
     unsigned row = 0;
@@ -793,7 +769,6 @@ vector<block> invertMatrix(const vector<block>& matrix) {
         }
         ++row;
     }
-
     //Transform to identity matrix
     for (unsigned col = size; col > 0; --col) {
         for (unsigned r = 0; r < col-1; ++r) {
@@ -879,7 +854,6 @@ int main(int argc, const char * argv[]) {
     //printSequencesBlocks(peeledOffCiphertexts);
     //writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
     
-
     //initInvMatrices(linearMatrices, invLinearMatrices);
     //printVectorVectorsBlock(invLinearMatrices);
     //writeMatrices(invLinearMatrices, invLinMatPath);
@@ -901,8 +875,7 @@ int main(int argc, const char * argv[]) {
     //printSequencesMonoMatrices(matrixA);
     //printSequencesMonoMatrices(matrixE);
 
-
-    //writePython(matrixE, a0);
+    writePython(matrixE, a0);
     
     //printSequencesVecspaces(subspaces);
     //printSequencesBlocks(base);
