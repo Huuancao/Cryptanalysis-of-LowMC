@@ -35,8 +35,10 @@ const string freeCoefPath= "a0.txt";
 const string monomialsPath = "monomials.txt";
 const string matlabPath1 = "matlab1.txt";
 const string matlabPath2 = "matlab2.txt";
-const string pythonPath1="python1.txt";
-const string pythonPath2="python2.txt";
+const string pythonPath1 ="python1.txt";
+const string pythonPath2 ="python2.txt";
+const string invLinMatPath ="invlinmatrices.txt";
+const string peelOffCipherPath ="peeledOffCiphertexts.txt";
 
 const unsigned identitysize = blocksize - 3*numofboxes;
 
@@ -507,32 +509,6 @@ void writeFreeCoef(const vector<freeCoef>& a0){
     }
     myFile.close();
 }
-
-/*
-Write Inputs for Matlab, namely matrix E and vector a0.
-*/
-writeMatlab(vector<vector <double>>& linearSystem, freeCoef& a0){
-    cout << a0 << endl;
-    ofstream myFile;
-    myFile.open(matlabPath1.c_str());
-    myFile << "[";
-    for(int i=0; i< linearSystem.size(); ++i){
-        for(int j=0; j< linearSystem[0].size()-1; ++j){
-            myFile << linearSystem[i][j]<< " ";
-        }
-        if(i != linearSystem.size()-1) myFile << "; ";
-    }
-    myFile << "]" << endl;
-    myFile.close();
-    myFile.open(matlabPath2.c_str());
-    myFile << "[ ";
-    for(int k=0; k< a0.size(); ++k){
-        myFile << a0[k] << " ";
-        if(k != a0.size()-1) myFile << "; ";
-    }
-    myFile << "]";
-    myFile.close();
-}
 /*
 Write Inputs for Sage.
 */
@@ -559,7 +535,7 @@ writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
     myFile << "]";
     myFile.close();
 
-    myFile.open(pythonPath2.c_str());
+   myFile.open(pythonPath2.c_str());
     myFile << "[";
     for(int i=0; i< a0.size(); ++i){
         myFile << "[";
@@ -638,9 +614,24 @@ void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName
     }
     myFile.close();
 }
+/*
+Write Matrices in file.
+*/
+void writeMatrices(std::vector<std::vector<block>>& matrix, string fileName){
+    std::ofstream myFile;
+    myFile.open(fileName.c_str());
+
+    for(int i=0; i<matrix.size();++i){
+        for(int j=0; j<matrix[i].size(); ++j){
+            myFile << matrix[i][j] << std::endl;
+        }
+        myFile << std::endl;
+    }
+    myFile.close();
+}
 
 /*
-Generate Matrix A, Prod c_i^u_i
+Generate Matrix A, Prod c_i^u_i.
 */
 void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vector<monomatrix>& matrixA){
     for (int i = 0; i < ciphertexts.size(); ++i){
@@ -659,7 +650,7 @@ void generateMatrixA(vector<block>& monomials, vector<block>& ciphertexts, vecto
 /*
 Generate Matrix E by testing if ciphertext J belong to subspace i and then adding the corresponding jth row of A in the ith-row of E
 */
-void generateMatrixE(const vector<monomatrix>& A, const vector<block>& ciphertexts, 
+void generateMatrixE(const vector<monomatrix>& A,const vector<block>& plaintexts,  const vector<block>& ciphertexts, 
                     const vector<vecspace>& subspaces,const std::vector<block>& base, 
                     vector<monomatrix>& E){
     for (int i = 0; i < subspaces.size(); ++i){
@@ -670,7 +661,7 @@ void generateMatrixE(const vector<monomatrix>& A, const vector<block>& ciphertex
             }
         }
         for (int j = 0; j < ciphertexts.size(); ++j){
-            tempSubspace.push_back(ciphertexts[j]);
+            tempSubspace.push_back(plaintexts[j]);
             if(rank_of_Matrix(tempSubspace)==8){
                 E[i]=E[i]^A[j];
             }
@@ -822,6 +813,27 @@ void initInvMatrices(vector<vector<block>>& linearMatrices, vector<vector<block>
         invLinearMatrices.push_back(invertMatrix(linearMatrices[i]));
     }
 }
+/*
+Multiply with matrix in GF(2).
+*/
+block MultiplyWithGF2Matrix(const std::vector<block> matrix, const block message) {
+    block temp = 0;
+    for (unsigned i = 0; i < blocksize; ++i) {
+        temp[i] = (message & matrix[i]).count() % 2;
+    }
+    return temp;
+}
+/*
+Peel off last layer by adding the last round constants and multiplying with inverse of last linear matrix.
+*/
+void peelingOffCiphertexts(const vector<block>& ciphertexts, const block& roundConstant, 
+                        const vector<block>& invLinearMatrix, vector<block>& peeledOffCiphertexts){
+    for(int i=0; i< ciphertexts.size(); ++i){
+        block temp(0);
+        temp=ciphertexts[i]^roundConstant;
+        peeledOffCiphertexts.push_back(MultiplyWithGF2Matrix(invLinearMatrix, temp));
+    }
+}
 
 //////////////////
 //     MAIN     //
@@ -834,6 +846,7 @@ int main(int argc, const char * argv[]) {
     vector<block> plaintexts;
     vector<block> ciphertexts;
     vector<block> partialCiphertexts;
+    vector<block> peeledOffCiphertexts;
 
     vector<block> base;
     vector<vecspace> subspaces;
@@ -854,13 +867,23 @@ int main(int argc, const char * argv[]) {
     initInputs(partialCiphertexts, partialCipherPath);
     initInputs(a0, freeCoefPath);
     initInputs(monomials, monomialsPath);
+    initInputs(peeledOffCiphertexts, peelOffCipherPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
     initInputsLinearMatrices(linearMatrices, linMatPath);
     initInputsKeyMatrices(keyMatrices, keyMatPath);
     initInputs(roundConstants, roundConstPath);
-    initInvMatrices(linearMatrices, invLinearMatrices);
-    printVectorVectorsBlock(invLinearMatrices);
+    initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
+
+    //peelingOffCiphertexts(ciphertexts, roundConstants[5], invLinearMatrices[5], peeledOffCiphertexts);
+    //printSequencesBlocks(peeledOffCiphertexts);
+    //writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
+    
+
+    //initInvMatrices(linearMatrices, invLinearMatrices);
+    //printVectorVectorsBlock(invLinearMatrices);
+    //writeMatrices(invLinearMatrices, invLinMatPath);
+
     //printVectorVectorsBlock(linearMatrices);
     //printVectorVectorsKeyBlock(keyMatrices);
     //printVectorVectorsBlock(invLinearMatrices);
@@ -872,8 +895,8 @@ int main(int argc, const char * argv[]) {
 
     //printANF("");
 
-    //generateMatrixA(monomials, ciphertexts, matrixA);
-    //generateMatrixE(matrixA,ciphertexts,subspaces, base, matrixE);
+    generateMatrixA(monomials, ciphertexts, matrixA);
+    generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
 
     //printSequencesMonoMatrices(matrixA);
     //printSequencesMonoMatrices(matrixE);
