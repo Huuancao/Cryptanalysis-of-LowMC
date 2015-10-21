@@ -20,6 +20,7 @@ const unsigned maxpermut= 4080; //Bound binary:111111110000
 const unsigned numSubspaces=495; //Combination C(12,8)
 const unsigned nummonomials=283;
 const unsigned numPartialCiphertexts=4096;
+const unsigned relationLength 22;
 const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
 const std::vector<unsigned> invSbox = {0x00, 0x01, 0x07, 0x02, 0x05, 0x06, 0x03, 0x04}; // Invers Sboxes
 
@@ -45,6 +46,7 @@ typedef std::bitset<keysize> keyblock;
 typedef std::bitset<dimension> vecspace;
 typedef std::bitset<nummonomials> monomatrix;
 typedef std::bitset<numSubspaces> freeCoef;
+typedef std::bitset<relationLength> relationRepresentation;
 
 
 //////////////////
