@@ -503,7 +503,7 @@ writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
     for(int i=0; i< matrixE.size(); ++i){
         myFile << "[";
         for(int j=0; j< matrixE[0].size(); ++j){
-            if (j==matrixE[0].size()-1){
+            if (j==matrixE[0].size()){
                     myFile << matrixE[i][j];
             }else{
                  myFile << matrixE[i][j]<< " ";
