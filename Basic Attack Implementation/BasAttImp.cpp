@@ -382,6 +382,20 @@ void printVectorVectorsKeyBlock(vector<vector<keyblock>>& vector){
     }
 }
 /*
+Print Relations map.
+*/
+void printRelationMap(vector<vector<vector<relationRepresentation>>>& relationMap){
+    for(int i=0; i<relationMap.size(); ++i){
+        cout << "Round " << i << endl;
+        for(int j=0; j< blocksize; ++j){
+            cout << "Bit "<< j << endl;
+            for(int k=0; k<relationMap[0][j].size(); ++k){ 
+                cout << "Relation Element " << k << ": " << relationMap[0][j][k] << endl;
+            }
+        }
+    }
+}
+/*
 Read file and set inputs in vector of vector of blocks vector<vector<block> linearMatrices.
 */
 void initInputsLinearMatrices(vector<vector<block>>& linearMatrices, string filePath){
@@ -814,27 +828,40 @@ void peelingOffCiphertexts(const vector<block>& ciphertexts, const block& roundC
 /*
 Adding key function.
 */
-void keyRoundAdd(vector<relationRepresentation>& tempRelation, const vector<keyblock>& keyMatrix){
+void keyRoundAdd(vector<vector<relationRepresentation>>& tempRelation, const vector<keyblock>& keyMatrix){
     for(int i=0; i< blocksize; ++i){
         relationRepresentation tempKey(keyMatrix[i].to_ullong());
         tempKey<<=blocksize;
-        tempRelation[i] = tempRelation[i]^tempKey;
+        for(int j=0; j< tempRelation[i].size(); ++j){
+           tempRelation[i][j] = tempRelation[i][j]^tempKey;
+        }
     }
 }
 /*
 Init iniput first round & key whitening.
 */
-void initRelationWhitening(vector<vector<relationRepresentation>>& relationMap,
+void initRelationWhitening(vector<vector<vector<relationRepresentation>>>& relationMap,
                         const vector<vector<keyblock>>& keyMatrices){
-    vector<relationRepresentation> tempRelation;
+    vector<vector<relationRepresentation>> tempRelationVectorVectors;  
+    vector<relationRepresentation> tempRelationVectors;
+    relationRepresentation tempRelation(1);
+    for(int i=0; i<blocksize; ++i){
+        tempRelationVectors.clear();
+        tempRelationVectors.push_back(tempRelation);
+        tempRelation <<=1;
+        tempRelationVectorVectors.push_back(tempRelationVectors);
+    }
+    keyRoundAdd(tempRelationVectorVectors, keyMatrices[0]);
+    relationMap.push_back(tempRelationVectorVectors);
 }
 /*
 Relation mapping creation.
 */
-void relationMapping(vector<vector<relationRepresentation>>& relationMap, 
+void relationMapping(vector<vector<vector<relationRepresentation>>>& relationMap, 
                         const vector<vector<block>>& linearMatrices,
                         const vector<vector<keyblock>>& keyMatrices){
-    
+    initRelationWhitening(relationMap, keyMatrices);
+
 }
 
 //////////////////
@@ -864,7 +891,7 @@ int main(int argc, const char * argv[]) {
     vector<vector<keyblock>> keyMatrices;
     vector<block> roundConstants;
 
-    vector<vector<relationRepresentation>> relationMap;
+    vector<vector<vector<relationRepresentation>>> relationMap;
 
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
@@ -878,6 +905,10 @@ int main(int argc, const char * argv[]) {
     initInputsKeyMatrices(keyMatrices, keyMatPath);
     initInputs(roundConstants, roundConstPath);
     initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
+    
+
+    relationMapping(relationMap, linearMatrices, keyMatrices);
+    printRelationMap(relationMap);
 
 
     //peelingOffCiphertexts(ciphertexts, roundConstants[5], invLinearMatrices[5], peeledOffCiphertexts);
