@@ -20,7 +20,7 @@ const unsigned maxpermut= 4080; //Bound binary:111111110000
 const unsigned numSubspaces=495; //Combination C(12,8)
 const unsigned nummonomials=283;
 const unsigned numPartialCiphertexts=4096;
-const unsigned relationLength 22;
+const unsigned relationLength = 22;
 const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
 const std::vector<unsigned> invSbox = {0x00, 0x01, 0x07, 0x02, 0x05, 0x06, 0x03, 0x04}; // Invers Sboxes
 
@@ -811,6 +811,31 @@ void peelingOffCiphertexts(const vector<block>& ciphertexts, const block& roundC
         peeledOffCiphertexts.push_back(MultiplyWithGF2Matrix(invLinearMatrix, temp));
     }
 }
+/*
+Adding key function.
+*/
+void keyRoundAdd(vector<relationRepresentation>& tempRelation, const vector<keyblock>& keyMatrix){
+    for(int i=0; i< blocksize; ++i){
+        relationRepresentation tempKey(keyMatrix[i].to_ullong());
+        tempKey<<=blocksize;
+        tempRelation[i] = tempRelation[i]^tempKey;
+    }
+}
+/*
+Init iniput first round & key whitening.
+*/
+void initRelationWhitening(vector<vector<relationRepresentation>>& relationMap,
+                        const vector<vector<keyblock>>& keyMatrices){
+    vector<relationRepresentation> tempRelation;
+}
+/*
+Relation mapping creation.
+*/
+void relationMapping(vector<vector<relationRepresentation>>& relationMap, 
+                        const vector<vector<block>>& linearMatrices,
+                        const vector<vector<keyblock>>& keyMatrices){
+    
+}
 
 //////////////////
 //     MAIN     //
@@ -839,6 +864,8 @@ int main(int argc, const char * argv[]) {
     vector<vector<keyblock>> keyMatrices;
     vector<block> roundConstants;
 
+    vector<vector<relationRepresentation>> relationMap;
+
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
@@ -851,6 +878,7 @@ int main(int argc, const char * argv[]) {
     initInputsKeyMatrices(keyMatrices, keyMatPath);
     initInputs(roundConstants, roundConstPath);
     initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
+
 
     //peelingOffCiphertexts(ciphertexts, roundConstants[5], invLinearMatrices[5], peeledOffCiphertexts);
     //printSequencesBlocks(peeledOffCiphertexts);
@@ -871,13 +899,13 @@ int main(int argc, const char * argv[]) {
 
     //printANF("");
 
-    generateMatrixA(monomials, ciphertexts, matrixA);
-    generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
+    //generateMatrixA(monomials, ciphertexts, matrixA);
+    //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
 
     //printSequencesMonoMatrices(matrixA);
     //printSequencesMonoMatrices(matrixE);
 
-    writePython(matrixE, a0);
+    //writePython(matrixE, a0);
     
     //printSequencesVecspaces(subspaces);
     //printSequencesBlocks(base);
