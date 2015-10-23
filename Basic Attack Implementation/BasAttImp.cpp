@@ -836,10 +836,27 @@ void lineaLayerMixing(vector<vector<vector<relationRepresentation>>>& relationMa
         for(int k=0; k<blocksize; ++k){
             if(linearMatrix[i][k]){
                 for(int l=0; l<relationMap[0][i].size(); ++l){
+                        relationRepresentation tempOutMono(relationMap[0][k][l]<<6);
+                        relationRepresentation tempOutKey(relationMap[0][k][l]>>16);
+                        tempOutMono >>=6;
+                        tempOutKey <<=16;
+                        bool alreadyIn(false);
                     if(k==i && linearMatrix[i][k]){
                     break;
                     }
-                    else tempRelationVectors.push_back(relationMap[0][k][l]);
+                    else {
+                        for(int m=0; m<tempRelationVectors.size(); ++m){
+                            relationRepresentation tempInMono(tempRelationVectors[m]<<6);
+                            tempInMono >>=6;
+                            if(tempInMono.to_ullong() == tempOutMono.to_ullong()){
+                                alreadyIn=true;
+                                tempRelationVectors[m]=tempRelationVectors[m]^tempOutKey;
+                            }  
+                        }
+                        if(!alreadyIn){
+                            tempRelationVectors.push_back(relationMap[0][k][l]);
+                        }
+                    }
                 }
             }
         }
