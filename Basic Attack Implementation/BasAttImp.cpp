@@ -826,6 +826,30 @@ void peelingOffCiphertexts(const vector<block>& ciphertexts, const block& roundC
     }
 }
 /*
+Linear layer function.
+*/
+void lineaLayerMixing(vector<vector<vector<relationRepresentation>>>& relationMap,
+                      const vector<block>& linearMatrix){
+    vector<vector<relationRepresentation>> tempRelationVectorVectors;
+    vector<relationRepresentation> tempRelationVectors;
+    for(int i=0; i<blocksize; ++i){
+        for(int k=0; k<blocksize; ++k){
+            if(linearMatrix[i][k]){
+                for(int l=0; l<relationMap[0][i].size(); ++l){
+                    if(k==i && linearMatrix[i][k]){
+                    break;
+                    }
+                    else tempRelationVectors.push_back(relationMap[0][k][l]);
+                }
+            }
+        }
+        tempRelationVectorVectors.push_back(tempRelationVectors);
+        tempRelationVectors.clear();
+    }
+    relationMap.clear();
+    relationMap.push_back(tempRelationVectorVectors);
+}
+/*
 Adding key function.
 */
 void keyRoundAdd(vector<vector<relationRepresentation>>& tempRelation, const vector<keyblock>& keyMatrix){
@@ -861,6 +885,7 @@ void relationMapping(vector<vector<vector<relationRepresentation>>>& relationMap
                         const vector<vector<block>>& linearMatrices,
                         const vector<vector<keyblock>>& keyMatrices){
     initRelationWhitening(relationMap, keyMatrices);
+    lineaLayerMixing(relationMap, linearMatrices[0]);
 
 }
 
