@@ -895,6 +895,36 @@ void initRelationWhitening(vector<vector<vector<relationRepresentation>>>& relat
     keyRoundAdd(tempRelationVectorVectors, keyMatrices[0]);
     relationMap.push_back(tempRelationVectorVectors);
 }
+void insertRemastered(vector<relationRepresentation>& InsertionResult, vector<relationRepresentation>& toInsert){
+    for (int i = 0; i < toInsert.size(); ++i){
+        InsertionResult.push_back(toInsert[i]);
+    }
+}
+/*
+SBoxes function for a vector of bitset of size relationLength 
+*/
+void SBoxRelation(vector<relationRepresentation>& a, 
+    vector<relationRepresentation>& b, 
+    vector<relationRepresentation>& c){
+    vector<relationRepresentation> tempSBoxA;
+    vector<relationRepresentation> tempSBoxB;
+    vector<relationRepresentation> tempSBoxC;
+    
+    for(int i = 0; i < a.size(); ++i){
+        for (int j = 0; j < b.size(); ++j){
+            for (int k = 0; k < c.size(); ++k){
+                tempSBoxA.push_back(b[j]|c[k]);
+                tempSBoxB.push_back(a[i]|c[k]);
+                tempSBoxC.push_back(a[i]|b[j]);
+            }
+        }
+    }
+    insertRemastered(b,a);
+    insertRemastered(c,b);
+    insertRemastered(a,tempSBoxA);
+    insertRemastered(b,tempSBoxB);
+    insertRemastered(c,tempSBoxC);   
+}
 /*
 Relation mapping creation.
 */
