@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <cmath>
+#include <set>
 
 
 using namespace std;
@@ -21,6 +22,7 @@ const unsigned numSubspaces=495; //Combination C(12,8)
 const unsigned nummonomials=283;
 const unsigned numPartialCiphertexts=4096;
 const unsigned relationLength = 22;
+const unsigned identitysize = blocksize - 3*numofboxes;
 const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
 const std::vector<unsigned> invSbox = {0x00, 0x01, 0x07, 0x02, 0x05, 0x06, 0x03, 0x04}; // Invers Sboxes
 
@@ -39,8 +41,6 @@ const string pythonPath2 ="python2.txt";
 const string invLinMatPath ="invlinmatrices.txt";
 const string peelOffCipherPath ="peeledOffCiphertexts.txt";
 
-const unsigned identitysize = blocksize - 3*numofboxes;
-
 typedef std::bitset<blocksize> block; // Store messages and states
 typedef std::bitset<keysize> keyblock;
 typedef std::bitset<dimension> vecspace;
@@ -48,6 +48,20 @@ typedef std::bitset<nummonomials> monomatrix;
 typedef std::bitset<numSubspaces> freeCoef;
 typedef std::bitset<relationLength> relationRepresentation;
 
+
+
+//////////////////
+//     CLASS    //
+//////////////////
+
+class relationRepComp{
+   public:
+    bool operator()( relationRepresentation const & r1, relationRepresentation const & r2 ) const{
+         return r1.to_ulong() < r2.to_ulong();
+    }
+};
+
+typedef set<relationRepresentation, relationRepComp>  relationSetType;
 
 //////////////////
 //  USELESS FUN //
@@ -181,6 +195,7 @@ void bitsetMultiply(block& result, const block& x, const block& y){
         }
     }
 }*/
+
 
 //////////////////
 //   FUNCTIONS  //
@@ -963,7 +978,21 @@ int main(int argc, const char * argv[]) {
     vector<vector<keyblock>> keyMatrices;
     vector<block> roundConstants;
 
-    vector<vector<vector<relationRepresentation>>> relationMap;
+    //vector<vector<vector<relationRepresentation>>> relationMap;
+    relationSetType relationMap;
+    relationRepresentation temp(22);
+    relationRepresentation temp2(1);
+    relationRepresentation temp21(1942);
+    relationRepresentation temp1(0);
+
+    relationMap.insert(temp);
+    relationMap.insert(temp2);
+    relationMap.insert(temp21);
+    relationMap.insert(temp1);
+    for(auto f : relationMap){
+        cout << f << endl;
+    }
+
 
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
@@ -979,8 +1008,10 @@ int main(int argc, const char * argv[]) {
     initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
     
 
-    relationMapping(relationMap, linearMatrices, keyMatrices);
-    printRelationMap(relationMap);
+    //relationMapping(relationMap, linearMatrices, keyMatrices);
+    //printRelationMap(relationMap);
+    
+
 
 
     //peelingOffCiphertexts(ciphertexts, roundConstants[5], invLinearMatrices[5], peeledOffCiphertexts);
