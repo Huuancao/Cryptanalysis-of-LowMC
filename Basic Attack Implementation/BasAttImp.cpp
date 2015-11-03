@@ -416,14 +416,12 @@ void printVectorVectorsKeyBlock(vector<vector<keyblock>>& vector){
 /*
 Print Relations map.
 */
-void printRelationMap(vector<vector<vector<relationRepresentation>>>& relationMap){
+void printRelationMap(vector<relationSetType>& relationMap){
     for(int i=0; i<relationMap.size(); ++i){
-        cout << "Round " << i << endl;
-        for(int j=0; j< blocksize; ++j){
-            cout << "Bit "<< j << endl;
-            for(int k=0; k<relationMap[0][j].size(); ++k){ 
-                cout << "Relation Element " << k << ": " << relationMap[0][j][k] << endl;
-            }
+        cout << "Bit "<< i << endl;
+        for(relationSetType::iterator j = relationMap[i].begin(); j!=relationMap[i].end(); ++j){
+            int indexJ = distance(relationMap[i].begin(), j);
+            cout << "Relation Element " << indexJ << ": " << *j << endl;
         }
     }
 }
@@ -931,31 +929,33 @@ void lineaLayerMixing(vector<vector<vector<relationRepresentation>>>& relationMa
 /*
 Adding key function.
 */
-void keyRoundAdd(vector<vector<relationRepresentation>>& tempRelation, const vector<keyblock>& keyMatrix){
+void keyRoundAdd(vector<relationSetType>& tempRelation, const vector<keyblock>& keyMatrix){
     for(int i=0; i< blocksize; ++i){
         relationRepresentation tempKey(keyMatrix[i].to_ullong());
         tempKey<<=blocksize;
-        for(int j=0; j< tempRelation[i].size(); ++j){
-           tempRelation[i][j] = tempRelation[i][j]^tempKey;
+        for(auto element : tempRelation[i]){
+            relationRepresentation temp(element);
+            temp=temp^tempKey;
+            tempRelation[i].erase(element);
+            tempRelation[i].insert(temp);
         }
     }
 }
 /*
 Init iniput first round & key whitening.
 */
-void initRelationWhitening(vector<vector<vector<relationRepresentation>>>& relationMap,
+void initRelationWhitening(vector<relationSetType>& relationMap,
                         const vector<vector<keyblock>>& keyMatrices){
-    vector<vector<relationRepresentation>> tempRelationVectorVectors;  
-    vector<relationRepresentation> tempRelationVectors;
+    relationMap.clear();
     relationRepresentation tempRelation(1);
+    relationSetType bitSet;
     for(int i=0; i<blocksize; ++i){
-        tempRelationVectors.clear();
-        tempRelationVectors.push_back(tempRelation);
+        bitSet.clear();
+        bitSet.insert(tempRelation);
         tempRelation <<=1;
-        tempRelationVectorVectors.push_back(tempRelationVectors);
+        relationMap.push_back(bitSet);
     }
-    keyRoundAdd(tempRelationVectorVectors, keyMatrices[0]);
-    relationMap.push_back(tempRelationVectorVectors);
+    keyRoundAdd(relationMap, keyMatrices[0]);
 }
 void insertRemastered(vector<relationRepresentation>& InsertionResult, vector<relationRepresentation>& toInsert){
     for (int i = 0; i < toInsert.size(); ++i){
@@ -990,11 +990,11 @@ void SBoxRelation(vector<relationRepresentation>& a,
 /*
 Relation mapping creation.
 */
-void relationMapping(vector<vector<vector<relationRepresentation>>>& relationMap, 
+void relationMapping(vector<relationSetType>& relationMap, 
                         const vector<vector<block>>& linearMatrices,
                         const vector<vector<keyblock>>& keyMatrices){
     initRelationWhitening(relationMap, keyMatrices);
-    lineaLayerMixing(relationMap, linearMatrices[0]);
+    //lineaLayerMixing(relationMap, linearMatrices[0]);
 
 }
 
@@ -1027,7 +1027,7 @@ int main(int argc, const char * argv[]) {
     vector<block> roundConstants;
 
     //vector<vector<vector<relationRepresentation>>> relationMap;
-    relationSetType relationMap;
+    vector<relationSetType> relationMap;
  /*   relationRepresentation temp(22);
     relationRepresentation temp2(1);
     relationRepresentation temp21(1942);
@@ -1056,8 +1056,8 @@ int main(int argc, const char * argv[]) {
     initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
     
 
-    //relationMapping(relationMap, linearMatrices, keyMatrices);
-    //printRelationMap(relationMap);
+    relationMapping(relationMap, linearMatrices, keyMatrices);
+    printRelationMap(relationMap);
     
 
 
@@ -1082,10 +1082,10 @@ int main(int argc, const char * argv[]) {
 
     //printANF("");
 
-    generateMatrixA(monomials, ciphertexts, matrixA);
-    generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
+    //generateMatrixA(monomials, ciphertexts, matrixA);
+    //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
 
-    printSequencesMonoMatrices(matrixA);
+    //printSequencesMonoMatrices(matrixA);
     //printSequencesMonoMatrices(matrixE);
 
     //writePython(matrixE, a0);
