@@ -63,6 +63,15 @@ class relationRepComp{
 
 typedef set<relationRepresentation, relationRepComp>  relationSetType;
 
+class blockComp{
+   public:
+    bool operator()( block const & r1, block const & r2 ) const{
+         return r1.to_ulong() < r2.to_ulong();
+    }
+};
+
+typedef set<block, blockComp>  blockSetType;
+
 //////////////////
 //  USELESS FUN //
 //////////////////
@@ -360,6 +369,14 @@ void printSequencesBlocks(const std::vector<block>& sequences){
     }
 }
 /*
+Print set of blocks.
+*/
+void printSequencesBlocks(const blockSetType& blockSet){
+    for(blockSetType::iterator i=blockSet.begin(); i!=blockSet.end();++i){
+        cout << "Entry n" << distance(blockSet.begin(),i) << ": " << *i << endl;
+    }
+}
+/*
 Print vector of sequences of vecspaces.
 */
 void printSequencesVecspaces(const std::vector<vecspace>& sequences){
@@ -506,6 +523,24 @@ void initInputs(vector<freeCoef>& inputs, string filePath){
     }
     myFile.close();
 }
+/*
+Read file and set inputs in set of blocks.
+*/
+void initInputs(blockSetType& monomials, string filePath){
+    ifstream myFile(filePath.c_str());
+    if(myFile){
+        string bitLine;
+        while (getline(myFile, bitLine))
+        {
+            block b(bitLine);
+            monomials.insert(b);
+        }
+    }
+    else{
+        cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;
+    }
+    myFile.close();
+}
 
 /*
 Write preprocessed free coefs in file.
@@ -578,11 +613,11 @@ void bitsetMultiply(block& result, const block& x, const block& y){
 /*
 Generate monomials.
 */
-void generateMonomials(vector<block>& monomials){
+void generateMonomials(blockSetType& monomials){
     //u1 generation
     block firstMonomial(1);
     for(int i=0; i<blocksize; ++i){
-        monomials.push_back(firstMonomial<<i);
+        monomials.insert(firstMonomial<<i);
     }
     //u2 generation
     for(int j=0; j<numofboxes; ++j){
@@ -590,26 +625,23 @@ void generateMonomials(vector<block>& monomials){
         for(int k=0; k<boxsize; ++k){
             block tempMono(permut);
             tempMono <<= (numofboxes-1-j)*boxsize;
-            monomials.push_back(tempMono);
+            monomials.insert(tempMono);
             permut=nextPermut(permut);
         }
     }
     //u3 generation
-    unsigned int sizeMonomials = monomials.size();
-    for(int l=0;l<sizeMonomials; ++l){
-        for (int m=l+1; m<sizeMonomials; ++m){
-            bool alreadyIn(false);
+    blockSetType temp;
+    for(blockSetType::iterator k=monomials.begin(); k!=monomials.end(); ++k){
+        for(blockSetType::iterator l=monomials.begin(); l!=monomials.end(); ++l){
             block resultMult(0);
-            bitsetMultiply(resultMult, monomials[l], monomials[m]);
-            for(int n=0; n<monomials.size(); ++n){
-                if(resultMult==monomials[n]){
-                    alreadyIn=true;
-                }
-            }
-            if(resultMult!=0 && !alreadyIn){
-                monomials.push_back(resultMult);
+            bitsetMultiply(resultMult, *k, *l);
+            if(monomials.find(resultMult)==monomials.end() && temp.find(resultMult)==temp.end()){
+                temp.insert(resultMult);
             }
         }
+    }
+    for(auto element : temp){
+        monomials.insert(element);
     }
 }
 /*
@@ -621,6 +653,19 @@ void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName
     myFile.open(fileName.c_str());
     for(int i=0; i< vectorBlocks.size(); ++i){
         myFile << vectorBlocks[i] << endl;
+    }
+    myFile.close();
+}
+
+/*
+Write blocks in file.
+*/
+void writeBlockSet(const blockSetType& blockSet, const string fileName){
+    ofstream myFile;
+    //myFile.open("ciphertexts.txt");
+    myFile.open(fileName.c_str());
+    for(auto block : blockSet){
+        myFile << block << endl;
     }
     myFile.close();
 }
@@ -967,7 +1012,9 @@ int main(int argc, const char * argv[]) {
     vector<block> base;
     vector<vecspace> subspaces;
 
-    vector<block> monomials;
+    //vector<block> monomials;
+    blockSetType monomials;
+    blockSetType monomialsv1;
     vector<freeCoef> a0(blocksize, 0);
 
     vector<monomatrix> matrixA(numPartialCiphertexts,0);
@@ -980,7 +1027,7 @@ int main(int argc, const char * argv[]) {
 
     //vector<vector<vector<relationRepresentation>>> relationMap;
     relationSetType relationMap;
-    relationRepresentation temp(22);
+ /*   relationRepresentation temp(22);
     relationRepresentation temp2(1);
     relationRepresentation temp21(1942);
     relationRepresentation temp1(0);
@@ -989,10 +1036,10 @@ int main(int argc, const char * argv[]) {
     relationMap.insert(temp2);
     relationMap.insert(temp21);
     relationMap.insert(temp1);
-    for(auto f : relationMap){
-        cout << f << endl;
+    for(relationSetType::iterator i = relationMap.begin();i!=relationMap.end(); ++i){
+        cout << *i << endl;
     }
-
+*/
 
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
@@ -1028,8 +1075,9 @@ int main(int argc, const char * argv[]) {
     //preprocessingFreeCoef(a0, partialCiphertexts, plaintexts, base, subspaces);
     //writeFreeCoef(a0);
     //generateMonomials(monomials);
-    //printSequencesBlocks(monomials);
-    //writeVectorsBlocks(monomials, monomialsPath);
+    printSequencesBlocks(monomials);
+    //cout << "Previous monomials equal to new monomials set? " << (monomials == monomialsv1) << endl;
+    //writeBlockSet(monomials, monomialsPath);
 
     //printANF("");
 
