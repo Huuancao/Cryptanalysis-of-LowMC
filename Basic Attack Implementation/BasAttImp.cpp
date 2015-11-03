@@ -687,15 +687,17 @@ void writeMatrices(std::vector<std::vector<block>>& matrix, string fileName){
 /*
 Generate Matrix A, Prod c_i^u_i.
 */
-void generateMatrixA(vector<block>& monomials, vector<block>& peeledOffCiphertexts, vector<monomatrix>& matrixA){
+void generateMatrixA(blockSetType& monomials, vector<block>& peeledOffCiphertexts, vector<monomatrix>& matrixA){
     for (int i = 0; i < peeledOffCiphertexts.size(); ++i){
-        for (int j = 0; j < monomials.size(); ++j){
+        for (blockSetType::iterator j = monomials.begin(); j != monomials.end(); ++j){
+            int indexJ=distance(monomials.begin(), j);
+            block currentMonomial(*j);
             for (int k = 0; k < blocksize; ++k){
-                if (!peeledOffCiphertexts[i][k] && monomials[j][k]){
-                    matrixA[i][j]=0;
+                if (!peeledOffCiphertexts[i][k] && currentMonomial[k]){
+                    matrixA[i][indexJ]=0;
                     break;
                 }else{    
-                    matrixA[i][j]=1;
+                    matrixA[i][indexJ]=1;
                 }
             }
         }
@@ -1012,9 +1014,8 @@ int main(int argc, const char * argv[]) {
     vector<block> base;
     vector<vecspace> subspaces;
 
-    //vector<block> monomials;
     blockSetType monomials;
-    blockSetType monomialsv1;
+    //blockSetType monomialsv1;
     vector<freeCoef> a0(blocksize, 0);
 
     vector<monomatrix> matrixA(numPartialCiphertexts,0);
@@ -1075,16 +1076,16 @@ int main(int argc, const char * argv[]) {
     //preprocessingFreeCoef(a0, partialCiphertexts, plaintexts, base, subspaces);
     //writeFreeCoef(a0);
     //generateMonomials(monomials);
-    printSequencesBlocks(monomials);
+    //printSequencesBlocks(monomials);
     //cout << "Previous monomials equal to new monomials set? " << (monomials == monomialsv1) << endl;
     //writeBlockSet(monomials, monomialsPath);
 
     //printANF("");
 
-    //generateMatrixA(monomials, ciphertexts, matrixA);
-    //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
+    generateMatrixA(monomials, ciphertexts, matrixA);
+    generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
 
-    //printSequencesMonoMatrices(matrixA);
+    printSequencesMonoMatrices(matrixA);
     //printSequencesMonoMatrices(matrixE);
 
     //writePython(matrixE, a0);
