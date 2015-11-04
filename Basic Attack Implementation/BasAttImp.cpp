@@ -888,43 +888,31 @@ void peelingOffCiphertexts(const vector<block>& ciphertexts, const block& roundC
 /*
 Linear layer function.
 */
-void lineaLayerMixing(vector<vector<vector<relationRepresentation>>>& relationMap,
+void linearLayerMixing(vector<relationSetType>& relationMap,
                       const vector<block>& linearMatrix){
-    vector<vector<relationRepresentation>> tempRelationVectorVectors;
-    vector<relationRepresentation> tempRelationVectors;
+    vector<relationSetType> tempRelationMap;
+    tempRelationMap.clear();
+    for(int h=0; h<blocksize; ++h){
+        tempRelationMap.push_back(relationMap[h]);
+    }
     for(int i=0; i<blocksize; ++i){
-        for(int k=0; k<blocksize; ++k){
-            if(linearMatrix[i][k]){
-                for(int l=0; l<relationMap[0][i].size(); ++l){
-                        relationRepresentation tempOutMono(relationMap[0][k][l]<<6);
-                        relationRepresentation tempOutKey(relationMap[0][k][l]>>16);
-                        tempOutMono >>=6;
-                        tempOutKey <<=16;
-                        bool alreadyIn(false);
-                    if(k==i && linearMatrix[i][k]){
-                    break;
+        for(int j=0; j<blocksize; ++j){
+            if(linearMatrix[i][j]){
+                for(auto element : relationMap[j]){
+                    if(relationMap[i].find(element)!=relationMap[i].end()){
+                        tempRelationMap[i].erase(element);
                     }
-                    else {
-                        for(int m=0; m<tempRelationVectors.size(); ++m){
-                            relationRepresentation tempInMono(tempRelationVectors[m]<<6);
-                            tempInMono >>=6;
-                            if(tempInMono.to_ullong() == tempOutMono.to_ullong()){
-                                alreadyIn=true;
-                                tempRelationVectors[m]=tempRelationVectors[m]^tempOutKey;
-                            }  
-                        }
-                        if(!alreadyIn){
-                            tempRelationVectors.push_back(relationMap[0][k][l]);
-                        }
+                    else{
+                        tempRelationMap[i].insert(element);
                     }
                 }
             }
         }
-        tempRelationVectorVectors.push_back(tempRelationVectors);
-        tempRelationVectors.clear();
     }
     relationMap.clear();
-    relationMap.push_back(tempRelationVectorVectors);
+    for(int k=0; k<blocksize; ++k){
+        relationMap.push_back(tempRelationMap[k]);
+    }
 }
 /*
 Adding key function.
@@ -994,7 +982,7 @@ void relationMapping(vector<relationSetType>& relationMap,
                         const vector<vector<block>>& linearMatrices,
                         const vector<vector<keyblock>>& keyMatrices){
     initRelationWhitening(relationMap, keyMatrices);
-    //lineaLayerMixing(relationMap, linearMatrices[0]);
+    linearLayerMixing(relationMap, linearMatrices[0]);
 
 }
 
@@ -1026,21 +1014,25 @@ int main(int argc, const char * argv[]) {
     vector<vector<keyblock>> keyMatrices;
     vector<block> roundConstants;
 
-    //vector<vector<vector<relationRepresentation>>> relationMap;
+    
     vector<relationSetType> relationMap;
- /*   relationRepresentation temp(22);
+    /*relationSetType relationMap;
+    relationRepresentation temp(22);
     relationRepresentation temp2(1);
     relationRepresentation temp21(1942);
     relationRepresentation temp1(0);
+    relationRepresentation temp3(22);
 
     relationMap.insert(temp);
     relationMap.insert(temp2);
     relationMap.insert(temp21);
     relationMap.insert(temp1);
+    relationMap.insert(temp3);
+    relationMap.erase(temp);
     for(relationSetType::iterator i = relationMap.begin();i!=relationMap.end(); ++i){
         cout << *i << endl;
-    }
-*/
+    }*/
+
 
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
