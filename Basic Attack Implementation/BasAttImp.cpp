@@ -4,6 +4,7 @@
 #include <string>
 #include <fstream>
 #include <cmath>
+#include <set>
 
 
 using namespace std;
@@ -21,6 +22,7 @@ const unsigned numSubspaces=495; //Combination C(12,8)
 const unsigned nummonomials=283;
 const unsigned numPartialCiphertexts=4096;
 const unsigned relationLength = 22;
+const unsigned identitysize = blocksize - 3*numofboxes;
 const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
 const std::vector<unsigned> invSbox = {0x00, 0x01, 0x07, 0x02, 0x05, 0x06, 0x03, 0x04}; // Invers Sboxes
 
@@ -39,7 +41,7 @@ const string pythonPath2 ="python2.txt";
 const string invLinMatPath ="invlinmatrices.txt";
 const string peelOffCipherPath ="peeledOffCiphertexts.txt";
 
-const unsigned identitysize = blocksize - 3*numofboxes;
+const string relationRepresentationPath ="relationRepresentation.txt";
 
 typedef std::bitset<blocksize> block; // Store messages and states
 typedef std::bitset<keysize> keyblock;
@@ -48,6 +50,29 @@ typedef std::bitset<nummonomials> monomatrix;
 typedef std::bitset<numSubspaces> freeCoef;
 typedef std::bitset<relationLength> relationRepresentation;
 
+
+
+//////////////////
+//     CLASS    //
+//////////////////
+
+class relationRepComp{
+   public:
+    bool operator()( relationRepresentation const & r1, relationRepresentation const & r2 ) const{
+         return r1.to_ulong() < r2.to_ulong();
+    }
+};
+
+typedef set<relationRepresentation, relationRepComp>  relationSetType;
+
+class blockComp{
+   public:
+    bool operator()( block const & r1, block const & r2 ) const{
+         return r1.to_ulong() < r2.to_ulong();
+    }
+};
+
+typedef set<block, blockComp>  blockSetType;
 
 //////////////////
 //  USELESS FUN //
@@ -182,9 +207,37 @@ void bitsetMultiply(block& result, const block& x, const block& y){
     }
 }*/
 
+
 //////////////////
 //   FUNCTIONS  //
 //////////////////
+block Substitution (const block message) {
+    block temp = 0;
+
+    //std::cout<<"temp Mask : "<<temp<<std::endl;
+    //Get the identity part of the message
+    temp ^= (message >> 3*numofboxes);
+
+    //std::cout<<"Shifted message : "<<(message >> 3*numofboxes)<<std::endl;
+    //std::cout<<"identity Part : "<<temp<<std::endl;
+    //Get the rest through the Sboxes
+    for (unsigned i = 1; i <= numofboxes; ++i) {
+        temp <<= 3;
+        //std::cout<<"Sbox Part " << i << ": "<< (message >> 3*(numofboxes-i)) <<std::endl;
+        //std::cout<<"Sbox Part " << i << ": "<< ((message >> 3*(numofboxes-i))& block(0x7)).to_ulong() <<std::endl;
+        temp ^= Sbox[ ((message >> 3*(numofboxes-i))
+                      & block(0x7)).to_ulong()];
+    }
+    return temp;
+}
+
+void testSubstitution(const int val){
+    block test(val);
+    test <<= 6;
+    cout << "Test: " << endl << test << endl;
+    block substitutionTest = Substitution(test);
+    cout << "Result of permutation: " << endl << substitutionTest << endl;
+}
 /*
 Computes GCD.
 */
@@ -345,6 +398,14 @@ void printSequencesBlocks(const std::vector<block>& sequences){
     }
 }
 /*
+Print set of blocks.
+*/
+void printSequencesBlocks(const blockSetType& blockSet){
+    for(blockSetType::iterator i=blockSet.begin(); i!=blockSet.end();++i){
+        cout << "Entry n" << distance(blockSet.begin(),i) << ": " << *i << endl;
+    }
+}
+/*
 Print vector of sequences of vecspaces.
 */
 void printSequencesVecspaces(const std::vector<vecspace>& sequences){
@@ -379,20 +440,6 @@ void printVectorVectorsKeyBlock(vector<vector<keyblock>>& vector){
             cout << vector[i][j] << endl;
         }
         cout << endl;
-    }
-}
-/*
-Print Relations map.
-*/
-void printRelationMap(vector<vector<vector<relationRepresentation>>>& relationMap){
-    for(int i=0; i<relationMap.size(); ++i){
-        cout << "Round " << i << endl;
-        for(int j=0; j< blocksize; ++j){
-            cout << "Bit "<< j << endl;
-            for(int k=0; k<relationMap[0][j].size(); ++k){ 
-                cout << "Relation Element " << k << ": " << relationMap[0][j][k] << endl;
-            }
-        }
     }
 }
 /*
@@ -491,7 +538,41 @@ void initInputs(vector<freeCoef>& inputs, string filePath){
     }
     myFile.close();
 }
+/*
+Read file and set inputs in set of blocks.
+*/
+void initInputs(blockSetType& monomials, string filePath){
+    ifstream myFile(filePath.c_str());
+    if(myFile){
+        string bitLine;
+        while (getline(myFile, bitLine))
+        {
+            block b(bitLine);
+            monomials.insert(b);
+        }
+    }
+    else{
+        cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;
+    }
+    myFile.close();
+}
+/*
+Write Relations map.
+*/
+void writeRelationMap(vector<relationSetType>& relationMap){
+    ofstream myFile;
+    remove(relationRepresentationPath.c_str());
+    myFile.open(relationRepresentationPath.c_str());
 
+    for(int i=0; i<relationMap.size(); ++i){
+        myFile << "Bit "<< i << endl;
+        for(relationSetType::iterator j = relationMap[i].begin(); j!=relationMap[i].end(); ++j){
+            int indexJ = distance(relationMap[i].begin(), j);
+            myFile << "Relation Element " << indexJ << ": " << *j << endl;
+        }
+    }
+    myFile.close();
+}
 /*
 Write preprocessed free coefs in file.
 */
@@ -561,13 +642,21 @@ void bitsetMultiply(block& result, const block& x, const block& y){
     result = x|y;
 }
 /*
+Functions to multiply bitsets.
+*/
+void relationRepresentationMultiply(relationRepresentation& result, 
+                                    const relationRepresentation& x, 
+                                    const relationRepresentation& y){
+    result = x|y;
+}
+/*
 Generate monomials.
 */
-void generateMonomials(vector<block>& monomials){
+void generateMonomials(blockSetType& monomials){
     //u1 generation
     block firstMonomial(1);
     for(int i=0; i<blocksize; ++i){
-        monomials.push_back(firstMonomial<<i);
+        monomials.insert(firstMonomial<<i);
     }
     //u2 generation
     for(int j=0; j<numofboxes; ++j){
@@ -575,26 +664,23 @@ void generateMonomials(vector<block>& monomials){
         for(int k=0; k<boxsize; ++k){
             block tempMono(permut);
             tempMono <<= (numofboxes-1-j)*boxsize;
-            monomials.push_back(tempMono);
+            monomials.insert(tempMono);
             permut=nextPermut(permut);
         }
     }
     //u3 generation
-    unsigned int sizeMonomials = monomials.size();
-    for(int l=0;l<sizeMonomials; ++l){
-        for (int m=l+1; m<sizeMonomials; ++m){
-            bool alreadyIn(false);
+    blockSetType temp;
+    for(blockSetType::iterator k=monomials.begin(); k!=monomials.end(); ++k){
+        for(blockSetType::iterator l=monomials.begin(); l!=monomials.end(); ++l){
             block resultMult(0);
-            bitsetMultiply(resultMult, monomials[l], monomials[m]);
-            for(int n=0; n<monomials.size(); ++n){
-                if(resultMult==monomials[n]){
-                    alreadyIn=true;
-                }
-            }
-            if(resultMult!=0 && !alreadyIn){
-                monomials.push_back(resultMult);
+            bitsetMultiply(resultMult, *k, *l);
+            if(monomials.find(resultMult)==monomials.end() && temp.find(resultMult)==temp.end()){
+                temp.insert(resultMult);
             }
         }
+    }
+    for(auto element : temp){
+        monomials.insert(element);
     }
 }
 /*
@@ -606,6 +692,19 @@ void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName
     myFile.open(fileName.c_str());
     for(int i=0; i< vectorBlocks.size(); ++i){
         myFile << vectorBlocks[i] << endl;
+    }
+    myFile.close();
+}
+
+/*
+Write blocks in file.
+*/
+void writeBlockSet(const blockSetType& blockSet, const string fileName){
+    ofstream myFile;
+    //myFile.open("ciphertexts.txt");
+    myFile.open(fileName.c_str());
+    for(auto block : blockSet){
+        myFile << block << endl;
     }
     myFile.close();
 }
@@ -627,15 +726,17 @@ void writeMatrices(std::vector<std::vector<block>>& matrix, string fileName){
 /*
 Generate Matrix A, Prod c_i^u_i.
 */
-void generateMatrixA(vector<block>& monomials, vector<block>& peeledOffCiphertexts, vector<monomatrix>& matrixA){
+void generateMatrixA(blockSetType& monomials, vector<block>& peeledOffCiphertexts, vector<monomatrix>& matrixA){
     for (int i = 0; i < peeledOffCiphertexts.size(); ++i){
-        for (int j = 0; j < monomials.size(); ++j){
+        for (blockSetType::iterator j = monomials.begin(); j != monomials.end(); ++j){
+            int indexJ=distance(monomials.begin(), j);
+            block currentMonomial(*j);
             for (int k = 0; k < blocksize; ++k){
-                if (!peeledOffCiphertexts[i][k] && monomials[j][k]){
-                    matrixA[i][j]=0;
+                if (!peeledOffCiphertexts[i][k] && currentMonomial[k]){
+                    matrixA[i][indexJ]=0;
                     break;
                 }else{    
-                    matrixA[i][j]=1;
+                    matrixA[i][indexJ]=1;
                 }
             }
         }
@@ -825,84 +926,128 @@ void peelingOffCiphertexts(const vector<block>& ciphertexts, const block& roundC
         peeledOffCiphertexts.push_back(MultiplyWithGF2Matrix(invLinearMatrix, temp));
     }
 }
+void setInsert(relationSetType& set, relationRepresentation element){
+    if(set.find(element)!=set.end()){
+        set.erase(element);
+    }
+    else{
+        set.insert(element);
+    }
+}
 /*
 Linear layer function.
 */
-void lineaLayerMixing(vector<vector<vector<relationRepresentation>>>& relationMap,
-                      const vector<block>& linearMatrix){
-    vector<vector<relationRepresentation>> tempRelationVectorVectors;
-    vector<relationRepresentation> tempRelationVectors;
+void linearLayerMixing(vector<relationSetType>& relationMap,
+                      const vector<block>& linearMatrix,
+                      const int round){
+    vector<relationSetType> tempRelationMap;
+    tempRelationMap.clear();
+    for(int h=0; h<blocksize; ++h){
+        tempRelationMap.push_back(relationMap[h]);
+    }
     for(int i=0; i<blocksize; ++i){
-        for(int k=0; k<blocksize; ++k){
-            if(linearMatrix[i][k]){
-                for(int l=0; l<relationMap[0][i].size(); ++l){
-                        relationRepresentation tempOutMono(relationMap[0][k][l]<<6);
-                        relationRepresentation tempOutKey(relationMap[0][k][l]>>16);
-                        tempOutMono >>=6;
-                        tempOutKey <<=16;
-                        bool alreadyIn(false);
-                    if(k==i && linearMatrix[i][k]){
-                    break;
-                    }
-                    else {
-                        for(int m=0; m<tempRelationVectors.size(); ++m){
-                            relationRepresentation tempInMono(tempRelationVectors[m]<<6);
-                            tempInMono >>=6;
-                            if(tempInMono.to_ullong() == tempOutMono.to_ullong()){
-                                alreadyIn=true;
-                                tempRelationVectors[m]=tempRelationVectors[m]^tempOutKey;
-                            }  
-                        }
-                        if(!alreadyIn){
-                            tempRelationVectors.push_back(relationMap[0][k][l]);
-                        }
+        if(round == 3 && i >= 9){
+            break;
+        }
+        else{
+            for(int j=0; j<blocksize; ++j){
+                if(linearMatrix[i][j]){
+                    for(auto element : relationMap[j]){
+                        setInsert(tempRelationMap[i], element);
                     }
                 }
             }
         }
-        tempRelationVectorVectors.push_back(tempRelationVectors);
-        tempRelationVectors.clear();
     }
     relationMap.clear();
-    relationMap.push_back(tempRelationVectorVectors);
+    for(int k=0; k<blocksize; ++k){
+        relationMap.push_back(tempRelationMap[k]);
+    }
 }
 /*
 Adding key function.
 */
-void keyRoundAdd(vector<vector<relationRepresentation>>& tempRelation, const vector<keyblock>& keyMatrix){
+void keyRoundAdd(vector<relationSetType>& tempRelation, const vector<keyblock>& keyMatrix){
     for(int i=0; i< blocksize; ++i){
         relationRepresentation tempKey(keyMatrix[i].to_ullong());
-        tempKey<<=blocksize;
-        for(int j=0; j< tempRelation[i].size(); ++j){
-           tempRelation[i][j] = tempRelation[i][j]^tempKey;
+        tempKey;
+        for(auto element : tempRelation[i]){
+            relationRepresentation temp(element);
+            temp=temp^tempKey;
+            tempRelation[i].erase(element);
+            tempRelation[i].insert(temp);
         }
     }
 }
 /*
 Init iniput first round & key whitening.
 */
-void initRelationWhitening(vector<vector<vector<relationRepresentation>>>& relationMap,
+void initRelationWhitening(vector<relationSetType>& relationMap,
                         const vector<vector<keyblock>>& keyMatrices){
-    vector<vector<relationRepresentation>> tempRelationVectorVectors;  
-    vector<relationRepresentation> tempRelationVectors;
+    relationMap.clear();
     relationRepresentation tempRelation(1);
+    tempRelation <<=keysize;
+    relationSetType bitSet;
     for(int i=0; i<blocksize; ++i){
-        tempRelationVectors.clear();
-        tempRelationVectors.push_back(tempRelation);
+        bitSet.clear();
+        bitSet.insert(tempRelation);
         tempRelation <<=1;
-        tempRelationVectorVectors.push_back(tempRelationVectors);
+        relationMap.push_back(bitSet);
     }
-    keyRoundAdd(tempRelationVectorVectors, keyMatrices[0]);
-    relationMap.push_back(tempRelationVectorVectors);
-}
+    keyRoundAdd(relationMap, keyMatrices[0]);
+}/*
 void insertRemastered(vector<relationRepresentation>& InsertionResult, vector<relationRepresentation>& toInsert){
     for (int i = 0; i < toInsert.size(); ++i){
         InsertionResult.push_back(toInsert[i]);
+    }
+}*/
+void insertRemastered(relationSetType& InsertionResult, const relationSetType& toInsert){
+    for (auto element : toInsert){
+        setInsert(InsertionResult, element);
     }
 }
 /*
 SBoxes function for a vector of bitset of size relationLength 
 */
+void SBoxRelation(vector<relationSetType>& relationMap){
+    vector<relationSetType> tempRelationMap;
+    tempRelationMap.clear();
+    for(int h=0; h<blocksize; ++h){
+        tempRelationMap.push_back(relationMap[h]);
+    }
+    for(int i=0; i<numofboxes; ++i){      
+        int x0(3*i+keysize);
+        int x1(x0+1);
+        int x2(x1+1);
+        for(auto elementX0 : relationMap[x0]){
+            for(auto elementX1 : relationMap[x1]){
+                relationRepresentation tempResult(0);
+                relationRepresentationMultiply(tempResult, elementX0, elementX1);
+                setInsert(tempRelationMap[x2], tempResult);
+            }
+            for(auto elementX2 : relationMap[x2]){
+                relationRepresentation tempResult(0);
+                relationRepresentationMultiply(tempResult, elementX0, elementX2);
+                setInsert(tempRelationMap[x1], tempResult);
+            }
+        }
+        for(auto elementX1 : relationMap[x1]){
+            for(auto elementX2 : relationMap[x2]){
+                relationRepresentation tempResult(0);
+                relationRepresentationMultiply(tempResult, elementX1, elementX2);
+                setInsert(tempRelationMap[x0], tempResult);
+            }
+        }
+        insertRemastered(tempRelationMap[x0], relationMap[x1]);
+        insertRemastered(tempRelationMap[x0], relationMap[x2]);
+        insertRemastered(tempRelationMap[x1], relationMap[x0]);
+    }
+    relationMap.clear();
+    for(int k=0; k<blocksize; ++k){
+        relationMap.push_back(tempRelationMap[k]);
+    }
+}
+/* TO DELETE
 void SBoxRelation(vector<relationRepresentation>& a, 
     vector<relationRepresentation>& b, 
     vector<relationRepresentation>& c){
@@ -910,7 +1055,7 @@ void SBoxRelation(vector<relationRepresentation>& a,
     vector<relationRepresentation> tempSBoxB;
     vector<relationRepresentation> tempSBoxC;
     
-    for(int i = 0; i < a.size(); ++i){
+    for(int i = 0; i < a.size(); ++i){ //Trois niveau de boucle pas necessaire
         for (int j = 0; j < b.size(); ++j){
             for (int k = 0; k < c.size(); ++k){
                 tempSBoxA.push_back(b[j]|c[k]);
@@ -923,17 +1068,19 @@ void SBoxRelation(vector<relationRepresentation>& a,
     insertRemastered(c,b);
     insertRemastered(a,tempSBoxA);
     insertRemastered(b,tempSBoxB);
-    insertRemastered(c,tempSBoxC);   
+    insertRemastered(c,tempSBoxC);
 }
 /*
 Relation mapping creation.
 */
-void relationMapping(vector<vector<vector<relationRepresentation>>>& relationMap, 
+void relationMapping(vector<relationSetType>& relationMap, 
                         const vector<vector<block>>& linearMatrices,
                         const vector<vector<keyblock>>& keyMatrices){
     initRelationWhitening(relationMap, keyMatrices);
-    lineaLayerMixing(relationMap, linearMatrices[0]);
-
+    for(int i=0; i<4; ++i){
+        SBoxRelation(relationMap);
+        linearLayerMixing(relationMap, linearMatrices[i], i);
+    }
 }
 
 //////////////////
@@ -952,7 +1099,8 @@ int main(int argc, const char * argv[]) {
     vector<block> base;
     vector<vecspace> subspaces;
 
-    vector<block> monomials;
+    blockSetType monomials;
+    //blockSetType monomialsv1;
     vector<freeCoef> a0(blocksize, 0);
 
     vector<monomatrix> matrixA(numPartialCiphertexts,0);
@@ -963,7 +1111,25 @@ int main(int argc, const char * argv[]) {
     vector<vector<keyblock>> keyMatrices;
     vector<block> roundConstants;
 
-    vector<vector<vector<relationRepresentation>>> relationMap;
+    
+    vector<relationSetType> relationMap;
+    /*relationSetType relationMap;
+    relationRepresentation temp(22);
+    relationRepresentation temp2(1);
+    relationRepresentation temp21(1942);
+    relationRepresentation temp1(0);
+    relationRepresentation temp3(22);
+
+    relationMap.insert(temp);
+    relationMap.insert(temp2);
+    relationMap.insert(temp21);
+    relationMap.insert(temp1);
+    relationMap.insert(temp3);
+    relationMap.erase(temp);
+    for(relationSetType::iterator i = relationMap.begin();i!=relationMap.end(); ++i){
+        cout << *i << endl;
+    }*/
+
 
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
@@ -980,9 +1146,11 @@ int main(int argc, const char * argv[]) {
     
 
     relationMapping(relationMap, linearMatrices, keyMatrices);
-    printRelationMap(relationMap);
+    writeRelationMap(relationMap);
+    
 
 
+    //testSubstitution(4);
     //peelingOffCiphertexts(ciphertexts, roundConstants[5], invLinearMatrices[5], peeledOffCiphertexts);
     //printSequencesBlocks(peeledOffCiphertexts);
     //writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
@@ -998,7 +1166,8 @@ int main(int argc, const char * argv[]) {
     //writeFreeCoef(a0);
     //generateMonomials(monomials);
     //printSequencesBlocks(monomials);
-    //writeVectorsBlocks(monomials, monomialsPath);
+    //cout << "Previous monomials equal to new monomials set? " << (monomials == monomialsv1) << endl;
+    //writeBlockSet(monomials, monomialsPath);
 
     //printANF("");
 
