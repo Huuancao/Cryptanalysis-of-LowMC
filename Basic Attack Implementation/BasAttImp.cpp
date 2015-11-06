@@ -1047,7 +1047,7 @@ void SBoxRelation(vector<relationSetType>& relationMap){
         relationMap.push_back(tempRelationMap[k]);
     }
 }
-/*
+/* TO DELETE
 void SBoxRelation(vector<relationRepresentation>& a, 
     vector<relationRepresentation>& b, 
     vector<relationRepresentation>& c){
@@ -1055,7 +1055,7 @@ void SBoxRelation(vector<relationRepresentation>& a,
     vector<relationRepresentation> tempSBoxB;
     vector<relationRepresentation> tempSBoxC;
     
-    for(int i = 0; i < a.size(); ++i){
+    for(int i = 0; i < a.size(); ++i){ //Trois niveau de boucle pas necessaire
         for (int j = 0; j < b.size(); ++j){
             for (int k = 0; k < c.size(); ++k){
                 tempSBoxA.push_back(b[j]|c[k]);
