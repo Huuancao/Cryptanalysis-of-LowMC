@@ -17,12 +17,13 @@ const unsigned rounds = 6; // Number of rounds
 const unsigned partialRounds = 4; // Number of rounds to compute high order constants
 const unsigned tail = 7; // Number of bits in tail
 const unsigned dimension = 12; //Dimension of vector space
-const unsigned maxpermut= 4080; //Bound binary:111111110000
-const unsigned numSubspaces=495; //Combination C(12,8)
-const unsigned nummonomials=283;
-const unsigned numPartialCiphertexts=4096;
+const unsigned maxpermut = 4080; //Bound binary:111111110000
+const unsigned numSubspaces = 495; //Combination C(12,8)
+const unsigned nummonomials = 283;
+const unsigned numPartialCiphertexts = 4096;
 const unsigned relationLength = 22;
 const unsigned identitysize = blocksize - 3*numofboxes;
+const unsigned targetBit = 9;
 const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
 const std::vector<unsigned> invSbox = {0x00, 0x01, 0x07, 0x02, 0x05, 0x06, 0x03, 0x04}; // Invers Sboxes
 
@@ -42,6 +43,8 @@ const string invLinMatPath ="invlinmatrices.txt";
 const string peelOffCipherPath ="peeledOffCiphertexts.txt";
 
 const string relationRepresentationPath ="relationRepresentation.txt";
+
+const string relationRepresentationTargetPath ="relationRepresentationTarget.txt";
 
 typedef std::bitset<blocksize> block; // Store messages and states
 typedef std::bitset<keysize> keyblock;
@@ -557,6 +560,24 @@ void initInputs(blockSetType& monomials, string filePath){
     myFile.close();
 }
 /*
+Read file and set inputs in vector of blocks.
+*/
+void initInputs(relationSetType& textfile, string filePath){
+    ifstream myFile(filePath.c_str());
+    if(myFile){
+        string bitLine;
+        while (getline(myFile, bitLine))
+        {
+            relationRepresentation b(bitLine);
+            textfile.insert(b);
+        }
+    }
+    else{
+        cout << "ERREUR: Impossible d'ouvrir le fichier en lecture." << endl;
+    }
+    myFile.close();
+}
+/*
 Write Relations map.
 */
 void writeRelationMap(vector<relationSetType>& relationMap){
@@ -566,10 +587,23 @@ void writeRelationMap(vector<relationSetType>& relationMap){
 
     for(int i=0; i<relationMap.size(); ++i){
         myFile << "Bit "<< i << endl;
-        for(relationSetType::iterator j = relationMap[i].begin(); j!=relationMap[i].end(); ++j){
-            int indexJ = distance(relationMap[i].begin(), j);
+        int indexJ(0);
+        for(relationSetType::iterator j = relationMap[i].begin(); j!=relationMap[i].end(); ++j, ++indexJ){
             myFile << "Relation Element " << indexJ << ": " << *j << endl;
         }
+    }
+    myFile.close();
+}
+/*
+Write Relations map.
+*/
+void writeRelationMapTarget(relationSetType& relationMap){
+    ofstream myFile;
+    remove(relationRepresentationTargetPath.c_str());
+    myFile.open(relationRepresentationTargetPath.c_str());
+    int indexJ(0);
+    for(relationSetType::iterator j = relationMap.begin(); j!=relationMap.end(); ++j, ++indexJ){
+        myFile <<  *j << endl;
     }
     myFile.close();
 }
@@ -1047,29 +1081,6 @@ void SBoxRelation(vector<relationSetType>& relationMap){
         relationMap.push_back(tempRelationMap[k]);
     }
 }
-/* TO DELETE
-void SBoxRelation(vector<relationRepresentation>& a, 
-    vector<relationRepresentation>& b, 
-    vector<relationRepresentation>& c){
-    vector<relationRepresentation> tempSBoxA;
-    vector<relationRepresentation> tempSBoxB;
-    vector<relationRepresentation> tempSBoxC;
-    
-    for(int i = 0; i < a.size(); ++i){ //Trois niveau de boucle pas necessaire
-        for (int j = 0; j < b.size(); ++j){
-            for (int k = 0; k < c.size(); ++k){
-                tempSBoxA.push_back(b[j]|c[k]);
-                tempSBoxB.push_back(a[i]|c[k]);
-                tempSBoxC.push_back(a[i]|b[j]);
-            }
-        }
-    }
-    insertRemastered(b,a);
-    insertRemastered(c,b);
-    insertRemastered(a,tempSBoxA);
-    insertRemastered(b,tempSBoxB);
-    insertRemastered(c,tempSBoxC);
-}
 /*
 Relation mapping creation.
 */
@@ -1082,7 +1093,33 @@ void relationMapping(vector<relationSetType>& relationMap,
         linearLayerMixing(relationMap, linearMatrices[i], i);
     }
 }
-
+/*
+Extract Key information according to monomials precomputed.
+*/
+void extractMonomialsKeys(const relationSetType& relationMapTarget, 
+                            relationSetType& relationMapMonoKeys, 
+                            const blockSetType& monomials){
+    for(blockSetType::iterator iter1=monomials.begin(); iter1 != monomials.end(); ++iter1){
+        relationSetType tempMonoKeys();
+        block currentMonomial(*iter1);
+        relationRepresentation lowerBound(currentMonomial.to_ulong());
+        lowerBound<<=keysize;
+        relationRepresentation upperBound(currentMonomial.to_ulong()+1);
+        upperBound<<=keysize;
+        upperBound=upperBound.to_ulong()-1;
+        //cout << *iter1 << " " << lowerBound << " " << upperBound << endl;
+        relationSetType::iterator it1=relationMapTarget.lower_bound(lowerBound);
+        relationSetType::iterator it2=relationMapTarget.upper_bound(upperBound);
+        relationRepresentation tempRelaRep(0);
+        tempRelaRep = tempRelaRep^lowerBound;
+        for(it1; it1!=it2; ++it1){
+            relationRepresentation tempMonoKeys(63); // All keybits set 111111
+            tempMonoKeys&=*it1;
+            tempRelaRep^=tempMonoKeys;
+        }
+        relationMapMonoKeys.insert(tempRelaRep);
+    }
+}
 //////////////////
 //     MAIN     //
 //////////////////
@@ -1113,21 +1150,27 @@ int main(int argc, const char * argv[]) {
 
     
     vector<relationSetType> relationMap;
+    relationSetType relationMapTarget;
+    relationSetType relationMapMonoKeys;
     /*relationSetType relationMap;
     relationRepresentation temp(22);
-    relationRepresentation temp2(1);
+    relationRepresentation temp2(24);
     relationRepresentation temp21(1942);
     relationRepresentation temp1(0);
-    relationRepresentation temp3(22);
+    relationRepresentation temp3(26);
 
     relationMap.insert(temp);
     relationMap.insert(temp2);
     relationMap.insert(temp21);
     relationMap.insert(temp1);
     relationMap.insert(temp3);
-    relationMap.erase(temp);
-    for(relationSetType::iterator i = relationMap.begin();i!=relationMap.end(); ++i){
+    /*for(relationSetType::iterator i = relationMap.begin();i!=relationMap.end(); ++i){
         cout << *i << endl;
+    }
+    relationSetType::iterator it1=relationMap.lower_bound(22);
+    relationSetType::iterator it2=relationMap.upper_bound(30);
+    for(it1; it1!=it2; ++it1){
+        cout << *it1 << endl;
     }*/
 
 
@@ -1137,6 +1180,7 @@ int main(int argc, const char * argv[]) {
     initInputs(a0, freeCoefPath);
     initInputs(monomials, monomialsPath);
     initInputs(peeledOffCiphertexts, peelOffCipherPath);
+    initInputs(relationMapTarget, relationRepresentationTargetPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
     initInputsLinearMatrices(linearMatrices, linMatPath);
@@ -1145,8 +1189,17 @@ int main(int argc, const char * argv[]) {
     initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
     
 
-    relationMapping(relationMap, linearMatrices, keyMatrices);
-    writeRelationMap(relationMap);
+    //relationMapping(relationMap, linearMatrices, keyMatrices);
+
+    extractMonomialsKeys(relationMapTarget, relationMapMonoKeys, monomials);
+
+    for(auto element : relationMapMonoKeys){
+        //cout << relationMapMonoKeys.size() << endl;
+        cout << element << endl;
+    }
+    //writeRelationMap(relationMap);
+    //writeRelationMapTarget(relationMap[targetBit]);
+
     
 
 
