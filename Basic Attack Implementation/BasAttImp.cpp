@@ -1082,7 +1082,6 @@ void relationMapping(vector<relationSetType>& relationMap,
         linearLayerMixing(relationMap, linearMatrices[i], i);
     }
 }
-
 void relationFiltering(vector<relationSetType>& relationMap){
 
     for(auto elements: relationMap[1]){
