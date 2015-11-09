@@ -1091,6 +1091,7 @@ void relationFiltering(vector<relationSetType>& relationMap){
         toCompare >>= 6;
         tempKey <<= 16;
         tempKey >>= 16;
+
         for (auto elements1: relationMap[1]){
             if(elements != elements1){
                 relationRepresentation temp1 =elements1;
@@ -1111,6 +1112,7 @@ void relationFiltering(vector<relationSetType>& relationMap){
         setInsert(relationMap[1], toInsert);
     }
 }
+
 
 //////////////////
 //     MAIN     //
@@ -1149,7 +1151,7 @@ int main(int argc, const char * argv[]) {
     relationRepresentation temp1(0);
     relationRepresentation temp3(22);
 
-    relationMap.insert(temp);
+    relationMap.insert(temp^temp2);
     relationMap.insert(temp2);
     relationMap.insert(temp21);
     relationMap.insert(temp1);
@@ -1175,6 +1177,7 @@ int main(int argc, const char * argv[]) {
     
 
     relationMapping(relationMap, linearMatrices, keyMatrices);
+    relationFiltering(relationMap);
     writeRelationMap(relationMap);
     
 
