@@ -1082,16 +1082,8 @@ void relationMapping(vector<relationSetType>& relationMap,
         linearLayerMixing(relationMap, linearMatrices[i], i);
     }
 }
-void relationFiltering(vector<relationSetType>& relationMap){
 
-    for(auto elements: relationMap[1]){
-        relationRepresentation toInsert(0);
-        relationRepresentation tempKey=elements;
-        relationRepresentation toCompare=elements;
-        toCompare >>= 6;
-        tempKey <<= 16;
-        tempKey >>= 16;
-
+<<<<<<< HEAD
             for (auto elements1: relationMap[1]){
             if(elements != elements1){
                 relationRepresentation temp1 =elements1;
@@ -1112,6 +1104,8 @@ void relationFiltering(vector<relationSetType>& relationMap){
         setInsert(relationMap[1], toInsert);
 }
 }
+=======
+>>>>>>> parent of fd31dce... RelationFiltering
 //////////////////
 //     MAIN     //
 //////////////////
