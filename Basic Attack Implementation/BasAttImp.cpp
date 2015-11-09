@@ -1083,6 +1083,38 @@ void relationMapping(vector<relationSetType>& relationMap,
     }
 }
 
+void relationFiltering(vector<relationSetType>& relationMap){
+
+    for(auto elements: relationMap[1]){
+        relationRepresentation toInsert(0);
+        relationRepresentation tempKey=elements;
+        relationRepresentation toCompare=elements;
+        toCompare >>= 6;
+        tempKey <<= 16;
+        tempKey >>= 16;
+
+        for (auto elements1: relationMap[1]){
+            if(elements != elements1){
+                relationRepresentation temp1 =elements1;
+                temp1 >>=6;
+                if(temp1==toCompare){
+                    relationRepresentation tempKey2=elements1;
+                    tempKey2 <<= 16;
+                    tempKey2 >>= 16;
+                    relationRepresentation xored(0);
+                    relationRepresentationXoring(tempKey, tempKey2, tempKey);
+                    relationMap[1].erase(elements1);
+                }
+            }
+        }
+        toCompare <<= 6;
+        relationRepresentationMultiply(toInsert, toCompare,tempKey);
+        relationMap[1].erase(elements);
+        setInsert(relationMap[1], toInsert);
+    }
+}
+
+
 //////////////////
 //     MAIN     //
 //////////////////
@@ -1120,7 +1152,7 @@ int main(int argc, const char * argv[]) {
     relationRepresentation temp1(0);
     relationRepresentation temp3(22);
 
-    relationMap.insert(temp);
+    relationMap.insert(temp^temp2);
     relationMap.insert(temp2);
     relationMap.insert(temp21);
     relationMap.insert(temp1);
@@ -1146,6 +1178,7 @@ int main(int argc, const char * argv[]) {
     
 
     relationMapping(relationMap, linearMatrices, keyMatrices);
+    relationFiltering(relationMap);
     writeRelationMap(relationMap);
     
 
