@@ -1082,6 +1082,7 @@ void relationMapping(vector<relationSetType>& relationMap,
         linearLayerMixing(relationMap, linearMatrices[i], i);
     }
 }
+
 void relationFiltering(vector<relationSetType>& relationMap){
 
     for(auto elements: relationMap[1]){
@@ -1092,7 +1093,7 @@ void relationFiltering(vector<relationSetType>& relationMap){
         tempKey <<= 16;
         tempKey >>= 16;
 
-        for (auto elements1: relationMap[1]){
+            for (auto elements1: relationMap[1]){
             if(elements != elements1){
                 relationRepresentation temp1 =elements1;
                 temp1 >>=6;
@@ -1110,10 +1111,8 @@ void relationFiltering(vector<relationSetType>& relationMap){
         relationRepresentationMultiply(toInsert, toCompare,tempKey);
         relationMap[1].erase(elements);
         setInsert(relationMap[1], toInsert);
-    }
 }
-
-
+}
 //////////////////
 //     MAIN     //
 //////////////////
@@ -1151,7 +1150,7 @@ int main(int argc, const char * argv[]) {
     relationRepresentation temp1(0);
     relationRepresentation temp3(22);
 
-    relationMap.insert(temp^temp2);
+    relationMap.insert(temp);
     relationMap.insert(temp2);
     relationMap.insert(temp21);
     relationMap.insert(temp1);
@@ -1177,7 +1176,6 @@ int main(int argc, const char * argv[]) {
     
 
     relationMapping(relationMap, linearMatrices, keyMatrices);
-    relationFiltering(relationMap);
     writeRelationMap(relationMap);
     
 
