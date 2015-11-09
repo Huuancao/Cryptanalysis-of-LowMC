@@ -37,14 +37,13 @@ const string keyMatPath = "../LowMC/keymatrices.txt";
 const string roundConstPath = "../LowMC/roundconstants.txt";
 const string freeCoefPath= "a0.txt";
 const string monomialsPath = "monomials.txt";
-const string pythonPath1 ="python1.txt";
-const string pythonPath2 ="python2.txt";
-const string invLinMatPath ="invlinmatrices.txt";
-const string peelOffCipherPath ="peeledOffCiphertexts.txt";
-
-const string relationRepresentationPath ="relationRepresentation.txt";
-
+const string pythonPath1 = "python1.txt";
+const string pythonPath2 = "python2.txt";
+const string invLinMatPath = "invlinmatrices.txt";
+const string peelOffCipherPath = "peeledOffCiphertexts.txt";
+const string relationRepresentationPath = "relationRepresentation.txt";
 const string relationRepresentationTargetPath ="relationRepresentationTarget.txt";
+const string keysMonomialsPath = "keysMonomials.txt";
 
 typedef std::bitset<blocksize> block; // Store messages and states
 typedef std::bitset<keysize> keyblock;
@@ -625,20 +624,20 @@ void writeFreeCoef(const vector<freeCoef>& a0){
 /*
 Write Inputs for Sage.
 */
-writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
+void writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
     ofstream myFile;
     myFile.open(pythonPath1.c_str());
     myFile << "[";
     for(int i=0; i< matrixE.size(); ++i){
         myFile << "[";
         for(int j=0; j< matrixE[0].size(); ++j){
-            if (j==matrixE[0].size()){
+            if (j==matrixE[0].size()-1){
                     myFile << matrixE[i][j];
             }else{
                  myFile << matrixE[i][j]<< " ";
             }
         }
-        if(i != matrixE.size()) 
+        if(i != matrixE.size()-1) 
             {
                 myFile << "],";
         }else{
@@ -653,13 +652,39 @@ writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
     for(int i=0; i< a0.size(); ++i){
         myFile << "[";
         for(int j=0; j< a0[0].size(); ++j){
-            if (j==a0[0].size()){
+            if (j==a0[0].size()-1){
                     myFile << a0[i][j];
             }else{
                  myFile << a0[i][j]<< " ";
             }
         }
         if(i != a0.size()-1) 
+            {
+                myFile << "],";
+        }else{
+            myFile << "]";
+        }
+    }
+    myFile << "]";
+    myFile.close();
+}
+/*
+Write Inputs for Sage.
+*/
+void writePython(vector<keyblock>& keys){
+    ofstream myFile;
+    myFile.open(keysMonomialsPath.c_str());
+    myFile << "[";
+    for(int i=0; i< keys.size(); ++i){
+        myFile << "[";
+        for(int j=0; j< keys[0].size(); ++j){
+            if (j==keys[0].size()-1){
+                    myFile << keys[i][j];
+            }else{
+                 myFile << keys[i][j]<< " ";
+            }
+        }
+        if(i != keys.size()-1) 
             {
                 myFile << "],";
         }else{
@@ -1120,6 +1145,18 @@ void extractMonomialsKeys(const relationSetType& relationMapTarget,
         relationMapMonoKeys.insert(tempRelaRep);
     }
 }
+/*
+Setup linear equation system Keys per monomial and alpha_u per monomial.
+*/
+void setUpLinearEquationKeyAlphas(vector<keyblock>& keysMonomials, const relationSetType& relationMapMonoKeys){
+    for(auto element : relationMapMonoKeys){
+        relationRepresentation temp(element);
+        temp <<= blocksize;
+        temp >>= blocksize;
+        keysMonomials.push_back(temp.to_ulong());
+    }
+    writePython(keysMonomials);
+}
 //////////////////
 //     MAIN     //
 //////////////////
@@ -1152,6 +1189,8 @@ int main(int argc, const char * argv[]) {
     vector<relationSetType> relationMap;
     relationSetType relationMapTarget;
     relationSetType relationMapMonoKeys;
+
+    vector<keyblock> keysMonomials;
     /*relationSetType relationMap;
     relationRepresentation temp(22);
     relationRepresentation temp2(24);
@@ -1192,11 +1231,11 @@ int main(int argc, const char * argv[]) {
     //relationMapping(relationMap, linearMatrices, keyMatrices);
 
     extractMonomialsKeys(relationMapTarget, relationMapMonoKeys, monomials);
-
-    for(auto element : relationMapMonoKeys){
+    setUpLinearEquationKeyAlphas(keysMonomials, relationMapMonoKeys);
+    /*for(auto element : relationMapMonoKeys){
         //cout << relationMapMonoKeys.size() << endl;
         cout << element << endl;
-    }
+    }*/
     //writeRelationMap(relationMap);
     //writeRelationMapTarget(relationMap[targetBit]);
 
