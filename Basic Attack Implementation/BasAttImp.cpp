@@ -1083,29 +1083,6 @@ void relationMapping(vector<relationSetType>& relationMap,
     }
 }
 
-<<<<<<< HEAD
-            for (auto elements1: relationMap[1]){
-            if(elements != elements1){
-                relationRepresentation temp1 =elements1;
-                temp1 >>=6;
-                if(temp1==toCompare){
-                    relationRepresentation tempKey2=elements1;
-                    tempKey2 <<= 16;
-                    tempKey2 >>= 16;
-                    relationRepresentation xored(0);
-                    relationRepresentationXoring(tempKey, tempKey2, tempKey);
-                    relationMap[1].erase(elements1);
-                }
-            }
-        }
-        toCompare <<= 6;
-        relationRepresentationMultiply(toInsert, toCompare,tempKey);
-        relationMap[1].erase(elements);
-        setInsert(relationMap[1], toInsert);
-}
-}
-=======
->>>>>>> parent of fd31dce... RelationFiltering
 //////////////////
 //     MAIN     //
 //////////////////
