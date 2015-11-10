@@ -1263,13 +1263,13 @@ int main(int argc, const char * argv[]) {
 
     //printANF("");
 
-    //generateMatrixA(monomials, ciphertexts, matrixA);
-    //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
+    generateMatrixA(monomials, ciphertexts, matrixA);
+    generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
 
     //printSequencesMonoMatrices(matrixA);
     //printSequencesMonoMatrices(matrixE);
 
-    //writePython(matrixE, a0);
+    writePython(matrixE, a0);
     
     //printSequencesVecspaces(subspaces);
     //printSequencesBlocks(base);
