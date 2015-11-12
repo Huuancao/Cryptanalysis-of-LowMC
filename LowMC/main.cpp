@@ -87,20 +87,20 @@ void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName
 }
 
 int main () {
-    LowMC cipher(1); //Set key to 0
+    LowMC cipher(key); //Set key to 101101
     std::vector<block> plaintexts;
     std::vector<block> ciphertexts;
     int maxPlaintexts(pow(2,12));
     string mode("no"); //Type "reverse" to reverse inputs, else type anything different
     generatePlaintexts(plaintexts, mode, maxPlaintexts);
-    //writeVectorsBlocks(plaintexts, "plaintexts1.txt");
+    //writeVectorsBlocks(plaintexts, "plaintexts.txt");
 
     //printSequences(plaintexts);
     generateCiphertexts(plaintexts, ciphertexts, cipher);
     //printSequences(ciphertexts);
 
-    //writeVectorsBlocks(ciphertexts, "ciphertexts1.txt");
-    writeVectorsBlocks(ciphertexts, "partialCiphertexts1.txt");
+    //writeVectorsBlocks(ciphertexts, "ciphertexts.txt");
+    writeVectorsBlocks(ciphertexts, "partialCiphertexts.txt");
 
     /*
     block a = 0xABCD;

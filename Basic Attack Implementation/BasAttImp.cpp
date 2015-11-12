@@ -16,9 +16,11 @@ const unsigned keysize = 6; // Key size in bits
 const unsigned rounds = 6; // Number of rounds
 const unsigned partialRounds = 4; // Number of rounds to compute high order constants
 const unsigned tail = 7; // Number of bits in tail
-const unsigned dimension = 12; //Dimension of vector space
-const unsigned maxpermut = 4080; //Bound binary:111111110000
-const unsigned numSubspaces = 495; //Combination C(12,8)
+const unsigned dimension = 11; //Dimension of vector space
+const unsigned subDimension = 4; //Dimension of vector subspace
+const unsigned firstpermut = 15; // 00000001111
+const unsigned maxpermut = 1920; //Bound binary:11110000000
+const unsigned numSubspaces = 330; //Combination C(12,8)
 const unsigned nummonomials = 283;
 const unsigned numPartialCiphertexts = 4096;
 const unsigned relationLength = 22;
@@ -41,6 +43,7 @@ const string pythonPath1 = "python1.txt";
 const string pythonPath2 = "python2.txt";
 const string invLinMatPath = "invlinmatrices.txt";
 const string peelOffCipherPath = "peeledOffCiphertexts.txt";
+const string peeledOffPartialCiphertextsPath = "peeledOffPartialCiphertexts.txt";
 const string relationRepresentationPath = "relationRepresentation.txt";
 const string relationRepresentationTargetPath ="relationRepresentationTarget.txt";
 const string keysMonomialsPath = "keysMonomials.txt";
@@ -303,7 +306,7 @@ unsigned rank_of_Matrix (const std::vector<block> matrix) {
 /*
 Compute preprocessed free coefs.
 */
-void preprocessingFreeCoef(vector<freeCoef>& a0, const vector<block>& partialCiphertexts, 
+void preprocessingFreeCoef(vector<freeCoef>& a0, const vector<block>& peeledOffPartialCiphertexts, 
                         const vector<block>& plaintexts,
                         const std::vector<block>& base, const vector<vecspace>& subspaces){
     for(int i=0; i< subspaces.size(); ++i){
@@ -315,9 +318,9 @@ void preprocessingFreeCoef(vector<freeCoef>& a0, const vector<block>& partialCip
         }
         for(int k=0; k<plaintexts.size(); ++k){
             tempSubspace.push_back(plaintexts[k]);
-            if(rank_of_Matrix(tempSubspace)==8){
+            if(rank_of_Matrix(tempSubspace)==subDimension){
                 for(int l=0; l< a0.size(); ++l){
-                    a0[l][i]=a0[l][i]^partialCiphertexts[k][l];
+                    a0[l][i]=a0[l][i]^peeledOffPartialCiphertexts[k][l];
                 }
             }
             tempSubspace.pop_back();
@@ -344,7 +347,7 @@ unsigned int nextPermut(unsigned int currentPermut){
 Generate C(12,8) subspaces.
 */
 void setSubspaces(vector<vecspace>& subspaces){
-    unsigned int current(255);
+    unsigned int current(firstpermut);
     do {
             subspaces.push_back(current);
             current = nextPermut(current);
@@ -353,7 +356,7 @@ void setSubspaces(vector<vecspace>& subspaces){
 /*
 Generate vector space 12x16.
 */
-void setVectorSpace(std::vector<block>& base){
+void setVectorSpace(vector<block>& base){
     block tempVector(0);
     tempVector[0]=1;
     for(int i=0; i<dimension; ++i){
@@ -394,7 +397,7 @@ void printVector(vector<double>& vector){
 /*
 Print vector of sequences of blocks.
 */
-void printSequencesBlocks(const std::vector<block>& sequences){
+void printSequencesBlocks(const vector<block>& sequences){
     for(int i=0; i< sequences.size(); ++i){
         cout << "Entry n" <<i << ": " << sequences[i] << endl;
     }
@@ -816,7 +819,7 @@ void generateMatrixE(const vector<monomatrix>& A,const vector<block>& plaintexts
         }
         for (int j = 0; j < ciphertexts.size(); ++j){
             tempSubspace.push_back(plaintexts[j]);
-            if(rank_of_Matrix(tempSubspace)==8){
+            if(rank_of_Matrix(tempSubspace)==subDimension){
                 E[i]=E[i]^A[j];
             }
         tempSubspace.pop_back();
@@ -1169,6 +1172,7 @@ int main(int argc, const char * argv[]) {
     vector<block> ciphertexts;
     vector<block> partialCiphertexts;
     vector<block> peeledOffCiphertexts;
+    vector<block> peeledOffPartialCiphertexts;
 
     vector<block> base;
     vector<vecspace> subspaces;
@@ -1216,9 +1220,10 @@ int main(int argc, const char * argv[]) {
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
-    initInputs(a0, freeCoefPath);
+    //initInputs(a0, freeCoefPath);
     initInputs(monomials, monomialsPath);
     initInputs(peeledOffCiphertexts, peelOffCipherPath);
+    initInputs(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
     initInputs(relationMapTarget, relationRepresentationTargetPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
@@ -1227,11 +1232,10 @@ int main(int argc, const char * argv[]) {
     initInputs(roundConstants, roundConstPath);
     initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
     
-
     //relationMapping(relationMap, linearMatrices, keyMatrices);
 
-    extractMonomialsKeys(relationMapTarget, relationMapMonoKeys, monomials);
-    setUpLinearEquationKeyAlphas(keysMonomials, relationMapMonoKeys);
+    //extractMonomialsKeys(relationMapTarget, relationMapMonoKeys, monomials);
+    //setUpLinearEquationKeyAlphas(keysMonomials, relationMapMonoKeys);
     /*for(auto element : relationMapMonoKeys){
         //cout << relationMapMonoKeys.size() << endl;
         cout << element << endl;
@@ -1239,13 +1243,13 @@ int main(int argc, const char * argv[]) {
     //writeRelationMap(relationMap);
     //writeRelationMapTarget(relationMap[targetBit]);
 
-    
-
-
-    //testSubstitution(4);
     //peelingOffCiphertexts(ciphertexts, roundConstants[5], invLinearMatrices[5], peeledOffCiphertexts);
     //printSequencesBlocks(peeledOffCiphertexts);
     //writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
+
+    //peelingOffCiphertexts(partialCiphertexts, roundConstants[3], invLinearMatrices[3], peeledOffPartialCiphertexts);
+    //printSequencesBlocks(peeledOffPartialCiphertexts);
+    //writeVectorsBlocks(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
     
     //initInvMatrices(linearMatrices, invLinearMatrices);
     //printVectorVectorsBlock(invLinearMatrices);
@@ -1254,8 +1258,12 @@ int main(int argc, const char * argv[]) {
     //printVectorVectorsBlock(linearMatrices);
     //printVectorVectorsKeyBlock(keyMatrices);
     //printVectorVectorsBlock(invLinearMatrices);
-    //preprocessingFreeCoef(a0, partialCiphertexts, plaintexts, base, subspaces);
-    //writeFreeCoef(a0);
+
+
+    preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
+    writeFreeCoef(a0);
+
+
     //generateMonomials(monomials);
     //printSequencesBlocks(monomials);
     //cout << "Previous monomials equal to new monomials set? " << (monomials == monomialsv1) << endl;
