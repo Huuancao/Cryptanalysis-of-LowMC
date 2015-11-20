@@ -1071,7 +1071,7 @@ void insertRemastered(relationSetType& InsertionResult, const relationSetType& t
 /*
 SBoxes function for a vector of bitset of size relationLength 
 */
-void SBoxRelation(vector<relationSetType>& relationMap){
+void SBoxRelation(vector<relationSetType>& relationMap, string mode){
     vector<relationSetType> tempRelationMap;
     tempRelationMap.clear();
     for(int h=0; h<blocksize; ++h){
@@ -1102,7 +1102,12 @@ void SBoxRelation(vector<relationSetType>& relationMap){
         }
         insertRemastered(tempRelationMap[x0], relationMap[x1]);
         insertRemastered(tempRelationMap[x0], relationMap[x2]);
-        insertRemastered(tempRelationMap[x1], relationMap[x0]);
+        if(mode=="reverse"){
+            insertRemastered(tempRelationMap[x2], relationMap[x0]);
+        }
+        else{
+            insertRemastered(tempRelationMap[x1], relationMap[x0]);
+        }
     }
     relationMap.clear();
     for(int k=0; k<blocksize; ++k){
@@ -1117,7 +1122,7 @@ void relationMapping(vector<relationSetType>& relationMap,
                         const vector<vector<keyblock>>& keyMatrices){
     initRelationWhitening(relationMap, keyMatrices);
     for(int i=0; i<4; ++i){
-        SBoxRelation(relationMap);
+        SBoxRelation(relationMap, "");
         linearLayerMixing(relationMap, linearMatrices[i], i);
     }
 }
@@ -1260,8 +1265,8 @@ int main(int argc, const char * argv[]) {
     //printVectorVectorsBlock(invLinearMatrices);
 
 
-    preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
-    writeFreeCoef(a0);
+    //preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
+    //writeFreeCoef(a0);
 
 
     //generateMonomials(monomials);
@@ -1269,17 +1274,15 @@ int main(int argc, const char * argv[]) {
     //cout << "Previous monomials equal to new monomials set? " << (monomials == monomialsv1) << endl;
     //writeBlockSet(monomials, monomialsPath);
 
-    //printANF("");
+    printANF("");
 
-    generateMatrixA(monomials, ciphertexts, matrixA);
-    generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
-    cout << matrixE.size() << endl;
-    cout << matrixE[0].size() << endl;
+    //generateMatrixA(monomials, ciphertexts, matrixA);
+    //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
 
     //printSequencesMonoMatrices(matrixA);
     //printSequencesMonoMatrices(matrixE);
 
-    writePython(matrixE, a0);
+    //writePython(matrixE, a0);
     
     //printSequencesVecspaces(subspaces);
     //printSequencesBlocks(base);
