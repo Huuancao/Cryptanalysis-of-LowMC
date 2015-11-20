@@ -90,7 +90,7 @@ int main () {
     LowMC cipher(key); //Set key to 101101
     std::vector<block> plaintexts;
     std::vector<block> ciphertexts;
-    int maxPlaintexts(pow(2,12));
+    int maxPlaintexts(pow(2,11));
     string mode("no"); //Type "reverse" to reverse inputs, else type anything different
     generatePlaintexts(plaintexts, mode, maxPlaintexts);
     //writeVectorsBlocks(plaintexts, "plaintexts.txt");

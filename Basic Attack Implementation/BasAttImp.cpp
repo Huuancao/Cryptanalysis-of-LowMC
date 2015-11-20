@@ -20,7 +20,7 @@ const unsigned dimension = 11; //Dimension of vector space
 const unsigned subDimension = 4; //Dimension of vector subspace
 const unsigned firstpermut = 15; // 00000001111
 const unsigned maxpermut = 1920; //Bound binary:11110000000
-const unsigned numSubspaces = 330; //Combination C(12,8)
+const unsigned numSubspaces = 330; //Combination C(11,4)
 const unsigned nummonomials = 283;
 const unsigned numPartialCiphertexts = 4096;
 const unsigned relationLength = 22;
@@ -1273,6 +1273,8 @@ int main(int argc, const char * argv[]) {
 
     generateMatrixA(monomials, ciphertexts, matrixA);
     generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
+    cout << matrixE.size() << endl;
+    cout << matrixE[0].size() << endl;
 
     //printSequencesMonoMatrices(matrixA);
     //printSequencesMonoMatrices(matrixE);
