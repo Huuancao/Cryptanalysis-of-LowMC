@@ -25,7 +25,7 @@ const unsigned nummonomials = 283;
 const unsigned numPartialCiphertexts = 4096;
 const unsigned relationLength = 22;
 const unsigned identitysize = blocksize - 3*numofboxes;
-const unsigned targetBit = 9;
+const unsigned targetBit = 15;
 const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
 const std::vector<unsigned> invSbox = {0x00, 0x01, 0x07, 0x02, 0x05, 0x06, 0x03, 0x04}; // Invers Sboxes
 
@@ -1045,7 +1045,8 @@ void keyRoundAdd(vector<relationSetType>& tempRelation, const vector<keyblock>& 
 Init iniput first round & key whitening.
 */
 void initRelationWhitening(vector<relationSetType>& relationMap,
-                        const vector<vector<keyblock>>& keyMatrices){
+                        const vector<vector<keyblock>>& keyMatrices,
+                        string mode){
     relationMap.clear();
     relationRepresentation tempRelation(1);
     tempRelation <<=keysize;
@@ -1056,7 +1057,9 @@ void initRelationWhitening(vector<relationSetType>& relationMap,
         tempRelation <<=1;
         relationMap.push_back(bitSet);
     }
-    keyRoundAdd(relationMap, keyMatrices[0]);
+    if(mode == ""){
+        keyRoundAdd(relationMap, keyMatrices[0]);
+    }
 }/*
 void insertRemastered(vector<relationRepresentation>& InsertionResult, vector<relationRepresentation>& toInsert){
     for (int i = 0; i < toInsert.size(); ++i){
@@ -1117,13 +1120,19 @@ void SBoxRelation(vector<relationSetType>& relationMap, string mode){
 /*
 Relation mapping creation.
 */
-void relationMapping(vector<relationSetType>& relationMap, 
-                        const vector<vector<block>>& linearMatrices,
-                        const vector<vector<keyblock>>& keyMatrices){
-    initRelationWhitening(relationMap, keyMatrices);
+void relationMapping(vector<relationSetType>& relationMap,
+                    vector<relationSetType>& reverseRelationMap, 
+                    const vector<vector<block>>& linearMatrices,
+                    const vector<vector<keyblock>>& keyMatrices){
+    initRelationWhitening(relationMap, keyMatrices, "");
+    initRelationWhitening(reverseRelationMap, keyMatrices, "reverse");
     for(int i=0; i<4; ++i){
         SBoxRelation(relationMap, "");
         linearLayerMixing(relationMap, linearMatrices[i], i);
+    }
+    for(int j=5; j>3; --j){
+        linearLayerMixing(reverseRelationMap, linearMatrices[j], j);
+        SBoxRelation(reverseRelationMap, "reverse");
     }
 }
 /*
@@ -1198,8 +1207,12 @@ int main(int argc, const char * argv[]) {
     vector<relationSetType> relationMap;
     relationSetType relationMapTarget;
     relationSetType relationMapMonoKeys;
-
     vector<keyblock> keysMonomials;
+
+    vector<relationSetType> reverseRelationMap;
+    relationSetType reverseRelationMapTarget;
+    relationSetType reverseRelationMapMonoKeys;
+    vector<keyblock> reverseKeysMonomials;
     /*relationSetType relationMap;
     relationRepresentation temp(22);
     relationRepresentation temp2(24);
@@ -1237,9 +1250,10 @@ int main(int argc, const char * argv[]) {
     initInputs(roundConstants, roundConstPath);
     initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
     
-    //relationMapping(relationMap, linearMatrices, keyMatrices);
+    relationMapping(relationMap, reverseRelationMap, linearMatrices, keyMatrices);
 
-    //extractMonomialsKeys(relationMapTarget, relationMapMonoKeys, monomials);
+    extractMonomialsKeys(relationMapTarget, relationMapMonoKeys, monomials);
+    extractMonomialsKeys(reverseRelationMap[targetBit], reverseRelationMapMonoKeys, monomials);
     //setUpLinearEquationKeyAlphas(keysMonomials, relationMapMonoKeys);
     /*for(auto element : relationMapMonoKeys){
         //cout << relationMapMonoKeys.size() << endl;
@@ -1274,7 +1288,7 @@ int main(int argc, const char * argv[]) {
     //cout << "Previous monomials equal to new monomials set? " << (monomials == monomialsv1) << endl;
     //writeBlockSet(monomials, monomialsPath);
 
-    printANF("");
+    //printANF("");
 
     //generateMatrixA(monomials, ciphertexts, matrixA);
     //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
