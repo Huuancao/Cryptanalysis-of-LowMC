@@ -1029,16 +1029,21 @@ void linearLayerMixing(vector<relationSetType>& relationMap,
 /*
 Adding key function.
 */
-void keyRoundAdd(vector<relationSetType>& tempRelation, const vector<keyblock>& keyMatrix){
+void keyRoundAdd(vector<relationSetType>& relationMap, const vector<keyblock>& keyMatrix){
+    vector<relationSetType> tempRelation;
     for(int i=0; i< blocksize; ++i){
         relationRepresentation tempKey(keyMatrix[i].to_ullong());
-        tempKey;
-        for(auto element : tempRelation[i]){
+        relationSetType tempRelationSet;
+        for(auto element : relationMap[i]){
             relationRepresentation temp(element);
             temp=temp^tempKey;
-            tempRelation[i].erase(element);
-            tempRelation[i].insert(temp);
+            tempRelationSet.insert(temp);
         }
+        tempRelation.push_back(tempRelationSet);
+    }
+    relationMap.clear();
+    for(int k=0; k<blocksize; ++k){
+        relationMap.push_back(tempRelation[k]);
     }
 }
 /*
@@ -1126,16 +1131,22 @@ void relationMapping(vector<relationSetType>& relationMap,
                     const vector<vector<keyblock>>& keyMatrices){
     initRelationWhitening(relationMap, keyMatrices, "");
     initRelationWhitening(reverseRelationMap, keyMatrices, "reverse");
+    for(int j=0; j< relationMap.size(); ++j){
+        for(auto element : relationMap[j]){
+            cout << element << endl;
+        }
+    }
     for(int i=0; i<4; ++i){
+        cout << i << endl;
         SBoxRelation(relationMap, "");
         linearLayerMixing(relationMap, linearMatrices[i], i);
         keyRoundAdd(relationMap, keyMatrices[i]);
     }
-    for(int j=5; j>3; --j){
+    /*for(int j=5; j>3; --j){
         keyRoundAdd(relationMap, keyMatrices[j]);
         linearLayerMixing(reverseRelationMap, linearMatrices[j], j);
         SBoxRelation(reverseRelationMap, "reverse");
-    }
+    }*/
 }
 /*
 Extract Key information according to monomials precomputed.
@@ -1228,14 +1239,16 @@ int main(int argc, const char * argv[]) {
     relationMap1.insert(temp);
     relationMap2.insert(temp);
     relationMap1.insert(temp2);
+
     cout << (relationMap1==relationMap2) << endl;
-    /*relationMap1.insert(temp2);
+    relationMap1.insert(temp2);
     relationMap1.insert(temp21);
     relationMap1.insert(temp1);
     relationMap1.insert(temp3);
-    /*for(relationSetType::iterator i = relationMap1.begin();i!=relationMap.end(); ++i){
+    for(relationSetType::iterator i = relationMap1.begin();i!=relationMap.end(); ++i){
         cout << *i << endl;
     }
+    /*
     relationSetType::iterator it1=relationMap1.lower_bound(22);
     relationSetType::iterator it2=relationMap1.upper_bound(30);
     for(it1; it1!=it2; ++it1){
@@ -1259,9 +1272,10 @@ int main(int argc, const char * argv[]) {
     initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
     
     relationMapping(relationMap, reverseRelationMap, linearMatrices, keyMatrices);
+    cout << "Yolo" << endl;
 
-    extractMonomialsKeys(relationMap[targetBit], relationMapMonoKeys, monomials);
-    extractMonomialsKeys(reverseRelationMap[targetBit], reverseRelationMapMonoKeys, monomials);
+    //extractMonomialsKeys(relationMap[targetBit], relationMapMonoKeys, monomials);
+    //extractMonomialsKeys(reverseRelationMap[targetBit], reverseRelationMapMonoKeys, monomials);
     /*cout << "Reverse Relation" <<endl;
     for(int i=0; i< relationMap.size(); ++i){
         for(auto element : relationMap[targetBit]){
@@ -1289,7 +1303,10 @@ int main(int argc, const char * argv[]) {
         //cout << relationMapMonoKeys.size() << endl;
         cout << element << endl;
     }*/
+
+
     writeRelationMap(relationMap);
+    cout << "Swag" << endl;
     //writeRelationMapTarget(relationMap[targetBit]);
 
     //peelingOffCiphertexts(ciphertexts, roundConstants[5], invLinearMatrices[5], peeledOffCiphertexts);
