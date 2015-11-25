@@ -25,7 +25,7 @@ const unsigned nummonomials = 283;
 const unsigned numPartialCiphertexts = 4096;
 const unsigned relationLength = 22;
 const unsigned identitysize = blocksize - 3*numofboxes;
-const unsigned targetBit = 9;
+const unsigned targetBit = 15;
 const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
 const std::vector<unsigned> invSbox = {0x00, 0x01, 0x07, 0x02, 0x05, 0x06, 0x03, 0x04}; // Invers Sboxes
 
@@ -48,12 +48,14 @@ const string relationRepresentationPath = "relationRepresentation.txt";
 const string relationRepresentationTargetPath ="relationRepresentationTarget.txt";
 const string keysMonomialsPath = "keysMonomials.txt";
 
+
 typedef std::bitset<blocksize> block; // Store messages and states
 typedef std::bitset<keysize> keyblock;
 typedef std::bitset<dimension> vecspace;
 typedef std::bitset<nummonomials> monomatrix;
 typedef std::bitset<numSubspaces> freeCoef;
 typedef std::bitset<relationLength> relationRepresentation;
+
 
 
 
@@ -1195,6 +1197,7 @@ int main(int argc, const char * argv[]) {
     blockSetType monomials;
     //blockSetType monomialsv1;
     vector<freeCoef> a0(blocksize, 0);
+    
 
     vector<monomatrix> matrixA(numPartialCiphertexts,0);
     vector<monomatrix> matrixE(numSubspaces, 0);
@@ -1237,7 +1240,7 @@ int main(int argc, const char * argv[]) {
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
-    //initInputs(a0, freeCoefPath);
+    initInputs(a0, freeCoefPath);
     initInputs(monomials, monomialsPath);
     initInputs(peeledOffCiphertexts, peelOffCipherPath);
     initInputs(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
@@ -1264,7 +1267,7 @@ int main(int argc, const char * argv[]) {
 
     //peelingOffCiphertexts(ciphertexts, roundConstants[5], invLinearMatrices[5], peeledOffCiphertexts);
     //printSequencesBlocks(peeledOffCiphertexts);
-    //writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
+    ///writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
 
     //peelingOffCiphertexts(partialCiphertexts, roundConstants[3], invLinearMatrices[3], peeledOffPartialCiphertexts);
     //printSequencesBlocks(peeledOffPartialCiphertexts);
@@ -1277,8 +1280,6 @@ int main(int argc, const char * argv[]) {
     //printVectorVectorsBlock(linearMatrices);
     //printVectorVectorsKeyBlock(keyMatrices);
     //printVectorVectorsBlock(invLinearMatrices);
-
-
     //preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
     //writeFreeCoef(a0);
 
