@@ -1057,7 +1057,8 @@ void keyRoundAdd(vector<relationSetType>& tempRelation, const vector<keyblock>& 
 Init iniput first round & key whitening.
 */
 void initRelationWhitening(vector<relationSetType>& relationMap,
-                        const vector<vector<keyblock>>& keyMatrices){
+                        const vector<vector<keyblock>>& keyMatrices,
+                        string mode){
     relationMap.clear();
     relationRepresentation tempRelation(1);
     tempRelation <<=keysize;
@@ -1068,7 +1069,9 @@ void initRelationWhitening(vector<relationSetType>& relationMap,
         tempRelation <<=1;
         relationMap.push_back(bitSet);
     }
-    keyRoundAdd(relationMap, keyMatrices[0]);
+    if(mode == ""){
+        keyRoundAdd(relationMap, keyMatrices[0]);
+    }
 }/*
 void insertRemastered(vector<relationRepresentation>& InsertionResult, vector<relationRepresentation>& toInsert){
     for (int i = 0; i < toInsert.size(); ++i){
@@ -1115,10 +1118,10 @@ void SBoxRelation(vector<relationSetType>& relationMap, string mode){
         insertRemastered(tempRelationMap[x0], relationMap[x1]);
         insertRemastered(tempRelationMap[x0], relationMap[x2]);
         if(mode=="reverse"){
-            insertRemastered(tempRelationMap[x2], relationMap[x0]);
+            insertRemastered(tempRelationMap[x2], relationMap[x1]);
         }
         else{
-            insertRemastered(tempRelationMap[x1], relationMap[x0]);
+            insertRemastered(tempRelationMap[x1], relationMap[x2]);
         }
     }
     relationMap.clear();
@@ -1129,13 +1132,21 @@ void SBoxRelation(vector<relationSetType>& relationMap, string mode){
 /*
 Relation mapping creation.
 */
-void relationMapping(vector<relationSetType>& relationMap, 
-                        const vector<vector<block>>& linearMatrices,
-                        const vector<vector<keyblock>>& keyMatrices){
-    initRelationWhitening(relationMap, keyMatrices);
+void relationMapping(vector<relationSetType>& relationMap,
+                    vector<relationSetType>& reverseRelationMap, 
+                    const vector<vector<block>>& linearMatrices,
+                    const vector<vector<keyblock>>& keyMatrices){
+    initRelationWhitening(relationMap, keyMatrices, "");
+    initRelationWhitening(reverseRelationMap, keyMatrices, "reverse");
     for(int i=0; i<4; ++i){
         SBoxRelation(relationMap, "");
         linearLayerMixing(relationMap, linearMatrices[i], i);
+        keyRoundAdd(relationMap, keyMatrices[i]);
+    }
+    for(int j=5; j>3; --j){
+        keyRoundAdd(relationMap, keyMatrices[j]);
+        linearLayerMixing(reverseRelationMap, linearMatrices[j], j);
+        SBoxRelation(reverseRelationMap, "reverse");
     }
 }
 /*
@@ -1211,27 +1222,36 @@ int main(int argc, const char * argv[]) {
     vector<relationSetType> relationMap;
     relationSetType relationMapTarget;
     relationSetType relationMapMonoKeys;
-
     vector<keyblock> keysMonomials;
-    /*relationSetType relationMap;
+
+    vector<relationSetType> reverseRelationMap;
+    relationSetType reverseRelationMapTarget;
+    relationSetType reverseRelationMapMonoKeys;
+    vector<keyblock> reverseKeysMonomials;
+
+
+    /*relationSetType relationMap1;
+    relationSetType relationMap2;
     relationRepresentation temp(22);
     relationRepresentation temp2(24);
     relationRepresentation temp21(1942);
     relationRepresentation temp1(0);
     relationRepresentation temp3(26);
 
-    relationMap.insert(temp^temp2);
-    relationMap.insert(temp2);
-    relationMap.insert(temp21);
-    relationMap.insert(temp1);
-    relationMap.insert(temp3);
 
-    /*for(relationSetType::iterator i = relationMap.begin();i!=relationMap.end(); ++i){
-
+    relationMap1.insert(temp);
+    relationMap2.insert(temp);
+    relationMap1.insert(temp2);
+    cout << (relationMap1==relationMap2) << endl;
+    /*relationMap1.insert(temp2);
+    relationMap1.insert(temp21);
+    relationMap1.insert(temp1);
+    relationMap1.insert(temp3);
+    /*for(relationSetType::iterator i = relationMap1.begin();i!=relationMap.end(); ++i){
         cout << *i << endl;
     }
-    relationSetType::iterator it1=relationMap.lower_bound(22);
-    relationSetType::iterator it2=relationMap.upper_bound(30);
+    relationSetType::iterator it1=relationMap1.lower_bound(22);
+    relationSetType::iterator it2=relationMap1.upper_bound(30);
     for(it1; it1!=it2; ++it1){
         cout << *it1 << endl;
     }*/
@@ -1252,16 +1272,39 @@ int main(int argc, const char * argv[]) {
     initInputs(roundConstants, roundConstPath);
     initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
     
-    //relationMapping(relationMap, linearMatrices, keyMatrices);
+    relationMapping(relationMap, reverseRelationMap, linearMatrices, keyMatrices);
+
+    extractMonomialsKeys(relationMap[targetBit], relationMapMonoKeys, monomials);
+    extractMonomialsKeys(reverseRelationMap[targetBit], reverseRelationMapMonoKeys, monomials);
+    /*cout << "Reverse Relation" <<endl;
+    for(int i=0; i< relationMap.size(); ++i){
+        for(auto element : relationMap[targetBit]){
+            cout << element << endl;
+        }
+    }
+    cout << "Reverse Relation" <<endl;
+    for(int i=0; i< reverseRelationMap.size(); ++i){
+        for(auto element : reverseRelationMap[targetBit]){
+            cout << element << endl;
+        }
+    }
+/*
+    for(auto element : reverseRelationMap[targetBit]){
+        cout << element << endl;
+    }
+
+    /*cout << relationMapMonoKeys.size() << endl;
+
+    cout << reverseRelationMapMonoKeys.size() << endl;
 
 
-    //extractMonomialsKeys(relationMapTarget, relationMapMonoKeys, monomials);
+    cout << (relationMapMonoKeys == reverseRelationMapMonoKeys) << endl;
     //setUpLinearEquationKeyAlphas(keysMonomials, relationMapMonoKeys);
     /*for(auto element : relationMapMonoKeys){
         //cout << relationMapMonoKeys.size() << endl;
         cout << element << endl;
     }*/
-    //writeRelationMap(relationMap);
+    writeRelationMap(relationMap);
     //writeRelationMapTarget(relationMap[targetBit]);
 
 
@@ -1288,8 +1331,9 @@ int main(int argc, const char * argv[]) {
     //printSequencesBlocks(monomials);
     //cout << "Previous monomials equal to new monomials set? " << (monomials == monomialsv1) << endl;
     //writeBlockSet(monomials, monomialsPath);
+    //testSubstitution(3);
 
-    printANF("");
+    //printANF("");
 
     //generateMatrixA(monomials, ciphertexts, matrixA);
     //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
