@@ -1129,8 +1129,10 @@ void relationMapping(vector<relationSetType>& relationMap,
     for(int i=0; i<4; ++i){
         SBoxRelation(relationMap, "");
         linearLayerMixing(relationMap, linearMatrices[i], i);
+        keyRoundAdd(relationMap, keyMatrices[i]);
     }
     for(int j=5; j>3; --j){
+        keyRoundAdd(relationMap, keyMatrices[j]);
         linearLayerMixing(reverseRelationMap, linearMatrices[j], j);
         SBoxRelation(reverseRelationMap, "reverse");
     }
@@ -1260,8 +1262,24 @@ int main(int argc, const char * argv[]) {
 
     extractMonomialsKeys(relationMap[targetBit], relationMapMonoKeys, monomials);
     extractMonomialsKeys(reverseRelationMap[targetBit], reverseRelationMapMonoKeys, monomials);
+    /*cout << "Reverse Relation" <<endl;
+    for(int i=0; i< relationMap.size(); ++i){
+        for(auto element : relationMap[targetBit]){
+            cout << element << endl;
+        }
+    }
+    cout << "Reverse Relation" <<endl;
+    for(int i=0; i< reverseRelationMap.size(); ++i){
+        for(auto element : reverseRelationMap[targetBit]){
+            cout << element << endl;
+        }
+    }
+/*
+    for(auto element : reverseRelationMap[targetBit]){
+        cout << element << endl;
+    }
 
-    cout << relationMapMonoKeys.size() << endl;
+    /*cout << relationMapMonoKeys.size() << endl;
 
     cout << reverseRelationMapMonoKeys.size() << endl;
 
@@ -1301,7 +1319,7 @@ int main(int argc, const char * argv[]) {
     //writeBlockSet(monomials, monomialsPath);
     //testSubstitution(3);
 
-    //printANF("reverse");
+    //printANF("");
 
     //generateMatrixA(monomials, ciphertexts, matrixA);
     //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
