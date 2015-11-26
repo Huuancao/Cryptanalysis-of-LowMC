@@ -1085,8 +1085,8 @@ void SBoxRelation(vector<relationSetType>& relationMap, string mode){
     for(int h=0; h<blocksize; ++h){
         tempRelationMap.push_back(relationMap[h]);
     }
-    for(int i=0; i<numofboxes; ++i){      
-        int x0(3*i+keysize);
+    for(int i=numofboxes-1; i>=0; --i){      
+        int x0(3*i);
         int x1(x0+1);
         int x2(x1+1);
         for(auto elementX0 : relationMap[x0]){
@@ -1131,16 +1131,30 @@ void relationMapping(vector<relationSetType>& relationMap,
                     const vector<vector<keyblock>>& keyMatrices){
     initRelationWhitening(relationMap, keyMatrices, "");
     initRelationWhitening(reverseRelationMap, keyMatrices, "reverse");
-    for(int j=0; j< relationMap.size(); ++j){
+    /*for(int j=0; j< relationMap.size(); ++j){
         for(auto element : relationMap[j]){
             cout << element << endl;
         }
-    }
+    }*/
     for(int i=0; i<4; ++i){
         cout << i << endl;
         SBoxRelation(relationMap, "");
+        cout << "Sbox"<< endl;
+        for(int k =0; k < blocksize; ++k){
+            cout << "Bit " << k << " : " <<  relationMap[k].size() << endl;
+        }
         linearLayerMixing(relationMap, linearMatrices[i], i);
+
+        cout << "Linear layer"<< endl;
+        for(int l =0; l < blocksize; ++l){
+            cout << "Bit " << l << " : " <<  relationMap[l].size() << endl;
+        }
         keyRoundAdd(relationMap, keyMatrices[i]);
+
+        cout << "Key"<< endl;
+        for(int m =0; m < blocksize; ++m){
+            cout << "Bit " << m << " : " <<  relationMap[m].size() << endl;
+        }
     }
     /*for(int j=5; j>3; --j){
         keyRoundAdd(relationMap, keyMatrices[j]);
@@ -1194,7 +1208,7 @@ void setUpLinearEquationKeyAlphas(vector<keyblock>& keysMonomials, const relatio
 
 
 
-int main(int argc, const char * argv[]) {
+int main(void) {
     vector<block> plaintexts;
     vector<block> ciphertexts;
     vector<block> partialCiphertexts;
@@ -1270,7 +1284,8 @@ int main(int argc, const char * argv[]) {
     initInputsKeyMatrices(keyMatrices, keyMatPath);
     initInputs(roundConstants, roundConstPath);
     initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
-    
+
+
     relationMapping(relationMap, reverseRelationMap, linearMatrices, keyMatrices);
     cout << "Yolo" << endl;
 
