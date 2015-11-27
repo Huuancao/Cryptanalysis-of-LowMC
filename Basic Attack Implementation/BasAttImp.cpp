@@ -1092,8 +1092,8 @@ void SBoxRelation(vector<relationSetType>& relationMap, string mode){
     for(int h=0; h<blocksize; ++h){
         tempRelationMap.push_back(relationMap[h]);
     }
-    for(int i=0; i<numofboxes; ++i){      
-        int x0(3*i+keysize);
+    for(int i=numofboxes-1; i = 0; --i){      
+        int x0(i);
         int x1(x0+1);
         int x2(x1+1);
         for(auto elementX0 : relationMap[x0]){
@@ -1138,16 +1138,16 @@ void relationMapping(vector<relationSetType>& relationMap,
                     const vector<vector<keyblock>>& keyMatrices){
     initRelationWhitening(relationMap, keyMatrices, "");
     initRelationWhitening(reverseRelationMap, keyMatrices, "reverse");
-    for(int i=0; i<4; ++i){
+    for(int i=0; i<3; ++i){
         SBoxRelation(relationMap, "");
         linearLayerMixing(relationMap, linearMatrices[i], i);
         keyRoundAdd(relationMap, keyMatrices[i]);
     }
-    for(int j=5; j>3; --j){
+    /*for(int j=5; j>3; --j){
         keyRoundAdd(relationMap, keyMatrices[j]);
         linearLayerMixing(reverseRelationMap, linearMatrices[j], j);
         SBoxRelation(reverseRelationMap, "reverse");
-    }
+    }*/
 }
 /*
 Extract Key information according to monomials precomputed.
@@ -1176,7 +1176,7 @@ void extractMonomialsKeys(const relationSetType& relationMapTarget,
         relationMapMonoKeys.insert(tempRelaRep);
     }
 }
-/*
+/*  
 Setup linear equation system Keys per monomial and alpha_u per monomial.
 */
 void setUpLinearEquationKeyAlphas(vector<keyblock>& keysMonomials, const relationSetType& relationMapMonoKeys){
@@ -1260,10 +1260,10 @@ int main(int argc, const char * argv[]) {
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
-    initInputs(a0, freeCoefPath);
+    //initInputs(a0, freeCoefPath);
     initInputs(monomials, monomialsPath);
     initInputs(peeledOffCiphertexts, peelOffCipherPath);
-    initInputs(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
+    //initInputs(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
     initInputs(relationMapTarget, relationRepresentationTargetPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
@@ -1274,8 +1274,8 @@ int main(int argc, const char * argv[]) {
     
     relationMapping(relationMap, reverseRelationMap, linearMatrices, keyMatrices);
 
-    extractMonomialsKeys(relationMap[targetBit], relationMapMonoKeys, monomials);
-    extractMonomialsKeys(reverseRelationMap[targetBit], reverseRelationMapMonoKeys, monomials);
+    //extractMonomialsKeys(relationMap[targetBit], relationMapMonoKeys, monomials);
+    //extractMonomialsKeys(reverseRelationMap[targetBit], reverseRelationMapMonoKeys, monomials);
     /*cout << "Reverse Relation" <<endl;
     for(int i=0; i< relationMap.size(); ++i){
         for(auto element : relationMap[targetBit]){
@@ -1324,7 +1324,7 @@ int main(int argc, const char * argv[]) {
     //printVectorVectorsKeyBlock(keyMatrices);
     //printVectorVectorsBlock(invLinearMatrices);
     //preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
-    //writeFreeCoef(a0);
+    writeFreeCoef(a0);
 
 
     //generateMonomials(monomials);
