@@ -4,9 +4,9 @@
 #include <cmath>
 
 #define NUMSBOXES 3
-#define DATACOMPLEXITY 4
-#define BLOCKSIZECONST 65536
-#define TAIL 128
+#define DATACOMPLEXITY 6
+#define BLOCKSIZECONST 2097152
+#define TAIL 12
 //////////////////
 //     MAIN     //
 //////////////////
@@ -108,7 +108,7 @@ int main(int argc, const char * argv[]) {
     double threshold = pow(2, -DATACOMPLEXITY);
 
 
-    int round(6);
+    int round(4);
     double difProba(0);
     vector<vector<int> >sequences = allSequences(NUMSBOXES, round);
     //printSequences(sequences);
