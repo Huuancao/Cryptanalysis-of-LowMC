@@ -1274,19 +1274,24 @@ int main(void) {
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
     //initInputs(a0, freeCoefPath);
-    initInputs(monomials, monomialsPath);
+    //initInputs(monomials, monomialsPath);
     initInputs(peeledOffCiphertexts, peelOffCipherPath);
     initInputs(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
-    initInputs(relationMapTarget, relationRepresentationTargetPath);
+    //initInputs(relationMapTarget, relationRepresentationTargetPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
     initInputsLinearMatrices(linearMatrices, linMatPath);
     initInputsKeyMatrices(keyMatrices, keyMatPath);
     initInputs(roundConstants, roundConstPath);
+
+    //initInvMatrices(linearMatrices, invLinearMatrices);
+    //printVectorVectorsBlock(invLinearMatrices);
+    //writeMatrices(invLinearMatrices, invLinMatPath);
+
     initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
 
 
-    relationMapping(relationMap, reverseRelationMap, linearMatrices, keyMatrices);
+    //relationMapping(relationMap, reverseRelationMap, linearMatrices, keyMatrices);
     //cout << "Yolo" << endl;
 
     //extractMonomialsKeys(relationMap[targetBit], relationMapMonoKeys, monomials);
@@ -1320,7 +1325,7 @@ int main(void) {
     }*/
 
 
-    writeRelationMap(relationMap);
+    //writeRelationMap(relationMap);
     //cout << "Swag" << endl;
     //writeRelationMapTarget(relationMap[targetBit]);
 
@@ -1332,9 +1337,7 @@ int main(void) {
     //printSequencesBlocks(peeledOffPartialCiphertexts);
     //writeVectorsBlocks(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
     
-    //initInvMatrices(linearMatrices, invLinearMatrices);
-    //printVectorVectorsBlock(invLinearMatrices);
-    //writeMatrices(invLinearMatrices, invLinMatPath);
+    
 
     //printVectorVectorsBlock(linearMatrices);
     //printVectorVectorsKeyBlock(keyMatrices);
@@ -1345,10 +1348,10 @@ int main(void) {
     //writeFreeCoef(a0);
 
 
-    //generateMonomials(monomials);
+    generateMonomials(monomials);
     //printSequencesBlocks(monomials);
     //cout << "Previous monomials equal to new monomials set? " << (monomials == monomialsv1) << endl;
-    //writeBlockSet(monomials, monomialsPath);
+    writeBlockSet(monomials, monomialsPath);
     //testSubstitution(3);
 
     //printANF("");
