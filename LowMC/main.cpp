@@ -25,7 +25,7 @@ unsigned int reverseBits(unsigned int num){;
 }
 
 /*
-No brain generator of bits sequences in reverse order -> input n°1 : 1000000000000000.
+No brain generator of bits sequences in reverse order. Shift left 9 to feed identity part.
 */
 void generatePlaintexts(std::vector<block>& plaintexts,const string mode, const int maxPlaintexts){
 
@@ -35,7 +35,7 @@ void generatePlaintexts(std::vector<block>& plaintexts,const string mode, const 
         }
         else{
             block input(i);
-            plaintexts.push_back(input);
+            plaintexts.push_back(input<<=9);
         }
         
         
@@ -91,7 +91,7 @@ int main () {
     LowMC cipher(key); //Set key to 101101
     std::vector<block> plaintexts;
     std::vector<block> ciphertexts;
-    int maxPlaintexts(pow(2,11));
+    int maxPlaintexts(pow(2,12));
     string mode("no"); //Type "reverse" to reverse inputs, else type anything different
     generatePlaintexts(plaintexts, mode, maxPlaintexts);
     writeVectorsBlocks(plaintexts, "plaintexts.txt");

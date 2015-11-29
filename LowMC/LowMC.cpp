@@ -54,7 +54,7 @@ void setLastPartMatrix( std::vector<block>& mat){
     block tempMatrixLine;
     tempMatrixLine.reset();
     tempMatrixLine[9]=1;
-    for(int i=0; i<7; ++i){
+    for(int i=0; i<12; ++i){
         mat.push_back(tempMatrixLine);       
         tempMatrixLine <<= 1;
     }
@@ -189,7 +189,7 @@ void LowMC::instantiate_LowMC () {
         do {
             mat.clear();
             for (unsigned i = 0; i < blocksize; ++i) {
-                if(r==3 && i == 9){
+                if(r==1 && i == 9){
                     setLastPartMatrix(mat);
                     break;
                 }
