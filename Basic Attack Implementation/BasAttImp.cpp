@@ -13,7 +13,7 @@ const unsigned numofboxes = 3; // Number of Sboxes
 const unsigned boxsize = 3; //Number of bits in Sbox
 const unsigned blocksize = 21; // Block size in bits
 const unsigned keysize = 6; // Key size in bits
-const unsigned rounds = 4; // Number of rounds
+const unsigned rounds = 5; // Number of rounds
 const unsigned partialRounds = 2; // Number of rounds to compute high order constants
 const unsigned tail = 12; // Number of bits in tail
 const unsigned dimension = 12; //Dimension of vector space
@@ -21,7 +21,7 @@ const unsigned subDimension = 4; //Dimension of vector subspace
 const unsigned firstpermut = 15; // 000000001111
 const unsigned maxpermut = 3840; //Bound binary:111100000000
 const unsigned numSubspaces = 495; //Combination C(12,4)
-const unsigned nummonomials = 283;
+const unsigned nummonomials = 423;
 const unsigned numPartialCiphertexts = 4096;
 const unsigned relationLength = 27;
 const unsigned identitysize = blocksize - 3*numofboxes;
@@ -78,6 +78,12 @@ class blockComp{
 };
 
 typedef set<block, blockComp>  blockSetType;
+
+//////////////////
+//  PROTOTYPES  //
+//////////////////
+
+vector<block> invertMatrix(const vector<block>& matrix);
 
 //////////////////
 //  UNUSED FUN  //
@@ -487,7 +493,7 @@ void initInputsKeyMatrices(vector<vector<keyblock>>& keyMatrices, string filePat
         tempVector.push_back(temp);
         string bitLine;
         int increment(0);
-        for (int i=0; i < 7; i++){
+        for (int i=0; i < rounds+1; i++){
             keyMatrices.push_back(tempVector);
         }
         while (getline(myFile, bitLine)){
@@ -654,8 +660,8 @@ void writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
     myFile << "[";
     for(int i=0; i< a0.size(); ++i){
         myFile << "[";
-        for(int j=0; j< a0[0].size(); ++j){
-            if (j==a0[0].size()-1){
+        for(int j=0; j< a0[targetBit].size(); ++j){
+            if (j==a0[targetBit].size()-1){
                     myFile << a0[i][j];
             }else{
                  myFile << a0[i][j]<< " ";
@@ -839,6 +845,14 @@ vector<unsigned> components(int n){
     return list;
 }
 /*
+Generate inverted matrices of linear matrices.
+*/
+void generateInvMatrices(vector<vector<block>>& linearMatrices, vector<vector<block>>& invLinearMatrices){
+    for(int i=0; i < linearMatrices.size(); ++i){
+        invLinearMatrices.push_back(invertMatrix(linearMatrices[i]));
+    }
+}
+/*
 Transform Sbox to ANF
 */
 vector<vector<unsigned>> sboxToANF(vector<unsigned> Box){
@@ -911,7 +925,7 @@ void printANF(string mode){
 /*
 Invert Matrix.
 */
-vector<block> invertMatrix(const vector<block>& matrix) {
+vector<block> invertMatrix(const vector<block>& matrix){
     std::vector<block> mat; //Copy of the matrix 
     for (auto u : matrix) {
         mat.push_back(u);
@@ -958,14 +972,6 @@ vector<block> invertMatrix(const vector<block>& matrix) {
         }
     }
     return invmat;
-}
-/*
-Initialize inverted matrices of linear matrices.
-*/
-void initInvMatrices(vector<vector<block>>& linearMatrices, vector<vector<block>>& invLinearMatrices){
-    for(int i=0; i < linearMatrices.size(); ++i){
-        invLinearMatrices.push_back(invertMatrix(linearMatrices[i]));
-    }
 }
 /*
 Multiply with matrix in GF(2).
@@ -1219,7 +1225,6 @@ int main(void) {
     vector<vecspace> subspaces;
 
     blockSetType monomials;
-    //blockSetType monomialsv1;
     vector<freeCoef> a0(blocksize, 0);
 
     vector<monomatrix> matrixA(numPartialCiphertexts,0);
@@ -1229,7 +1234,6 @@ int main(void) {
     vector<vector<block>> invLinearMatrices;
     vector<vector<keyblock>> keyMatrices;
     vector<block> roundConstants;
-
     
     vector<relationSetType> relationMap;
     relationSetType relationMapTarget;
@@ -1241,6 +1245,75 @@ int main(void) {
     relationSetType reverseRelationMapMonoKeys;
     vector<keyblock> reverseKeysMonomials;
 
+    //Pre-generating variables Functions
+    //generateMonomials(monomials);
+    setVectorSpace(base);
+    setSubspaces(subspaces);
+
+    //Initialize variables functions
+    initInputs(plaintexts, plainPath);
+    initInputs(ciphertexts, cipherPath);
+    initInputs(partialCiphertexts, partialCipherPath);
+    //initInputs(a0, freeCoefPath);
+    initInputs(monomials, monomialsPath);
+    //initInputs(peeledOffCiphertexts, peelOffCipherPath);
+    //initInputs(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
+    //initInputs(relationMapTarget, relationRepresentationTargetPath);
+    initInputsLinearMatrices(linearMatrices, linMatPath);
+    initInputsKeyMatrices(keyMatrices, keyMatPath);
+    initInputs(roundConstants, roundConstPath);
+    //initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
+
+
+    //Post-generating elements functions
+    generateInvMatrices(linearMatrices, invLinearMatrices);
+    peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
+    peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-3], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
+    preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
+    generateMatrixA(monomials, ciphertexts, matrixA);
+    generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
+    //relationMapping(relationMap, reverseRelationMap, linearMatrices, keyMatrices);
+
+    //cout << "Yolo" << endl;
+
+
+    //Operational functions
+    //extractMonomialsKeys(relationMap[targetBit], relationMapMonoKeys, monomials);
+    //extractMonomialsKeys(reverseRelationMap[targetBit], reverseRelationMapMonoKeys, monomials);
+    
+    //Printing Functions
+    //printANF("");
+    //printVectorVectorsBlock(linearMatrices);
+    //printVectorVectorsKeyBlock(keyMatrices);
+    //printVectorVectorsBlock(invLinearMatrices);
+    //printSequencesBlocks(peeledOffCiphertexts);
+    //printSequencesBlocks(peeledOffPartialCiphertexts);
+    //printSequencesBlocks(monomials);
+    //printSequencesMonoMatrices(matrixA);
+    //printSequencesMonoMatrices(matrixE);
+    //printSequencesVecspaces(subspaces);
+    //printSequencesBlocks(base);
+    //printSequencesBlocks(plaintexts);
+    //printSequencesBlocks(ciphertexts);
+    //printSequencesBlocks(partialCiphertexts);
+
+    //Writing Functions
+    writeVectorsBlocks(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
+    writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
+    //writeRelationMapTarget(relationMap[targetBit]);
+    writeMatrices(invLinearMatrices, invLinMatPath);
+    writeFreeCoef(a0);
+    //writeBlockSet(monomials, monomialsPath);
+    writePython(matrixE, a0);
+    //writeRelationMap(relationMap);
+
+    
+
+    //Testing functions
+
+    //cout << "Previous monomials equal to new monomials set? " << (monomials == monomialsv1) << endl;
+    
+    //testSubstitution(3);
 
     /*relationSetType relationMap1;
     relationSetType relationMap2;
@@ -1269,34 +1342,7 @@ int main(void) {
         cout << *it1 << endl;
     }*/
 
-
-    initInputs(plaintexts, plainPath);
-    initInputs(ciphertexts, cipherPath);
-    initInputs(partialCiphertexts, partialCipherPath);
-    //initInputs(a0, freeCoefPath);
-    //initInputs(monomials, monomialsPath);
-    initInputs(peeledOffCiphertexts, peelOffCipherPath);
-    initInputs(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
-    //initInputs(relationMapTarget, relationRepresentationTargetPath);
-    setVectorSpace(base);
-    setSubspaces(subspaces);
-    initInputsLinearMatrices(linearMatrices, linMatPath);
-    initInputsKeyMatrices(keyMatrices, keyMatPath);
-    initInputs(roundConstants, roundConstPath);
-
-    //initInvMatrices(linearMatrices, invLinearMatrices);
-    //printVectorVectorsBlock(invLinearMatrices);
-    //writeMatrices(invLinearMatrices, invLinMatPath);
-
-    initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
-
-
-    //relationMapping(relationMap, reverseRelationMap, linearMatrices, keyMatrices);
-    //cout << "Yolo" << endl;
-
-    //extractMonomialsKeys(relationMap[targetBit], relationMapMonoKeys, monomials);
-    //extractMonomialsKeys(reverseRelationMap[targetBit], reverseRelationMapMonoKeys, monomials);
-    /*cout << "Reverse Relation" <<endl;
+        /*cout << "Reverse Relation" <<endl;
     for(int i=0; i< relationMap.size(); ++i){
         for(auto element : relationMap[targetBit]){
             cout << element << endl;
@@ -1308,7 +1354,7 @@ int main(void) {
             cout << element << endl;
         }
     }
-/*
+    /*
     for(auto element : reverseRelationMap[targetBit]){
         cout << element << endl;
     }
@@ -1323,52 +1369,6 @@ int main(void) {
         //cout << relationMapMonoKeys.size() << endl;
         cout << element << endl;
     }*/
-
-
-    //writeRelationMap(relationMap);
-    //cout << "Swag" << endl;
-    //writeRelationMapTarget(relationMap[targetBit]);
-
-    //peelingOffCiphertexts(ciphertexts, roundConstants[5], invLinearMatrices[5], peeledOffCiphertexts);
-    //printSequencesBlocks(peeledOffCiphertexts);
-    //writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
-
-    //peelingOffCiphertexts(partialCiphertexts, roundConstants[3], invLinearMatrices[3], peeledOffPartialCiphertexts);
-    //printSequencesBlocks(peeledOffPartialCiphertexts);
-    //writeVectorsBlocks(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
-    
-    
-
-    //printVectorVectorsBlock(linearMatrices);
-    //printVectorVectorsKeyBlock(keyMatrices);
-    //printVectorVectorsBlock(invLinearMatrices);
-
-
-    //preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
-    //writeFreeCoef(a0);
-
-
-    generateMonomials(monomials);
-    //printSequencesBlocks(monomials);
-    //cout << "Previous monomials equal to new monomials set? " << (monomials == monomialsv1) << endl;
-    writeBlockSet(monomials, monomialsPath);
-    //testSubstitution(3);
-
-    //printANF("");
-
-    //generateMatrixA(monomials, ciphertexts, matrixA);
-    //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
-
-    //printSequencesMonoMatrices(matrixA);
-    //printSequencesMonoMatrices(matrixE);
-
-    //writePython(matrixE, a0);
-    
-    //printSequencesVecspaces(subspaces);
-    //printSequencesBlocks(base);
-    //printSequencesBlocks(plaintexts);
-    //printSequencesBlocks(ciphertexts);
-    //printSequencesBlocks(partialCiphertexts);
 
     return 0;
 }
