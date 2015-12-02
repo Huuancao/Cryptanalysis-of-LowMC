@@ -97,11 +97,11 @@ int main () {
     writeVectorsBlocks(plaintexts, "plaintexts.txt");
 
     //printSequences(plaintexts);
-    //generateCiphertexts(plaintexts, ciphertexts, cipher);
+    generateCiphertexts(plaintexts, ciphertexts, cipher);
     //printSequences(ciphertexts);
     
 
-    writeVectorsBlocks(ciphertexts, "ciphertexts.txt");
+    //writeVectorsBlocks(ciphertexts, "ciphertexts.txt");
     writeVectorsBlocks(ciphertexts, "partialCiphertexts.txt");
     /*
     block a = 0xABCD;

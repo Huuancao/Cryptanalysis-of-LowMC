@@ -1289,9 +1289,9 @@ int main(void) {
     initInputs(partialCiphertexts, partialCipherPath);
     //initInputs(a0, freeCoefPath);
     initInputs(monomials, monomialsPath);
-    initInputs(peeledOffCiphertexts, peelOffCipherPath);
+    //initInputs(peeledOffCiphertexts, peelOffCipherPath);
     //initInputs(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
-    initInputs(relationMapTarget, relationRepresentationTargetPath);
+    //initInputs(relationMapTarget, relationRepresentationTargetPath);
     setVectorSpace(base);
     setSubspaces(subspaces);
     initInputsLinearMatrices(linearMatrices, linMatPath);
@@ -1300,7 +1300,7 @@ int main(void) {
     initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
 
 
-    relationMapping(relationMap, reverseRelationMap, linearMatrices, keyMatrices);
+    //relationMapping(relationMap, reverseRelationMap, linearMatrices, keyMatrices);
     //cout << "Yolo" << endl;
 
     //extractMonomialsKeys(relationMap[targetBit], relationMapMonoKeys, monomials);
@@ -1335,18 +1335,18 @@ int main(void) {
     }*/
 
 
-    writeRelationMap(relationMap);
+    //writeRelationMap(relationMap);
     //cout << "Swag" << endl;
     //writeRelationMapTarget(relationMap[targetBit]);
 
 
     //peelingOffCiphertexts(ciphertexts, roundConstants[5], invLinearMatrices[5], peeledOffCiphertexts);
     //printSequencesBlocks(peeledOffCiphertexts);
-    ///writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
+    //writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
 
-    //peelingOffCiphertexts(partialCiphertexts, roundConstants[3], invLinearMatrices[3], peeledOffPartialCiphertexts);
+    peelingOffCiphertexts(partialCiphertexts, roundConstants[3], invLinearMatrices[3], peeledOffPartialCiphertexts);
     //printSequencesBlocks(peeledOffPartialCiphertexts);
-    //writeVectorsBlocks(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
+    writeVectorsBlocks(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
     
     //initInvMatrices(linearMatrices, invLinearMatrices);
     //printVectorVectorsBlock(invLinearMatrices);
@@ -1355,7 +1355,7 @@ int main(void) {
     //printVectorVectorsBlock(linearMatrices);
     //printVectorVectorsKeyBlock(keyMatrices);
     //printVectorVectorsBlock(invLinearMatrices);
-    //preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
+    preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
     writeFreeCoef(a0);
 
 
