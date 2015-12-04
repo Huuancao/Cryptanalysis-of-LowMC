@@ -1185,11 +1185,11 @@ void relationMapping(vector<relationSetType>& relationMap,
         }
     }*/
     }
-    /*for(int j=3; j>1; --j){
-        keyRoundAdd(relationMap, keyMatrices[j]);
+    for(int j=4; j>2; --j){
+        keyRoundAdd(relationMap, keyMatrices[j+1]);
         linearLayerMixing(reverseRelationMap, linearMatrices[j], j);
         SBoxRelation(reverseRelationMap, "reverse");
-    }*/
+    }
 }
 /*
 Extract Key information according to monomials precomputed.
@@ -1329,7 +1329,7 @@ int main(void) {
     writeFreeCoef(a0);
     //writeBlockSet(monomials, monomialsPath);
     writePython(matrixE, a0);
-    //writeRelationMap(relationMap);
+    writeRelationMap(relationMap);
 
     
 
