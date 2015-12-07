@@ -686,7 +686,7 @@ void writePython(vector<keyblock>& keys){
     myFile << "[";
     for(int i=0; i< keys.size(); ++i){
         myFile << "[";
-        for(int j=6; j>0; --j){
+        for(int j=0; j<keysize; ++j){
             if (j==keys[0].size()-1){
                     myFile << keys[i][j];
             }else{
@@ -1145,7 +1145,7 @@ void relationMapping(vector<relationSetType>& relationMap,
         }
     }*/
     for(int i=0; i<3; ++i){
-        cout << i << endl;
+    //    cout << i << endl;
         SBoxRelation(relationMap, "");
         /*cout << "Sbox"<< endl;
         for(int k =0; k < blocksize; ++k){
@@ -1159,12 +1159,12 @@ void relationMapping(vector<relationSetType>& relationMap,
         }*/
         keyRoundAdd(relationMap, keyMatrices[i+1]);
 
-        for(int m =0; m < blocksize; ++m){
+        /*for(int m =0; m < blocksize; ++m){
             cout << "Bit " << m << " : " <<  relationMap[m].size() << endl;
-        }
+        }*/
     }
     for(int j=4; j>2; --j){
-        keyRoundAdd(relationMap, keyMatrices[j+1]);
+        keyRoundAdd(reverseRelationMap, keyMatrices[j+1]);
         linearLayerMixing(reverseRelationMap, linearMatrices[j], j);
         SBoxRelation(reverseRelationMap, "reverse");
     }
@@ -1188,14 +1188,14 @@ void extractMonomialsKeys(const relationSetType& relationMapTarget,
         relationRepresentation tempRelaRep(0);
         tempRelaRep = tempRelaRep^lowerBound;
 
-        cout << "Outer: " << tempRelaRep << endl;
+        //cout << "Outer: " << tempRelaRep << endl;
         for(it1; it1!=it2; ++it1){
-            cout << "Loop" << endl;
+        //    cout << "Loop" << endl;
             relationRepresentation tempMonoKeys(63); // All keybits set 111111
             tempMonoKeys&=*it1;
-            cout << tempMonoKeys<< endl;
+        //    cout << tempMonoKeys<< endl;
             tempRelaRep^=tempMonoKeys;
-            cout << tempRelaRep << endl;;
+        ///    cout << tempRelaRep << endl;;
         }
         relationMapMonoKeys.insert(tempRelaRep);
     }
@@ -1263,7 +1263,7 @@ int main(void) {
     initInputs(monomials, monomialsPath);
     //initInputs(peeledOffCiphertexts, peelOffCipherPath);
     //initInputs(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
-    initInputs(relationMapTarget, relationRepresentationTargetPath);
+    //initInputs(relationMapTarget, relationRepresentationTargetPath);
     initInputsLinearMatrices(linearMatrices, linMatPath);
     initInputsKeyMatrices(keyMatrices, keyMatPath);
     initInputs(roundConstants, roundConstPath);
@@ -1271,21 +1271,22 @@ int main(void) {
 
 
     //Post-generating elements functions
-    //generateInvMatrices(linearMatrices, invLinearMatrices);
-    //peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
-    //peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-3], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
-    //preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
-    //generateMatrixA(monomials, ciphertexts, matrixA);
-    //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
-    relationMapping(relationMap, reverseRelationMap, linearMatrices, keyMatrices);
-
-    //cout << "Yolo" << endl;
+    /*generateInvMatrices(linearMatrices, invLinearMatrices);
+    peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
+    peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-3], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
+    preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
+    generateMatrixA(monomials, ciphertexts, matrixA);
+    generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
+    */relationMapping(relationMap, reverseRelationMap, linearMatrices, keyMatrices);
 
 
     //Operational functions
-    extractMonomialsKeys(relationMapTarget, relationMapMonoKeys, monomials);
+    extractMonomialsKeys(relationMap[targetBit], relationMapMonoKeys, monomials);
     //extractMonomialsKeys(reverseRelationMap[targetBit], reverseRelationMapMonoKeys, monomials);
-    //setUpLinearEquationKeyAlphas(keysMonomials, relationMapMonoKeys);
+    /*for(auto element:reverseRelationMap[targetBit]){
+        cout << element << endl;
+    }*/
+    setUpLinearEquationKeyAlphas(keysMonomials, relationMapMonoKeys);
     
     //Printing Functions
     //printANF("");
@@ -1316,6 +1317,26 @@ int main(void) {
     
 
     //Testing functions
+
+    /*keyblock tempKey(27);
+    cout << "Key: " << tempKey << endl;
+    relationSetType::iterator iter2=reverseRelationMapMonoKeys.begin();
+    for(relationSetType::iterator iter1=relationMapMonoKeys.begin(); iter1 != relationMapMonoKeys.end(); ++iter1, ++iter2){
+        relationRepresentation tempMono(0);
+        relationRepresentation reverseTempMono(0);
+        relationRepresentation MonoKey(*iter1);
+        relationRepresentation ReverseMonoKey(*iter2);
+        for(int j=0; j<keysize; ++j){
+            if(MonoKey[j]){
+                tempMono[0] = tempMono[0]^tempKey[j];
+            }
+            else if(ReverseMonoKey[j]){
+
+                reverseTempMono[0] = reverseTempMono[0]^tempKey[j];
+            }
+        }
+        cout << "Monokey: " << MonoKey << " ReverseMonoKey" << ReverseMonoKey << "Xor result: " << (tempMono[0] == reverseTempMono[0]) << endl;
+    }*/
 
     //cout << "Previous monomials equal to new monomials set? " << (monomials == monomialsv1) << endl;
     
