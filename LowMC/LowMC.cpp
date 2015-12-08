@@ -189,7 +189,7 @@ void LowMC::instantiate_LowMC () {
         do {
             mat.clear();
             for (unsigned i = 0; i < blocksize; ++i) {
-                if(r==1 && i == 9){
+                if(r==2 && i == 9){
                     setLastPartMatrix(mat);
                     break;
                 }
