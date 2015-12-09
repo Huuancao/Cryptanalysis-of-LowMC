@@ -1353,8 +1353,8 @@ int main(void) {
     
     //Printing Functions
     printANF("");
-    //printVectorVectorsBlock(linearMatrices);
-    //printVectorVectorsKeyBlock(keyMatrices);
+    printVectorVectorsBlock(linearMatrices);
+    printVectorVectorsKeyBlock(keyMatrices);
     //printVectorVectorsBlock(invLinearMatrices);
     //printSequencesBlocks(peeledOffCiphertexts);
     //printSequencesBlocks(peeledOffPartialCiphertexts);
@@ -1374,8 +1374,8 @@ int main(void) {
     //writeMatrices(invLinearMatrices, invLinMatPath);
     //writeFreeCoef(a0);
     //writePython(matrixE, a0);
-    writeRelationMap(relationMap);
-    writeRelationMapTarget(relationMap[targetBit]);
+    //writeRelationMap(relationMap);
+    //writeRelationMapTarget(relationMap[targetBit]);
 
 
     

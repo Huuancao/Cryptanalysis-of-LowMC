@@ -69,9 +69,9 @@ void writeMatrices(std::vector<std::vector<block>> matrix, std::string fileName)
 
     for(int i=0; i<matrix.size();++i){
         for(int j=0; j<matrix[i].size(); ++j){
-            myFile << matrix[i][j] << "\n";
+            myFile << matrix[i][j] << endl;
         }
-        myFile << "\n";
+        myFile << endl;
     }
     myFile.close();
 }

@@ -81,7 +81,7 @@ void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName
     //myFile.open("ciphertexts.txt");
     myFile.open(fileName.c_str());
     for(int i=0; i< vectorBlocks.size(); ++i){
-        myFile << vectorBlocks[i] << "\n";
+        myFile << vectorBlocks[i] << endl;
     }
     myFile.close();
 }
