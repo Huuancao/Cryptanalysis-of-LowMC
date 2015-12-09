@@ -69,9 +69,9 @@ void writeMatrices(std::vector<std::vector<block>> matrix, std::string fileName)
 
     for(int i=0; i<matrix.size();++i){
         for(int j=0; j<matrix[i].size(); ++j){
-            myFile << matrix[i][j] << std::endl;
+            myFile << matrix[i][j] << "\n";
         }
-        myFile << std::endl;
+        myFile << "\n";
     }
     myFile.close();
 }
@@ -81,9 +81,9 @@ void writeMatrices(std::vector<std::vector<keyblock>> matrix, std::string fileNa
 
     for(int i=0; i<matrix.size();++i){
         for(int j=0; j<matrix[i].size(); ++j){
-            myFile << matrix[i][j] << std::endl;
+            myFile << matrix[i][j] << "\n";
         }
-        myFile << std::endl;
+        myFile << "\n";
     }
     myFile.close();
 }
@@ -92,7 +92,7 @@ void writeConstants(std::vector<block>& roundconstants, std::string fileName){
     myFile.open(fileName.c_str());
 
     for(int i=0; i<roundconstants.size();++i){
-        myFile << roundconstants[i] << std::endl;
+        myFile << roundconstants[i] << "\n";
     }
     myFile.close();
 }
@@ -104,7 +104,7 @@ void writeRoundKeys(std::vector<block> roundkeys){
     myFile.open("roundkeys.txt");
 
     for(int i=0; i<roundkeys.size();++i){
-            myFile << roundkeys[i] << std::endl;
+            myFile << roundkeys[i] << "\n";
     }
     myFile.close();
 }
@@ -241,7 +241,7 @@ void LowMC::instantiate_LowMC () {
 
 
 unsigned LowMC::rank_of_Matrix (const std::vector<block> matrix) {
-    std::vector<block> mat; //Copy of the matrix 
+    std::vector<block> mat; //Copy of tF matrix 
     for (auto u : matrix) {
         mat.push_back(u);
     }

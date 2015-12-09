@@ -25,7 +25,7 @@ const unsigned nummonomials = 423;
 const unsigned numPartialCiphertexts = 4096;
 const unsigned relationLength = 27;
 const unsigned identitysize = blocksize - 3*numofboxes;
-const unsigned targetBit = 20;
+const unsigned targetBit = 2;
 const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
 const std::vector<unsigned> invSbox = {0x00, 0x01, 0x07, 0x02, 0x05, 0x06, 0x03, 0x04}; // Invers Sboxes
 
@@ -1149,7 +1149,8 @@ Relation mapping creation.
 void relationMapping(vector<relationSetType>& relationMap,
                     vector<relationSetType>& reverseRelationMap, 
                     const vector<vector<block>>& linearMatrices,
-                    const vector<vector<keyblock>>& keyMatrices){
+                    const vector<vector<keyblock>>& keyMatrices,
+                    const vector<vector<block>>& invLinearMatrices){
     initRelationWhitening(relationMap, keyMatrices, "");
     initRelationWhitening(reverseRelationMap, keyMatrices, "reverse");
     for(int j=0; j< relationMap.size(); ++j){
@@ -1157,21 +1158,21 @@ void relationMapping(vector<relationSetType>& relationMap,
             cout << element << endl;
         }
 
-    }
-    for(int i=0; i<3; ++i){
+    }/*
+    for(int i=0; i<1; ++i){
         cout << i << endl;
         SBoxRelation(relationMap, "");
-        /*cout << "Sbox"<< endl;
+        cout << "Sbox"<< endl;
         for(int k =0; k < blocksize; ++k){
             cout << "Bit " << k << " : " <<  relationMap[k].size() << endl;
-        }*/
-        linearLayerMixing(relationMap, linearMatrices[i], i);
+        }
+        //linearLayerMixing(relationMap, linearMatrices[i], i);
 
         /*cout << "Linear layer"<< endl;
         for(int l =0; l < blocksize; ++l){
             cout << "Bit " << l << " : " <<  relationMap[l].size() << endl;
         }*/
-        keyRoundAdd(relationMap, keyMatrices[i+1]);
+        //keyRoundAdd(relationMap, keyMatrices[i+1]);
 
         /*
         for(int m =0; m < blocksize; ++m){
@@ -1181,11 +1182,12 @@ void relationMapping(vector<relationSetType>& relationMap,
         for(auto element : relationMap[j]){
             cout << element << endl;
         }
-    }*/
     }
-    for(int j=4; j>2; --j){
-        keyRoundAdd(relationMap, keyMatrices[j+1]);
-        linearLayerMixing(reverseRelationMap, linearMatrices[j], j);
+    }*/
+    
+    for(int j=4; j>3; --j){
+        //keyRoundAdd(reverseRelationMap, keyMatrices[j+1]);
+        //linearLayerMixing(reverseRelationMap, linearMatrices[j], j);
         SBoxRelation(reverseRelationMap, "reverse");
     }
 }
@@ -1298,7 +1300,7 @@ int main(void) {
     //preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
     //generateMatrixA(monomials, ciphertexts, matrixA);
     //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
-    relationMapping(relationMap, reverseRelationMap, linearMatrices, keyMatrices);
+    relationMapping(relationMap, reverseRelationMap, linearMatrices, keyMatrices, invLinearMatrices);
 
     //cout << "Yolo" << endl;
 
@@ -1309,7 +1311,7 @@ int main(void) {
     //setUpLinearEquationKeyAlphas(keysMonomials, relationMapMonoKeys);
     
     //Printing Functions
-    //printANF("");
+    printANF("");
     //printVectorVectorsBlock(linearMatrices);
     //printVectorVectorsKeyBlock(keyMatrices);
     //printVectorVectorsBlock(invLinearMatrices);
@@ -1331,8 +1333,8 @@ int main(void) {
     //writeMatrices(invLinearMatrices, invLinMatPath);
     //writeFreeCoef(a0);
     //writePython(matrixE, a0);
-    writeRelationMap(relationMap);
-    //writeRelationMapTarget(relationMap[targetBit]);
+    //writeRelationMap(relationMap);
+    writeRelationMapTarget(reverseRelationMap[targetBit]);
 
     
 
