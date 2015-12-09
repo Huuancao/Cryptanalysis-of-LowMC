@@ -80,6 +80,15 @@ class blockComp{
 
 typedef set<block, blockComp>  blockSetType;
 
+class keyBlockComp{
+   public:
+    bool operator()( keyblock const & r1, keyblock const & r2 ) const{
+         return r1.to_ulong() < r2.to_ulong();
+    }
+};
+
+typedef set<keyblock, keyBlockComp>  keyBlockSetType;
+
 //////////////////
 //  PROTOTYPES  //
 //////////////////
@@ -655,19 +664,6 @@ void writeRelationMapTarget(relationSetType& relationMap){
     myFile.close();
 }
 /*
-Write Relations map.
-*/
-void writeRelationMapMonoKeys(relationSetType& relationMapMonoKeys){
-    ofstream myFile;
-    remove(relationMapMonoKeysPath.c_str());
-    myFile.open(relationMapMonoKeysPath.c_str());
-    int indexJ(0);
-    for(relationSetType::iterator j = relationMapMonoKeys.begin(); j!=relationMapMonoKeys.end(); ++j, ++indexJ){
-        myFile <<  *j << endl;
-    }
-    myFile.close();
-}
-/*
 Write preprocessed free coefs in file.
 */
 void writeFreeCoef(const vector<freeCoef>& a0){
@@ -720,32 +716,6 @@ void writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
             }
         }
         if(i != a0.size()-1) 
-            {
-                myFile << "],";
-        }else{
-            myFile << "]";
-        }
-    }
-    myFile << "]";
-    myFile.close();
-}
-/*
-Write Inputs for Sage.
-*/
-void writePython(vector<keyblock>& keys){
-    ofstream myFile;
-    myFile.open(keysMonomialsPath.c_str());
-    myFile << "[";
-    for(int i=0; i< keys.size(); ++i){
-        myFile << "[";
-        for(int j=0; j<keysize; ++j){
-            if (j==keys[0].size()-1){
-                    myFile << keys[i][j];
-            }else{
-                 myFile << keys[i][j]<< " ";
-            }
-        }
-        if(i != keys.size()-1) 
             {
                 myFile << "],";
         }else{
@@ -1240,10 +1210,11 @@ void relationMapping(vector<relationSetType>& relationMap,
 /*
 Extract Key information according to monomials precomputed.
 */
-void extractMonomialsKeys(const relationSetType& relationMapTarget, 
-                            relationSetType& relationMapMonoKeys, 
-                            const blockSetType& monomials){
+void extractMonomialsKeys(const relationSetType& relationMapTarget,
+                            const blockSetType& monomials,
+                            vector<keyBlockSetType>& keysMonomials){
     for(blockSetType::iterator iter1=monomials.begin(); iter1 != monomials.end(); ++iter1){
+        keyBlockSetType tempKeyBlockSet;
         block currentMonomial(*iter1);
         relationRepresentation lowerBound(currentMonomial.to_ulong());
         lowerBound<<=keysize;
@@ -1258,26 +1229,40 @@ void extractMonomialsKeys(const relationSetType& relationMapTarget,
         //cout << "Outer: " << tempRelaRep << endl;
         for(it1; it1!=it2; ++it1){
         //    cout << "Loop" << endl;
-            relationRepresentation tempMonoKeys(63); // All keybits set 111111
-            tempMonoKeys&=*it1;
-        //    cout << tempMonoKeys<< endl;
-            tempRelaRep^=tempMonoKeys;
-        ///    cout << tempRelaRep << endl;;
+            relationRepresentation tempMonoKey(63); // All keybits set 111111
+            tempMonoKey&=*it1;
+            keyblock tempKeyBlock(tempMonoKey.to_ulong());
+            tempKeyBlockSet.insert(tempKeyBlock);
         }
-        relationMapMonoKeys.insert(tempRelaRep);
+        keysMonomials.push_back(tempKeyBlockSet);
     }
 }
 /*
 Setup linear equation system Keys per monomial and alpha_u per monomial.
 */
-void setUpLinearEquationKeyAlphas(vector<keyblock>& keysMonomials, const relationSetType& relationMapMonoKeys){
-    for(auto element : relationMapMonoKeys){
-        relationRepresentation temp(element);
-        temp <<= blocksize;
-        temp >>= blocksize;
-        keysMonomials.push_back(temp.to_ulong());
+void setUpLinearEquationKeyAlphas(const vector<keyBlockSetType>& keysMonomials){
+    ofstream myFile;
+    myFile.open(keysMonomialsPath.c_str());
+    myFile << "[";
+    for(int i=0; i< keysMonomials.size(); ++i){
+        myFile << "[";
+        for(int j=0; j<2^6-1; ++j){
+            if (j==keys[0].size()-1){
+                    if(keysMonomials)
+                    myFile << keys[i][j];
+            }else{
+                 myFile << keys[i][j]<< " ";
+            }
+        }
+        if(i != keys.size()-1) 
+            {
+                myFile << "],";
+        }else{
+            myFile << "]";
+        }
     }
-    writePython(keysMonomials);
+    myFile << "]";
+    myFile.close();
 }
 //////////////////
 //     MAIN     //
@@ -1309,8 +1294,7 @@ int main(void) {
     
     vector<relationSetType> relationMap;
     relationSetType relationMapTarget;
-    relationSetType relationMapMonoKeys;
-    vector<keyblock> keysMonomials;
+    vector<keyBlockSetType> keysMonomials;
 
     //Pre-generating variables Functions
     //generateMonomials(monomials);
@@ -1343,8 +1327,8 @@ int main(void) {
 
 
     //Operational functions
-    extractMonomialsKeys(relationMap[targetBit], relationMapMonoKeys, monomials);
-    //setUpLinearEquationKeyAlphas(keysMonomials, relationMapMonoKeys);
+    extractMonomialsKeys(relationMap[targetBit], monomials, keysMonomials);
+    //setUpLinearEquationKeyAlphas(keysMonomials);
     
     //Printing Functions
     //printANF("reverse");
@@ -1371,12 +1355,17 @@ int main(void) {
     //writePython(matrixE, a0);
     //writeRelationMap(relationMap);
     //writeRelationMapTarget(relationMap[targetBit]);
-    writeRelationMapMonoKeys(relationMapMonoKeys);
 
 
     
 
     //Testing functions
+    for(int i=0; i < keysMonomials.size(); ++i){
+        cout << "Monomials " << i << ": " << endl;
+        for(auto element: keysMonomials[i]){
+            cout << element << endl;
+        }
+    }
 
 
     /*keyblock tempKey(27);
