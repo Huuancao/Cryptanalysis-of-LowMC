@@ -47,6 +47,7 @@ const string peeledOffPartialCiphertextsPath = "peeledOffPartialCiphertexts.txt"
 const string relationRepresentationPath = "relationRepresentation.txt";
 const string relationRepresentationTargetPath ="relationRepresentationTarget.txt";
 const string keysMonomialsPath = "keysMonomials.txt";
+const string relationMapMonoKeysPath = "relationMapMonoKeys.txt";
 
 
 typedef std::bitset<blocksize> block; // Store messages and states
@@ -497,6 +498,7 @@ Read file and set inputs in vector of vector of blocks vector<vector<block> line
 */
 void initInputsLinearMatrices(vector<vector<block>>& linearMatrices, string filePath){
     ifstream myFile(filePath.c_str());
+
     if(myFile){
         block temp(0);
         vector<block> tempVector;
@@ -505,10 +507,10 @@ void initInputsLinearMatrices(vector<vector<block>>& linearMatrices, string file
         int increment(0);
         for (int i=0; i < rounds; i++){
             linearMatrices.push_back(tempVector);
+            linearMatrices[i].clear();
         }
-        while (getline(myFile, bitLine)){   
-            if(bitLine.empty()){
-                linearMatrices[increment].erase(linearMatrices[increment].begin());
+        while (getline(myFile, bitLine)){
+            if(bitLine.size()< blocksize){
                 ++increment;
             }else{
                 block b(bitLine);
@@ -534,10 +536,10 @@ void initInputsKeyMatrices(vector<vector<keyblock>>& keyMatrices, string filePat
         int increment(0);
         for (int i=0; i < rounds+1; i++){
             keyMatrices.push_back(tempVector);
+            keyMatrices[i].clear();
         }
         while (getline(myFile, bitLine)){
-            if(bitLine.empty()){
-                keyMatrices[increment].erase(keyMatrices[increment].begin());
+            if(bitLine.size()<keysize){
                 ++increment;
             }else{
                 keyblock b(bitLine);
@@ -642,7 +644,7 @@ void writeRelationMap(vector<relationSetType>& relationMap){
     myFile.close();
 }
 /*
-Write Relations map.
+Write Relations map on target bit.
 */
 void writeRelationMapTarget(relationSetType& relationMap){
     ofstream myFile;
@@ -650,6 +652,19 @@ void writeRelationMapTarget(relationSetType& relationMap){
     myFile.open(relationRepresentationTargetPath.c_str());
     int indexJ(0);
     for(relationSetType::iterator j = relationMap.begin(); j!=relationMap.end(); ++j, ++indexJ){
+        myFile <<  *j << endl;
+    }
+    myFile.close();
+}
+/*
+Write Relations map.
+*/
+void writeRelationMapMonoKeys(relationSetType& relationMapMonoKeys){
+    ofstream myFile;
+    remove(relationMapMonoKeysPath.c_str());
+    myFile.open(relationMapMonoKeysPath.c_str());
+    int indexJ(0);
+    for(relationSetType::iterator j = relationMapMonoKeys.begin(); j!=relationMapMonoKeys.end(); ++j, ++indexJ){
         myFile <<  *j << endl;
     }
     myFile.close();
@@ -828,10 +843,10 @@ void writeBlockSet(const blockSetType& blockSet, const string fileName){
 /*
 Write Matrices in file.
 */
-void writeMatrices(std::vector<std::vector<block>>& matrix, string fileName){
+void writeMatrices(std::vector<std::vector<block>> matrix, std::string fileName){
     std::ofstream myFile;
+    remove(fileName.c_str());
     myFile.open(fileName.c_str());
-
     for(int i=0; i<matrix.size();++i){
         for(int j=0; j<matrix[i].size(); ++j){
             myFile << matrix[i][j] << std::endl;
@@ -1144,8 +1159,8 @@ void SBoxRelation(vector<relationSetType>& relationMap, string mode){
     }
     for(int i=numofboxes-1; i>=0; --i){      
         int x0(3*i);
-        int x1(x0+1);
-        int x2(x1+1);
+        int x1(3*i+1);
+        int x2(3*i+2);
         for(auto elementX0 : relationMap[x0]){
             for(auto elementX1 : relationMap[x1]){
                 relationRepresentation tempResult(0);
@@ -1210,7 +1225,7 @@ void relationMapping(vector<relationSetType>& relationMap,
         }
 
     }*/
-    for(int j=rounds-1; j>rounds-2; --j){
+    for(int j=rounds-1; j>rounds-3; --j){
         keyRoundAdd(relationMap, keyMatrices[j+1]);
         /*cout << "Key Round"<< endl;
         for(int m =0; m < blocksize; ++m){
@@ -1229,7 +1244,7 @@ void relationMapping(vector<relationSetType>& relationMap,
                 cout << element1 << endl;
             }
         }*/
-        //SBoxRelation(relationMap, "reverse");
+        SBoxRelation(relationMap, "reverse");
         /*cout << "Sbox"<< endl;
         for(int o =0; o < blocksize; ++o){
             //cout << "Bit " << o << " : " <<  relationMap[o].size() << endl;
@@ -1349,12 +1364,12 @@ int main(void) {
 
     //Operational functions
     extractMonomialsKeys(relationMap[targetBit], relationMapMonoKeys, monomials);
-    setUpLinearEquationKeyAlphas(keysMonomials, relationMapMonoKeys);
+    //setUpLinearEquationKeyAlphas(keysMonomials, relationMapMonoKeys);
     
     //Printing Functions
-    printANF("");
-    printVectorVectorsBlock(linearMatrices);
-    printVectorVectorsKeyBlock(keyMatrices);
+    //printANF("reverse");
+    //printVectorVectorsBlock(linearMatrices);
+    //printVectorVectorsKeyBlock(keyMatrices);
     //printVectorVectorsBlock(invLinearMatrices);
     //printSequencesBlocks(peeledOffCiphertexts);
     //printSequencesBlocks(peeledOffPartialCiphertexts);
@@ -1376,11 +1391,13 @@ int main(void) {
     //writePython(matrixE, a0);
     //writeRelationMap(relationMap);
     //writeRelationMapTarget(relationMap[targetBit]);
+    writeRelationMapMonoKeys(relationMapMonoKeys);
 
 
     
 
     //Testing functions
+
 
     /*keyblock tempKey(27);
     cout << "Key: " << tempKey << endl;
