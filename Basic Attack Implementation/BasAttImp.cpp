@@ -1206,6 +1206,8 @@ void relationMapping(vector<relationSetType>& relationMap,
             }
         }*/
     }
+    keyRoundAdd(relationMap, keyMatrices[rounds-2]);
+    linearLayerMixing(relationMap, invLinearMatrices[rounds-3]); 
 }
 /*
 Extract Key information according to monomials precomputed.
@@ -1319,16 +1321,16 @@ int main(void) {
     initInputsLinearMatrices(linearMatrices, linMatPath);
     initInputsKeyMatrices(keyMatrices, keyMatPath);
     initInputs(roundConstants, roundConstPath);
-    initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
+    //initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
 
 
     //Post-generating elements functions
-    //generateInvMatrices(linearMatrices, invLinearMatrices);
-    //peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
-    //peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-3], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
-    //preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
-    //generateMatrixA(monomials, ciphertexts, matrixA);
-    //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
+    generateInvMatrices(linearMatrices, invLinearMatrices);
+    peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
+    peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-3], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
+    preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
+    generateMatrixA(monomials, ciphertexts, matrixA);
+    generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
     relationMapping(relationMap, invLinearMatrices, keyMatrices);
 
 
@@ -1354,24 +1356,24 @@ int main(void) {
 
     //Writing Functions
     //writeBlockSet(monomials, monomialsPath);
-    //writeVectorsBlocks(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
-    //writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
-    //writeMatrices(invLinearMatrices, invLinMatPath);
-    //writeFreeCoef(a0);
-    //writePython(matrixE, a0);
-    //writeRelationMap(relationMap);
-    //writeRelationMapTarget(relationMap[targetBit]);
+    writeVectorsBlocks(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
+    writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
+    writeMatrices(invLinearMatrices, invLinMatPath);
+    writeFreeCoef(a0);
+    writePython(matrixE, a0);
+    writeRelationMap(relationMap);
+    writeRelationMapTarget(relationMap[targetBit]);
 
 
     
 
     //Testing functions
-    for(int i=0; i < keysMonomials.size(); ++i){
+    /*for(int i=0; i < keysMonomials.size(); ++i){
         cout << "Monomials " << i << ": " << endl;
         for(auto element: keysMonomials[i]){
             cout << element << " " << element.to_ulong() << endl;
         }
-    }
+    }*/
 
 
     /*keyblock tempKey(27);
