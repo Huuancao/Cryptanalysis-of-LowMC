@@ -1242,20 +1242,26 @@ Setup linear equation system Keys per monomial and alpha_u per monomial.
 */
 void setUpLinearEquationKeyAlphas(const vector<keyBlockSetType>& keysMonomials){
     ofstream myFile;
+    unsigned int limit = pow(2,keysize);
     myFile.open(keysMonomialsPath.c_str());
     myFile << "[";
+    int toWrite(0);
     for(int i=0; i< keysMonomials.size(); ++i){
         myFile << "[";
-        for(int j=0; j<2^6-1; ++j){
-            if (j==keys[0].size()-1){
-                    if(keysMonomials)
-                    myFile << keys[i][j];
+        for(int j=1; j< limit; ++j){
+            keyblock toFind(j);
+            if (keysMonomials[i].find(toFind) != keysMonomials[i].end()){
+                toWrite=1;
             }else{
-                 myFile << keys[i][j]<< " ";
+                toWrite=0;
             }
+            if (j==(limit-1)){
+                myFile << toWrite;
+            }else{
+                myFile << toWrite << " ";
+            }    
         }
-        if(i != keys.size()-1) 
-            {
+        if(i != keysMonomials.size()-1) {
                 myFile << "],";
         }else{
             myFile << "]";
@@ -1328,7 +1334,7 @@ int main(void) {
 
     //Operational functions
     extractMonomialsKeys(relationMap[targetBit], monomials, keysMonomials);
-    //setUpLinearEquationKeyAlphas(keysMonomials);
+    setUpLinearEquationKeyAlphas(keysMonomials);
     
     //Printing Functions
     //printANF("reverse");
@@ -1363,7 +1369,7 @@ int main(void) {
     for(int i=0; i < keysMonomials.size(); ++i){
         cout << "Monomials " << i << ": " << endl;
         for(auto element: keysMonomials[i]){
-            cout << element << endl;
+            cout << element << " " << element.to_ulong() << endl;
         }
     }
 
