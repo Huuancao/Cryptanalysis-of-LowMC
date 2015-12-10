@@ -69,9 +69,9 @@ void writeMatrices(std::vector<std::vector<block>> matrix, std::string fileName)
 
     for(int i=0; i<matrix.size();++i){
         for(int j=0; j<matrix[i].size(); ++j){
-            myFile << matrix[i][j] << endl;
+            myFile << matrix[i][j] << std::endl;
         }
-        myFile << endl;
+        myFile << std::endl;
     }
     myFile.close();
 }
@@ -81,9 +81,9 @@ void writeMatrices(std::vector<std::vector<keyblock>> matrix, std::string fileNa
 
     for(int i=0; i<matrix.size();++i){
         for(int j=0; j<matrix[i].size(); ++j){
-            myFile << matrix[i][j] << "\n";
+            myFile << matrix[i][j] << std::endl;
         }
-        myFile << "\n";
+        myFile << std::endl;
     }
     myFile.close();
 }
@@ -92,7 +92,7 @@ void writeConstants(std::vector<block>& roundconstants, std::string fileName){
     myFile.open(fileName.c_str());
 
     for(int i=0; i<roundconstants.size();++i){
-        myFile << roundconstants[i] << "\n";
+        myFile << roundconstants[i] << std::endl;
     }
     myFile.close();
 }
@@ -104,7 +104,7 @@ void writeRoundKeys(std::vector<block> roundkeys){
     myFile.open("roundkeys.txt");
 
     for(int i=0; i<roundkeys.size();++i){
-            myFile << roundkeys[i] << "\n";
+            myFile << roundkeys[i] << std::endl;
     }
     myFile.close();
 }
@@ -189,10 +189,10 @@ void LowMC::instantiate_LowMC () {
         do {
             mat.clear();
             for (unsigned i = 0; i < blocksize; ++i) {
-                if(r==2 && i == 9){
+                /*if(r==2 && i == 9){
                     setLastPartMatrix(mat);
                     break;
-                }
+                }*/
                 mat.push_back( getrandblock () );
             }
         // Repeat if matrix is not invertible
