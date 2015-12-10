@@ -1246,7 +1246,7 @@ void extractMonomialsKeys(const relationSetType& relationMapTarget,
 
         //cout << "Outer: " << tempRelaRep << endl;
         for(it1; it1!=it2; ++it1){
-        //    cout << "Loop" << endl;
+            //cout << "Loop" << endl;
             relationRepresentation tempMonoKey(63); // All keybits set 111111
             tempMonoKey&=*it1;
             keyblock tempKeyBlock(tempMonoKey.to_ulong());
@@ -1258,22 +1258,28 @@ void extractMonomialsKeys(const relationSetType& relationMapTarget,
 /*  
 Setup linear equation system Keys per monomial and alpha_u per monomial.
 */
+
 void setUpLinearEquationKeyAlphas(const vector<keyBlockSetType>& keysMonomials){
     ofstream myFile;
     myFile.open(keysMonomialsPath.c_str());
     myFile << "[";
+    int toWrite(0);
     for(int i=0; i< keysMonomials.size(); ++i){
         myFile << "[";
-        for(int j=0; j<2^6-1; ++j){
-            if (j==keys[0].size()-1){
-                    if(keysMonomials)
-                    myFile << keys[i][j];
+        for(int j=1; j<64; ++j){
+            keyblock toFind(j);
+            if (keysMonomials[i].find(toFind) != keysMonomials[i].end()){
+                toWrite=1;
             }else{
-                 myFile << keys[i][j]<< " ";
+                toWrite=0;
             }
+            if (j==63){
+                myFile << toWrite;
+            }else{
+                myFile << toWrite << " ";
+            }    
         }
-        if(i != keys.size()-1) 
-            {
+        if(i != keysMonomials.size()-1) {
                 myFile << "],";
         }else{
             myFile << "]";
@@ -1380,13 +1386,14 @@ int main(void) {
     
 
     //Testing functions
+    /*
     for(int i=0; i < keysMonomials.size(); ++i){
         cout << "Monomials " << i << ": " << endl;
         for(auto element: keysMonomials[i]){
             cout << element << endl;
         }
-    }
-
+    }*/
+    setUpLinearEquationKeyAlphas(keysMonomials);
 
     /*keyblock tempKey(27);
     cout << "Key: " << tempKey << endl;
