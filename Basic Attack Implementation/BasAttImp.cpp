@@ -1326,8 +1326,8 @@ int main(void) {
 
     //Post-generating elements functions
     generateInvMatrices(linearMatrices, invLinearMatrices);
-    peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
-    peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-3], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
+    peelingOffCiphertexts(ciphertexts, roundConstants[rounds], invLinearMatrices[rounds-1], peeledOffCiphertexts);
+    peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-2], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
     preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
     generateMatrixA(monomials, ciphertexts, matrixA);
     generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
@@ -1356,9 +1356,9 @@ int main(void) {
 
     //Writing Functions
     //writeBlockSet(monomials, monomialsPath);
-    writeVectorsBlocks(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
-    writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
-    writeMatrices(invLinearMatrices, invLinMatPath);
+    //writeVectorsBlocks(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
+    //writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
+    //writeMatrices(invLinearMatrices, invLinMatPath);
     writeFreeCoef(a0);
     writePython(matrixE, a0);
     writeRelationMap(relationMap);
