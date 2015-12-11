@@ -1206,6 +1206,8 @@ void relationMapping(vector<relationSetType>& relationMap,
             }
         }*/
     }
+    keyRoundAdd(relationMap, keyMatrices[rounds-2]);
+    linearLayerMixing(relationMap, invLinearMatrices[rounds-3]); 
 }
 /*
 Extract Key information according to monomials precomputed.
@@ -1242,20 +1244,26 @@ Setup linear equation system Keys per monomial and alpha_u per monomial.
 */
 void setUpLinearEquationKeyAlphas(const vector<keyBlockSetType>& keysMonomials){
     ofstream myFile;
+    unsigned int limit = pow(2,keysize);
     myFile.open(keysMonomialsPath.c_str());
     myFile << "[";
+    int toWrite(0);
     for(int i=0; i< keysMonomials.size(); ++i){
         myFile << "[";
-        for(int j=0; j<2^6-1; ++j){
-            if (j==keys[0].size()-1){
-                    if(keysMonomials)
-                    myFile << keys[i][j];
+        for(int j=1; j< limit; ++j){
+            keyblock toFind(j);
+            if (keysMonomials[i].find(toFind) != keysMonomials[i].end()){
+                toWrite=1;
             }else{
-                 myFile << keys[i][j]<< " ";
+                toWrite=0;
             }
+            if (j==(limit-1)){
+                myFile << toWrite;
+            }else{
+                myFile << toWrite << " ";
+            }    
         }
-        if(i != keys.size()-1) 
-            {
+        if(i != keysMonomials.size()-1) {
                 myFile << "],";
         }else{
             myFile << "]";
@@ -1313,22 +1321,22 @@ int main(void) {
     initInputsLinearMatrices(linearMatrices, linMatPath);
     initInputsKeyMatrices(keyMatrices, keyMatPath);
     initInputs(roundConstants, roundConstPath);
-    initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
+    //initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
 
 
     //Post-generating elements functions
-    //generateInvMatrices(linearMatrices, invLinearMatrices);
-    //peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
-    //peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-3], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
-    //preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
-    //generateMatrixA(monomials, ciphertexts, matrixA);
-    //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
+    generateInvMatrices(linearMatrices, invLinearMatrices);
+    peelingOffCiphertexts(ciphertexts, roundConstants[rounds], invLinearMatrices[rounds-1], peeledOffCiphertexts);
+    peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-2], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
+    preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
+    generateMatrixA(monomials, ciphertexts, matrixA);
+    generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
     relationMapping(relationMap, invLinearMatrices, keyMatrices);
 
 
     //Operational functions
     extractMonomialsKeys(relationMap[targetBit], monomials, keysMonomials);
-    //setUpLinearEquationKeyAlphas(keysMonomials);
+    setUpLinearEquationKeyAlphas(keysMonomials);
     
     //Printing Functions
     //printANF("reverse");
@@ -1351,21 +1359,21 @@ int main(void) {
     //writeVectorsBlocks(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
     //writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
     //writeMatrices(invLinearMatrices, invLinMatPath);
-    //writeFreeCoef(a0);
-    //writePython(matrixE, a0);
-    //writeRelationMap(relationMap);
-    //writeRelationMapTarget(relationMap[targetBit]);
+    writeFreeCoef(a0);
+    writePython(matrixE, a0);
+    writeRelationMap(relationMap);
+    writeRelationMapTarget(relationMap[targetBit]);
 
 
     
 
     //Testing functions
-    for(int i=0; i < keysMonomials.size(); ++i){
+    /*for(int i=0; i < keysMonomials.size(); ++i){
         cout << "Monomials " << i << ": " << endl;
         for(auto element: keysMonomials[i]){
-            cout << element << endl;
+            cout << element << " " << element.to_ulong() << endl;
         }
-    }
+    }*/
 
 
     /*keyblock tempKey(27);
