@@ -1260,7 +1260,6 @@ void extractMonomialsKeys(const relationSetType& relationMapTarget,
 /*  
 Setup linear equation system Keys per monomial and alpha_u per monomial.
 */
-
 void setUpLinearEquationKeyAlphas(const vector<keyBlockSetType>& keysMonomials){
     ofstream myFile;
     unsigned int limit = pow(2,keysize);
@@ -1291,6 +1290,7 @@ void setUpLinearEquationKeyAlphas(const vector<keyBlockSetType>& keysMonomials){
     myFile << "]";
     myFile.close();
 }
+
 //////////////////
 //     MAIN     //
 //////////////////
@@ -1345,19 +1345,19 @@ int main(void) {
 
 
     //Post-generating elements functions
-    generateInvMatrices(linearMatrices, invLinearMatrices);
-    peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
-    peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-3], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
-    preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
-    generateMatrixA(monomials, ciphertexts, matrixA);
-    generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
-    relationMapping(relationMap, invLinearMatrices, keyMatrices);
+    //generateInvMatrices(linearMatrices, invLinearMatrices);
+    //peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
+    //peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-3], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
+    //preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
+    //generateMatrixA(monomials, ciphertexts, matrixA);
+    //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
+    //relationMapping(relationMap, invLinearMatrices, keyMatrices);
 
 
 
     //Operational functions
-    extractMonomialsKeys(relationMap[targetBit], monomials, keysMonomials);
-    setUpLinearEquationKeyAlphas(keysMonomials);
+    //extractMonomialsKeys(relationMap[targetBit], monomials, keysMonomials);
+    //setUpLinearEquationKeyAlphas(keysMonomials);
     
     //Printing Functions
     //printANF("reverse");
@@ -1377,15 +1377,13 @@ int main(void) {
 
     //Writing Functions
     //writeBlockSet(monomials, monomialsPath);
-    writeVectorsBlocks(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
-    writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
-    writeMatrices(invLinearMatrices, invLinMatPath);
-    writeFreeCoef(a0);
-    writePython(matrixE, a0);
-    writeRelationMap(relationMap);
-    writeRelationMapTarget(relationMap[targetBit]);
-
-
+    //writeVectorsBlocks(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
+    //writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
+    //writeMatrices(invLinearMatrices, invLinMatPath);
+    //writeFreeCoef(a0);
+    //writePython(matrixE, a0);
+    //writeRelationMap(relationMap);
+    //writeRelationMapTarget(relationMap[targetBit]);
     
 
     //Testing functions
