@@ -1156,7 +1156,8 @@ Relation mapping creation.
 */
 void relationMapping(vector<relationSetType>& relationMap,
                     const vector<vector<block>>& invLinearMatrices,
-                    const vector<vector<keyblock>>& keyMatrices){
+                    const vector<vector<keyblock>>& keyMatrices,
+                    const vector<block>& roundConstants){
     initRelationWhitening(relationMap, keyMatrices, "reverse");
     /*
     for(int i=0; i<3; ++i){
@@ -1206,7 +1207,7 @@ void relationMapping(vector<relationSetType>& relationMap,
             }
         }*/
     }
-    keyRoundAdd(relationMap, keyMatrices[rounds-2]);
+    //keyRoundAdd(relationMap, keyMatrices[rounds-2]);
     linearLayerMixing(relationMap, invLinearMatrices[rounds-3]); 
 }
 /*
@@ -1326,12 +1327,12 @@ int main(void) {
 
     //Post-generating elements functions
     generateInvMatrices(linearMatrices, invLinearMatrices);
-    peelingOffCiphertexts(ciphertexts, roundConstants[rounds], invLinearMatrices[rounds-1], peeledOffCiphertexts);
-    peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-2], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
+    peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
+    peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-3], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
     preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
     generateMatrixA(monomials, ciphertexts, matrixA);
     generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
-    relationMapping(relationMap, invLinearMatrices, keyMatrices);
+    relationMapping(relationMap, invLinearMatrices, keyMatrices, roundConstants);
 
 
     //Operational functions
