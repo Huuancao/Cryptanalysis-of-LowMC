@@ -1159,6 +1159,10 @@ void relationMapping(vector<relationSetType>& relationMap,
                     const vector<vector<keyblock>>& keyMatrices,
                     const vector<block>& roundConstants){
     initRelationWhitening(relationMap, keyMatrices, "reverse");
+    linearLayerMixing(relationMap, invLinearMatrices[rounds-1]);
+    keyRoundAdd(relationMap, keyMatrices[rounds]);
+    SBoxRelation(relationMap, "reverse");
+
     /*
     for(int i=0; i<3; ++i){
     //    cout << i << endl;
@@ -1178,7 +1182,7 @@ void relationMapping(vector<relationSetType>& relationMap,
             cout << "Bit " << m << " : " <<  relationMap[m].size() << endl;
         }
     }*/
-    for(int j=rounds-1; j>rounds-3; --j){
+    for(int j=rounds-2; j>rounds-3; --j){
         keyRoundAdd(relationMap, keyMatrices[j+1]);
         /*cout << "Key Round"<< endl;
         for(int m =0; m < blocksize; ++m){
