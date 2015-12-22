@@ -1236,7 +1236,12 @@ void extractMonomialsKeys(const relationSetType& relationMapTarget,
         //cout << "Outer: " << tempRelaRep << endl;
         for(it1; it1!=it2; ++it1){
         //    cout << "Loop" << endl;
-            relationRepresentation tempMonoKey(63); // All keybits set 111111
+
+            relationRepresentation tempMonoKey(0); // All keybits set 111111
+            for(int i=0; i < keysize; ++i){
+                tempMonoKey.set(i);
+            }
+            cout << tempMonoKey << endl;
             tempMonoKey&=*it1;
             keyblock tempKeyBlock(tempMonoKey.to_ullong());
             tempKeyBlockSet.insert(tempKeyBlock);
