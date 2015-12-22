@@ -65,7 +65,7 @@ typedef std::bitset<relationLength> relationRepresentation;
 class relationRepComp{
    public:
     bool operator()( relationRepresentation const & r1, relationRepresentation const & r2 ) const{
-         return r1.to_ulong() < r2.to_ulong();
+         return r1.to_ullong() < r2.to_ullong();
     }
 };
 
@@ -74,7 +74,7 @@ typedef set<relationRepresentation, relationRepComp>  relationSetType;
 class blockComp{
    public:
     bool operator()( block const & r1, block const & r2 ) const{
-         return r1.to_ulong() < r2.to_ulong();
+         return r1.to_ullong() < r2.to_ullong();
     }
 };
 
@@ -83,7 +83,7 @@ typedef set<block, blockComp>  blockSetType;
 class keyBlockComp{
    public:
     bool operator()( keyblock const & r1, keyblock const & r2 ) const{
-         return r1.to_ulong() < r2.to_ulong();
+         return r1.to_ullong() < r2.to_ullong();
     }
 };
 
@@ -284,7 +284,7 @@ block Substitution (const block message) {
         //std::cout<<"Sbox Part " << i << ": "<< (message >> 3*(numofboxes-i)) <<std::endl;
         //std::cout<<"Sbox Part " << i << ": "<< ((message >> 3*(numofboxes-i))& block(0x7)).to_ulong() <<std::endl;
         temp ^= Sbox[ ((message >> 3*(numofboxes-i))
-                      & block(0x7)).to_ulong()];
+                      & block(0x7)).to_ullong()];
     }
     return temp;
 }
@@ -1223,11 +1223,11 @@ void extractMonomialsKeys(const relationSetType& relationMapTarget,
     for(blockSetType::iterator iter1=monomials.begin(); iter1 != monomials.end(); ++iter1){
         keyBlockSetType tempKeyBlockSet;
         block currentMonomial(*iter1);
-        relationRepresentation lowerBound(currentMonomial.to_ulong());
+        relationRepresentation lowerBound(currentMonomial.to_ullong());
         lowerBound<<=keysize;
-        relationRepresentation upperBound(currentMonomial.to_ulong()+1);
+        relationRepresentation upperBound(currentMonomial.to_ullong()+1);
         upperBound<<=keysize;
-        upperBound=upperBound.to_ulong()-1;
+        upperBound=upperBound.to_ullong()-1;
         //cout << *iter1 << " " << lowerBound << " " << upperBound << endl;
         relationSetType::iterator it1=relationMapTarget.lower_bound(lowerBound);
         relationSetType::iterator it2=relationMapTarget.upper_bound(upperBound);
@@ -1238,7 +1238,7 @@ void extractMonomialsKeys(const relationSetType& relationMapTarget,
         //    cout << "Loop" << endl;
             relationRepresentation tempMonoKey(63); // All keybits set 111111
             tempMonoKey&=*it1;
-            keyblock tempKeyBlock(tempMonoKey.to_ulong());
+            keyblock tempKeyBlock(tempMonoKey.to_ullong());
             tempKeyBlockSet.insert(tempKeyBlock);
         }
         keysMonomials.push_back(tempKeyBlockSet);
@@ -1344,7 +1344,7 @@ int main(void) {
     setUpLinearEquationKeyAlphas(keysMonomials);
     
     //Printing Functions
-    //printANF("reverse");
+    printANF("reverse");
     //printVectorVectorsBlock(linearMatrices);
     //printVectorVectorsKeyBlock(keyMatrices);
     //printVectorVectorsBlock(invLinearMatrices);
