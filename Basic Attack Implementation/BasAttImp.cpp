@@ -1157,7 +1157,7 @@ void keyRoundAdd(vector<relationSetType>& relationMap, const vector<keyblock>& k
 void keyRoundAdd(vector<roundKeySetType>& relationMap){
     vector<roundKeySetType> tempRelation;
     for(int i=0; i< blocksize; ++i){
-        int power = pow(2,i); 
+        int power = pow(2,i);
         roundKeyRepresentation tempKey(power);
         roundKeySetType tempRelationSet;
         for(auto element : relationMap[i]){
@@ -1381,7 +1381,6 @@ void roundKeyMapping(vector<roundKeySetType>& keyRoundMap,
             setInsertRoundKey(resultRoundKey,keyRoundMap[i]);
         }
     }
-
 }
 /*
 Generate the monomials for roundKey
@@ -1389,7 +1388,7 @@ Generate the monomials for roundKey
 void generateRoundKey(vector<roundKeySetType>& roundKey){
     roundKeyRepresentation tempRelation(1);
     roundKeySetType bitSet;
-    tempRelation <<=blocksize;
+    tempRelation<<=blocksize;
     for(int i=0; i<blocksize; ++i){
         bitSet.clear();
         bitSet.insert(tempRelation);
@@ -1469,6 +1468,39 @@ roundKeySetType hammingWeithSort(roundKeySetType& resultRoundKey, int weight){
     }
     return sortedSet;
 }
+void mergeRoundKeys(roundKeySetType& relationMapBit){
+    roundKeySetType relationMapMonoKeys;
+    roundKeySetType::iterator iter1=relationMapBit.begin();
+    while(iter1 != relationMapBit.end()){
+        roundKeyRepresentation currentMonomial(*iter1);
+        currentMonomial>>=blocksize;
+        roundKeyRepresentation lowerBound(currentMonomial.to_ullong());
+        lowerBound<<=blocksize;
+        roundKeyRepresentation upperBound(currentMonomial.to_ullong()+1);
+        upperBound<<=blocksize;
+        upperBound=upperBound.to_ullong()-1;
+        //cout << *iter1 << " " << lowerBound << " " << upperBound << endl;
+        roundKeySetType::iterator it1=relationMapBit.lower_bound(lowerBound);
+        roundKeySetType::iterator it2=relationMapBit.upper_bound(upperBound);
+        roundKeyRepresentation tempRelaRep(lowerBound);
+
+        //cout << "Outer: " << tempRelaRep << endl;
+        while(it1!=it2){
+        //    cout << "Loop" << endl;
+            int bound = pow(2,blocksize)-1;
+            roundKeyRepresentation tempMonoKeys(bound); // All keybits set 111111
+            tempMonoKeys&=*it1;
+        //    cout << tempMonoKeys<< endl;
+            tempRelaRep^=tempMonoKeys;
+        ///    cout << tempRelaRep << endl;;
+            ++it1;
+            ++iter1;
+        }
+        relationMapMonoKeys.insert(tempRelaRep);
+    }
+    relationMapBit.clear();
+    insertRemastered(relationMapBit, relationMapMonoKeys);
+}
 //////////////////
 //     MAIN     //
 //////////////////
@@ -1531,22 +1563,29 @@ int main(void) {
         }
     }
     roundKeyMapping(roundKeyRepresentation,resultRoundKey, invLinearMatrices);
-    for (auto element : resultRoundKey){
+    for(int i=0; i < roundKeyRepresentation.size(); ++i){
+        cout << "Key " << i << ": " << endl;
+        for(auto element: roundKeyRepresentation[i]){
+            cout << element << " " << endl;
+        }
+    }
+    mergeRoundKeys(resultRoundKey);
+    cout << "The size is: " << resultRoundKey.size() << endl;
+    for(auto element: resultRoundKey){
         cout << element << endl;
     }
-    cout << "The size is" << resultRoundKey.size() << endl;
     
 
     
 
     //Post-generating elements functions
-    generateInvMatrices(linearMatrices, invLinearMatrices);
-    peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
-    peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-3], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
-    preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
-    generateMatrixA(monomials, ciphertexts, matrixA);
-    generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
-    relationMapping(relationMap, invLinearMatrices, keyMatrices, roundConstants);
+    //generateInvMatrices(linearMatrices, invLinearMatrices);
+    //peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
+    //peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-3], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
+    //preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
+    //generateMatrixA(monomials, ciphertexts, matrixA);
+    //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
+    //relationMapping(relationMap, invLinearMatrices, keyMatrices, roundConstants);
 
 
     
