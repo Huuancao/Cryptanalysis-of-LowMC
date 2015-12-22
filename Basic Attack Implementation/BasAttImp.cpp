@@ -25,7 +25,8 @@ const unsigned nummonomials = 423;
 const unsigned numPartialCiphertexts = 4096;
 const unsigned relationLength = 27;
 const unsigned identitysize = blocksize - 3*numofboxes;
-const unsigned targetBit = 2;
+const unsigned targetBit = 9;
+const unsigned roundKeyRepresentationSize = 42;
 const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
 const std::vector<unsigned> invSbox = {0x00, 0x01, 0x07, 0x02, 0x05, 0x06, 0x03, 0x04}; // Invers Sboxes
 
@@ -56,6 +57,7 @@ typedef std::bitset<dimension> vecspace;
 typedef std::bitset<nummonomials> monomatrix;
 typedef std::bitset<numSubspaces> freeCoef;
 typedef std::bitset<relationLength> relationRepresentation;
+typedef std::bitset<roundKeyRepresentationSize> roundKeyRepresentation;
 
 
 
@@ -90,6 +92,15 @@ class keyBlockComp{
 };
 
 typedef set<keyblock, keyBlockComp>  keyBlockSetType;
+
+class relationKeyComp{
+   public:
+    bool operator()( roundKeyRepresentation const & r1, roundKeyRepresentation const & r2 ) const{
+         return r1.to_ullong() < r2.to_ullong();
+    }
+};
+
+typedef set<roundKeyRepresentation, relationKeyComp>  roundKeySetType;
 
 //////////////////
 //  PROTOTYPES  //
@@ -741,6 +752,11 @@ void relationRepresentationMultiply(relationRepresentation& result,
                                     const relationRepresentation& y){
     result = x|y;
 }
+void roundKeyMultiply(roundKeyRepresentation& result, 
+                                    const roundKeyRepresentation& x, 
+                                    const roundKeyRepresentation& y){
+    result = x|y;
+}
 void relationRepresentationXoring(relationRepresentation& result, 
                                     const relationRepresentation& x, 
                                     const relationRepresentation& y){
@@ -1036,6 +1052,26 @@ void setInsert(relationSetType& set, relationRepresentation element){
         set.insert(element);
     }
 }
+void setInsert(roundKeySetType& set, roundKeyRepresentation element){
+    if(set.find(element)!=set.end()){
+        set.erase(element);
+        cout << "erase" << endl;
+    }
+    else{
+        set.insert(element);
+        cout << "insert" << endl;
+    }
+}
+void setInsertRoundKey(roundKeySetType& set, roundKeySetType& toAdd){
+    for(auto element : toAdd){
+        if(set.find(element)!=set.end()){
+            set.erase(element);
+        }
+        else{
+            set.insert(element);
+        }
+    }
+}
 /*
 Linear layer function.
 */
@@ -1068,6 +1104,36 @@ void linearLayerMixing(vector<relationSetType>& relationMap,
         relationMap.push_back(tempRelationMap[k]);
     }
 }
+void linearLayerMixing(vector<roundKeySetType>& relationMap,
+                      const vector<block>& invLinearMatrices){
+    vector<roundKeySetType> tempRelationMap;
+    roundKeySetType tempRelationSet;
+    tempRelationMap.clear();
+    tempRelationSet.clear();
+    for(int h=0; h<blocksize; ++h){
+        tempRelationMap.push_back(tempRelationSet);
+    }
+    for(int i=0; i<blocksize; ++i){
+        /*if(round == 2 && i >= 9){
+            break;
+        }
+        else{*/
+            for(int j=0; j<blocksize; ++j){
+                if(invLinearMatrices[i][j]){
+                    for(auto element : relationMap[j]){
+                        setInsert(tempRelationMap[i], element);
+                    }
+                }
+            }
+
+        }/*
+    }*/
+    relationMap.clear();
+    for(int k=0; k<blocksize; ++k){
+        relationMap.push_back(tempRelationMap[k]);
+    }
+}
+
 /*
 Adding key function.
 */
@@ -1078,6 +1144,24 @@ void keyRoundAdd(vector<relationSetType>& relationMap, const vector<keyblock>& k
         relationSetType tempRelationSet;
         for(auto element : relationMap[i]){
             relationRepresentation temp(element);
+            temp=temp^tempKey;
+            tempRelationSet.insert(temp);
+        }
+        tempRelation.push_back(tempRelationSet);
+    }
+    relationMap.clear();
+    for(int k=0; k<blocksize; ++k){
+        relationMap.push_back(tempRelation[k]);
+    }
+}
+void keyRoundAdd(vector<roundKeySetType>& relationMap){
+    vector<roundKeySetType> tempRelation;
+    for(int i=0; i< blocksize; ++i){
+        int power = pow(2,i); 
+        roundKeyRepresentation tempKey(power);
+        roundKeySetType tempRelationSet;
+        for(auto element : relationMap[i]){
+            roundKeyRepresentation temp(element);
             temp=temp^tempKey;
             tempRelationSet.insert(temp);
         }
@@ -1118,6 +1202,11 @@ void insertRemastered(relationSetType& InsertionResult, const relationSetType& t
         setInsert(InsertionResult, element);
     }
 }
+void insertRemastered(roundKeySetType& InsertionResult, const roundKeySetType& toInsert){
+    for (auto element : toInsert){
+        setInsert(InsertionResult, element);
+    }
+}
 /*
 SBoxes function for a vector of bitset of size relationLength 
 */
@@ -1147,6 +1236,52 @@ void SBoxRelation(vector<relationSetType>& relationMap, string mode){
             for(auto elementX2 : relationMap[x2]){
                 relationRepresentation tempResult(0);
                 relationRepresentationMultiply(tempResult, elementX1, elementX2);
+                setInsert(tempRelationMap[x0], tempResult);
+            }
+        }
+        insertRemastered(tempRelationMap[x0], relationMap[x1]);
+        insertRemastered(tempRelationMap[x0], relationMap[x2]);
+        if(mode=="reverse"){
+            insertRemastered(tempRelationMap[x2], relationMap[x1]);
+        }
+        else{
+            insertRemastered(tempRelationMap[x1], relationMap[x2]);
+        }
+    }
+    relationMap.clear();
+    for(int k=0; k<blocksize; ++k){
+        relationMap.push_back(tempRelationMap[k]);
+    }
+}
+/*
+SBoxes function for a vector of bitset of size relationLength 
+*/
+void SBoxRelation(vector<roundKeySetType>& relationMap, string mode){
+    vector<roundKeySetType> tempRelationMap;
+    tempRelationMap.clear();
+    for(int h=0; h<blocksize; ++h){
+        tempRelationMap.push_back(relationMap[h]);
+    }
+    for(int i=numofboxes-1; i>=0; --i){      
+        int x0(3*i);
+        int x1(3*i+1);
+        int x2(3*i+2);
+        for(auto elementX0 : relationMap[x0]){
+            for(auto elementX1 : relationMap[x1]){
+                roundKeyRepresentation tempResult(0);
+                roundKeyMultiply(tempResult, elementX0, elementX1);
+                setInsert(tempRelationMap[x2], tempResult);
+            }
+            for(auto elementX2 : relationMap[x2]){
+                roundKeyRepresentation tempResult(0);
+                roundKeyMultiply(tempResult, elementX0, elementX2);
+                setInsert(tempRelationMap[x1], tempResult);
+            }
+        }
+        for(auto elementX1 : relationMap[x1]){
+            for(auto elementX2 : relationMap[x2]){
+                roundKeyRepresentation tempResult(0);
+                roundKeyMultiply(tempResult, elementX1, elementX2);
                 setInsert(tempRelationMap[x0], tempResult);
             }
         }
@@ -1228,6 +1363,36 @@ void relationMapping(vector<relationSetType>& relationMap,
     linearLayerMixing(relationMap, invLinearMatrices[rounds-3]); 
 }
 /*
+Mapping of the last roundKey
+*/
+void roundKeyMapping(vector<roundKeySetType>& keyRoundMap,
+                    roundKeySetType& resultRoundKey,
+                    const vector<vector<block>>& invLinearMatrices){
+    linearLayerMixing(keyRoundMap,invLinearMatrices[rounds-1]);
+    keyRoundAdd(keyRoundMap);
+    SBoxRelation(keyRoundMap,"reverse");
+    for (int i = 0; i < blocksize; ++i){
+        if(invLinearMatrices[rounds-2][targetBit][i]){
+            setInsertRoundKey(resultRoundKey,keyRoundMap[i]);
+        }
+    }
+
+}
+/*
+Generate the monomials for roundKey
+*/
+void generateRoundKey(vector<roundKeySetType>& roundKey){
+    roundKeyRepresentation tempRelation(1);
+    roundKeySetType bitSet;
+    tempRelation <<=blocksize;
+    for(int i=0; i<blocksize; ++i){
+        bitSet.clear();
+        bitSet.insert(tempRelation);
+        tempRelation <<=1;
+        roundKey.push_back(bitSet);
+    }
+}
+/*
 Extract Key information according to monomials precomputed.
 */
 void extractMonomialsKeys(const relationSetType& relationMapTarget,
@@ -1290,7 +1455,15 @@ void setUpLinearEquationKeyAlphas(const vector<keyBlockSetType>& keysMonomials){
     myFile << "]";
     myFile.close();
 }
-
+roundKeySetType hammingWeithSort(roundKeySetType& resultRoundKey, int weight){
+    roundKeySetType sortedSet;
+    for(auto element : resultRoundKey){
+        if (element.count()==weight){
+            sortedSet.insert(element);
+        }
+    }
+    return sortedSet;
+}
 //////////////////
 //     MAIN     //
 //////////////////
@@ -1323,6 +1496,8 @@ int main(void) {
     vector<relationSetType> relationMap;
     relationSetType relationMapTarget;
     vector<keyBlockSetType> keysMonomials;
+    vector<roundKeySetType> roundKeyRepresentation;
+    roundKeySetType resultRoundKey;
 
     //Pre-generating variables Functions
     //generateMonomials(monomials);
@@ -1341,19 +1516,34 @@ int main(void) {
     initInputsLinearMatrices(linearMatrices, linMatPath);
     initInputsKeyMatrices(keyMatrices, keyMatPath);
     initInputs(roundConstants, roundConstPath);
-    //initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
+    initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
+    //Test
+    generateRoundKey(roundKeyRepresentation);
+    for(int i=0; i < roundKeyRepresentation.size(); ++i){
+        cout << "Key " << i << ": " << endl;
+        for(auto element: roundKeyRepresentation[i]){
+            cout << element << " " << endl;
+        }
+    }
+    roundKeyMapping(roundKeyRepresentation,resultRoundKey, invLinearMatrices);
+    for (auto element : resultRoundKey){
+        cout << element << endl;
+    }
+    cout << "The size is" << resultRoundKey.size() << endl;
+    
 
+    
 
     //Post-generating elements functions
-    generateInvMatrices(linearMatrices, invLinearMatrices);
-    peelingOffCiphertexts(ciphertexts, roundConstants[rounds], invLinearMatrices[rounds-1], peeledOffCiphertexts);
-    peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-2], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
-    preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
-    generateMatrixA(monomials, ciphertexts, matrixA);
-    generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
-    relationMapping(relationMap, invLinearMatrices, keyMatrices);
+    //generateInvMatrices(linearMatrices, invLinearMatrices);
+    //peelingOffCiphertexts(ciphertexts, roundConstants[rounds], invLinearMatrices[rounds-1], peeledOffCiphertexts);
+    //peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-2], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
+    //preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
+    //generateMatrixA(monomials, ciphertexts, matrixA);
+    //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
+    //relationMapping(relationMap, invLinearMatrices, keyMatrices);
 
-
+    
     //Operational functions
     //extractMonomialsKeys(relationMap[targetBit], monomials, keysMonomials);
     //setUpLinearEquationKeyAlphas(keysMonomials);
@@ -1379,10 +1569,10 @@ int main(void) {
     //writeVectorsBlocks(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
     //writeVectorsBlocks(peeledOffCiphertexts, peelOffCipherPath);
     //writeMatrices(invLinearMatrices, invLinMatPath);
-    writeFreeCoef(a0);
-    writePython(matrixE, a0);
-    writeRelationMap(relationMap);
-    writeRelationMapTarget(relationMap[targetBit]);
+    //writeFreeCoef(a0);
+    //writePython(matrixE, a0);
+    //writeRelationMap(relationMap);
+    //writeRelationMapTarget(relationMap[targetBit]);
 
 
     
