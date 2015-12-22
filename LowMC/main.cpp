@@ -88,7 +88,7 @@ void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName
 
 
 int main () {
-    LowMC cipher(0); //Set key to 101101
+    LowMC cipher(47); //Set key to 101101
     std::vector<block> plaintexts;
     std::vector<block> ciphertexts;
     int maxPlaintexts(pow(2,12));

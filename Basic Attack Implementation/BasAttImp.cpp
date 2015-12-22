@@ -1304,8 +1304,13 @@ Relation mapping creation.
 */
 void relationMapping(vector<relationSetType>& relationMap,
                     const vector<vector<block>>& invLinearMatrices,
-                    const vector<vector<keyblock>>& keyMatrices){
+                    const vector<vector<keyblock>>& keyMatrices,
+                    const vector<block>& roundConstants){
     initRelationWhitening(relationMap, keyMatrices, "reverse");
+    linearLayerMixing(relationMap, invLinearMatrices[rounds-1]);
+    keyRoundAdd(relationMap, keyMatrices[rounds]);
+    SBoxRelation(relationMap, "reverse");
+
     /*
     for(int i=0; i<3; ++i){
     //    cout << i << endl;
@@ -1330,7 +1335,7 @@ void relationMapping(vector<relationSetType>& relationMap,
         }
 
     }*/
-    for(int j=rounds-1; j>rounds-3; --j){
+    for(int j=rounds-2; j>rounds-3; --j){
         keyRoundAdd(relationMap, keyMatrices[j+1]);
         /*cout << "Key Round"<< endl;
         for(int m =0; m < blocksize; ++m){
@@ -1359,7 +1364,7 @@ void relationMapping(vector<relationSetType>& relationMap,
             }
         }*/
     }
-    keyRoundAdd(relationMap, keyMatrices[rounds-2]);
+    //keyRoundAdd(relationMap, keyMatrices[rounds-2]);
     linearLayerMixing(relationMap, invLinearMatrices[rounds-3]); 
 }
 /*
@@ -1535,13 +1540,14 @@ int main(void) {
     
 
     //Post-generating elements functions
-    //generateInvMatrices(linearMatrices, invLinearMatrices);
-    //peelingOffCiphertexts(ciphertexts, roundConstants[rounds], invLinearMatrices[rounds-1], peeledOffCiphertexts);
-    //peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-2], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
-    //preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
-    //generateMatrixA(monomials, ciphertexts, matrixA);
-    //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
-    //relationMapping(relationMap, invLinearMatrices, keyMatrices);
+    generateInvMatrices(linearMatrices, invLinearMatrices);
+    peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
+    peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-3], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
+    preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
+    generateMatrixA(monomials, ciphertexts, matrixA);
+    generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
+    relationMapping(relationMap, invLinearMatrices, keyMatrices, roundConstants);
+
 
     
     //Operational functions
