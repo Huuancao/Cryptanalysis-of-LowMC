@@ -54,7 +54,7 @@ void setLastPartMatrix( std::vector<block>& mat){
     block tempMatrixLine;
     tempMatrixLine.reset();
     tempMatrixLine[9]=1;
-    for(int i=0; i<7; ++i){
+    for(int i=0; i<12; ++i){
         mat.push_back(tempMatrixLine);       
         tempMatrixLine <<= 1;
     }
@@ -189,10 +189,10 @@ void LowMC::instantiate_LowMC () {
         do {
             mat.clear();
             for (unsigned i = 0; i < blocksize; ++i) {
-                if(r==3 && i == 9){
+                /*if(r==2 && i == 9){
                     setLastPartMatrix(mat);
                     break;
-                }
+                }*/
                 mat.push_back( getrandblock () );
             }
         // Repeat if matrix is not invertible
@@ -241,7 +241,7 @@ void LowMC::instantiate_LowMC () {
 
 
 unsigned LowMC::rank_of_Matrix (const std::vector<block> matrix) {
-    std::vector<block> mat; //Copy of the matrix 
+    std::vector<block> mat; //Copy of tF matrix 
     for (auto u : matrix) {
         mat.push_back(u);
     }
