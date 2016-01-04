@@ -27,6 +27,7 @@ const unsigned relationLength = 27;
 const unsigned identitysize = blocksize - 3*numofboxes;
 const unsigned targetBit = 9;
 const unsigned roundKeyRepresentationSize = 42;
+const unsigned mappingSize= 253;
 const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
 const std::vector<unsigned> invSbox = {0x00, 0x01, 0x07, 0x02, 0x05, 0x06, 0x03, 0x04}; // Invers Sboxes
 
@@ -49,6 +50,9 @@ const string relationRepresentationPath = "relationRepresentation.txt";
 const string relationRepresentationTargetPath ="relationRepresentationTarget.txt";
 const string keysMonomialsPath = "keysMonomials.txt";
 const string relationMapMonoKeysPath = "relationMapMonoKeys.txt";
+const string roundKeyEquationMapPath= "roundKeyEquationMap.txt";
+const string alpha_uPath = "alpha_u.txt";
+const string RoundKeyEquationSystemPath = "RoundKeyEquationSystem.txt";
 
 
 typedef std::bitset<blocksize> block; // Store messages and states
@@ -58,7 +62,7 @@ typedef std::bitset<nummonomials> monomatrix;
 typedef std::bitset<numSubspaces> freeCoef;
 typedef std::bitset<relationLength> relationRepresentation;
 typedef std::bitset<roundKeyRepresentationSize> roundKeyRepresentation;
-
+typedef std::bitset<mappingSize> roundKeyMap;
 
 
 
@@ -738,6 +742,34 @@ void writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
     myFile << "]";
     myFile.close();
 }
+void writeRoundKeyEquationSystem(vector<roundKeyMap>& equationSystem, vector<int> alpha_u){
+    ofstream myFile;
+    myFile.open(RoundKeyEquationSystemPath.c_str());
+    myFile << "[";
+    for(int i=0; i< equationSystem.size(); ++i){
+        for(int j=0; j< equationSystem[0].size(); ++j){
+            if (j==equationSystem[0].size()-1 && i!= equationSystem.size()-1){
+                    myFile << equationSystem[i][j] << ";";
+            }else{
+                 myFile << equationSystem[i][j]<< " ";
+            }
+        }
+    }
+    myFile << "]";
+    myFile.close();
+
+    myFile.open(alpha_uPath.c_str());
+    myFile << "[";
+    for (int i = 0; i < alpha_u.size(); ++i){
+        if(i != alpha_u.size()-1){
+            myFile << alpha_u[i] << "; ";
+    }else{
+        myFile << alpha_u[i];
+    }
+   }
+    myFile << "]";
+    myFile.close();
+}
 /*
 Functions to multiply bitsets.
 */
@@ -841,6 +873,7 @@ void writeMatrices(std::vector<std::vector<block>> matrix, std::string fileName)
     }
     myFile.close();
 }
+
 /*
 Generate Matrix A, Prod c_i^u_i.
 */
@@ -1055,11 +1088,9 @@ void setInsert(relationSetType& set, relationRepresentation element){
 void setInsert(roundKeySetType& set, roundKeyRepresentation element){
     if(set.find(element)!=set.end()){
         set.erase(element);
-        cout << "erase" << endl;
     }
     else{
         set.insert(element);
-        cout << "insert" << endl;
     }
 }
 void setInsertRoundKey(roundKeySetType& set, roundKeySetType& toAdd){
@@ -1307,7 +1338,7 @@ void relationMapping(vector<relationSetType>& relationMap,
                     const vector<vector<keyblock>>& keyMatrices,
                     const vector<block>& roundConstants){
     initRelationWhitening(relationMap, keyMatrices, "reverse");
-    linearLayerMixing(relationMap, invLinearMatrices[rounds-1]);
+    //linearLayerMixing(relationMap, invLinearMatrices[rounds-1]);
     keyRoundAdd(relationMap, keyMatrices[rounds]);
     SBoxRelation(relationMap, "reverse");
 
@@ -1396,6 +1427,7 @@ void generateRoundKey(vector<roundKeySetType>& roundKey){
         roundKey.push_back(bitSet);
     }
 }
+
 /*
 Extract Key information according to monomials precomputed.
 */
@@ -1417,10 +1449,6 @@ void extractMonomialsKeys(const relationSetType& relationMapTarget,
 
         //cout << "Outer: " << tempRelaRep << endl;
         for(it1; it1!=it2; ++it1){
-<<<<<<< HEAD
-            //cout << "Loop" << endl;
-            relationRepresentation tempMonoKey(63); // All keybits set 111111
-=======
         //    cout << "Loop" << endl;
 
             relationRepresentation tempMonoKey(0); // All keybits set 111111
@@ -1428,7 +1456,6 @@ void extractMonomialsKeys(const relationSetType& relationMapTarget,
                 tempMonoKey.set(i);
             }
             cout << tempMonoKey << endl;
->>>>>>> refs/remotes/origin/One-Style
             tempMonoKey&=*it1;
             keyblock tempKeyBlock(tempMonoKey.to_ullong());
             tempKeyBlockSet.insert(tempKeyBlock);
@@ -1478,7 +1505,11 @@ roundKeySetType hammingWeithSort(roundKeySetType& resultRoundKey, int weight){
     }
     return sortedSet;
 }
-void mergeRoundKeys(roundKeySetType& relationMapBit){
+void sortRoundKeys(roundKeySetType& relationMapBit, vector<blockSetType> keyByMono){
+    blockSetType tempKeyBlock;
+    for (int i = 0; i < nummonomials; ++i){
+        keyByMono.push_back(tempKeyBlock);
+    }
     roundKeySetType relationMapMonoKeys;
     roundKeySetType::iterator iter1=relationMapBit.begin();
     while(iter1 != relationMapBit.end()){
@@ -1510,6 +1541,120 @@ void mergeRoundKeys(roundKeySetType& relationMapBit){
     }
     relationMapBit.clear();
     insertRemastered(relationMapBit, relationMapMonoKeys);
+}
+void extractMonomialsRoundKeys(const roundKeySetType& relationMapTarget,
+                            const blockSetType& monomials,
+                            vector<blockSetType>& keysMonomials){
+    for(blockSetType::iterator iter1=monomials.begin(); iter1 != monomials.end(); ++iter1){
+        blockSetType tempKeyBlockSet;
+        block currentMonomial(*iter1);
+        roundKeyRepresentation lowerBound(currentMonomial.to_ullong());
+        lowerBound<<=blocksize;
+        roundKeyRepresentation upperBound(currentMonomial.to_ullong()+1);
+        upperBound<<=blocksize;
+        upperBound=upperBound.to_ullong()-1;
+        //cout << *iter1 << " " << lowerBound << " " << upperBound << endl;
+        roundKeySetType::iterator it1=relationMapTarget.lower_bound(lowerBound);
+        roundKeySetType::iterator it2=relationMapTarget.upper_bound(upperBound);
+        roundKeyRepresentation tempRelaRep(lowerBound);
+
+        //cout << "Outer: " << tempRelaRep << endl;
+        for(it1; it1!=it2; ++it1){
+        //    cout << "Loop" << endl;
+
+            roundKeyRepresentation tempMonoKey(0); // All keybits set 111111
+            for(int i=0; i < blocksize; ++i){
+                tempMonoKey.set(i);
+            }
+            cout << tempMonoKey << endl;
+            tempMonoKey&=*it1;
+            block tempKeyBlock(tempMonoKey.to_ullong());
+            tempKeyBlockSet.insert(tempKeyBlock);
+        }
+        keysMonomials.push_back(tempKeyBlockSet);
+    }
+}
+int findIndex(blockSetType& monomials, block toSearch){
+    int counter(0);
+    for(auto element: monomials){
+        if (element.to_ullong()==toSearch.to_ullong()){
+            break;
+        }else{
+            counter++;
+        }
+    }
+    return counter;
+}
+void setVaudenayEquation(blockSetType& monomials, roundKeySetType& roundKeyMap, vector<blockSetType>& Vaudenay ){
+    blockSetType temp;
+    for (int i = 0; i < monomials.size(); ++i){
+        Vaudenay.push_back(temp);
+    }
+    for (auto element1 : monomials){
+        for (auto element2 : roundKeyMap){
+            roundKeyRepresentation tempRoundKey(element2.to_ullong());
+            tempRoundKey <<= blocksize;
+            tempRoundKey >>= blocksize;
+            block toInsert(tempRoundKey.to_ullong());
+            element2 >>= blocksize;
+            if (element1.to_ullong()==element2.to_ullong()){
+                block tempBlock(element1.to_ullong());
+                int index=findIndex(monomials, tempBlock);
+                Vaudenay[index].insert(toInsert);
+                
+            }
+
+        }
+    }
+
+}
+void findAlpha_u(vector<blockSetType>& roundKeyMonomials, vector<int>& alpha_u, freeCoef& a0){
+    for (int i = 0; i < roundKeyMonomials.size(); ++i){
+        if(!roundKeyMonomials[i].empty()){
+            alpha_u.push_back(a0[i]);
+        }
+    }
+}
+/*
+Generate the mapping 
+*/
+void generateMapping(vector<block>& map){
+    for (int i = 0; i < blocksize; ++i){
+        block temp1(pow(2,i));
+        map.push_back(temp1);
+    }
+    int index(blocksize);
+    for (int i = 0; i < blocksize; ++i){
+        for (int j = 0; j < blocksize; ++j){
+            if (j > i){
+                long long toAdd(pow(2,i)+pow(2,j));
+                block temp2(pow(2,i)+pow(2,j));
+                map.push_back(temp2);
+               }
+            }
+    }
+}
+/*
+Generate the equation system with for the round key Mapping 
+*/
+void generateRoundKeyEquation(vector<roundKeyMap>& equationSystem, const vector<blockSetType>& roundKeyMonomials, const vector<block>& map){
+    vector<blockSetType> tempRoundKeysMono;
+    for (int i = 0; i < roundKeyMonomials.size(); ++i){
+        if(!roundKeyMonomials[i].empty()){
+            tempRoundKeysMono.push_back(roundKeyMonomials[i]);
+        }
+    }
+    for (int i = 0; i < tempRoundKeysMono.size(); ++i){
+        for(auto element : tempRoundKeysMono[i]){
+            block temp(element.to_ullong());
+            for (int j = 0; j < map.size(); ++j){
+                if(temp==map[j]){
+                    equationSystem[i].set(j);
+                    break;
+                }
+            }
+        }
+    }
 }
 //////////////////
 //     MAIN     //
@@ -1545,7 +1690,11 @@ int main(void) {
     vector<keyBlockSetType> keysMonomials;
     vector<roundKeySetType> roundKeyRepresentation;
     roundKeySetType resultRoundKey;
-
+    vector<blockSetType> roundKeyMonomials;
+    vector<block> map;
+    vector<blockSetType> Vaudenay;
+    vector<roundKeyMap> equationSystem(213, 0);//Warning magical number
+    vector<int> alpha_u;
     //Pre-generating variables Functions
     //generateMonomials(monomials);
     setVectorSpace(base);
@@ -1555,39 +1704,31 @@ int main(void) {
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
-    //initInputs(a0, freeCoefPath);
+    initInputs(a0, freeCoefPath);
     initInputs(monomials, monomialsPath);
-    //initInputs(peeledOffCiphertexts, peelOffCipherPath);
-    //initInputs(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
+    initInputs(peeledOffCiphertexts, peelOffCipherPath);
+    initInputs(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
     //initInputs(relationMapTarget, relationRepresentationTargetPath);
     initInputsLinearMatrices(linearMatrices, linMatPath);
     initInputsKeyMatrices(keyMatrices, keyMatPath);
     initInputs(roundConstants, roundConstPath);
     initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
     //Test
-    generateRoundKey(roundKeyRepresentation);
-    for(int i=0; i < roundKeyRepresentation.size(); ++i){
-        cout << "Key " << i << ": " << endl;
-        for(auto element: roundKeyRepresentation[i]){
-            cout << element << " " << endl;
-        }
-    }
-    roundKeyMapping(roundKeyRepresentation,resultRoundKey, invLinearMatrices);
-    for(int i=0; i < roundKeyRepresentation.size(); ++i){
-        cout << "Key " << i << ": " << endl;
-        for(auto element: roundKeyRepresentation[i]){
-            cout << element << " " << endl;
-        }
-    }
-    mergeRoundKeys(resultRoundKey);
+    
+    
+    //setVaudenayEquation(monomials, resultRoundKey, Vaudenay);
+    
+    /*for (int i = 0; i < map.size(); ++i){
+        cout << map[i] << endl;
+    }*/
+    //cout << alpha_u.size() << endl;
+    
+    
+    /*
     cout << "The size is: " << resultRoundKey.size() << endl;
     for(auto element: resultRoundKey){
         cout << element << endl;
-    }
-    
-
-    
-
+    }*/
     //Post-generating elements functions
     //generateInvMatrices(linearMatrices, invLinearMatrices);
     //peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
@@ -1596,15 +1737,31 @@ int main(void) {
     //generateMatrixA(monomials, ciphertexts, matrixA);
     //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
     //relationMapping(relationMap, invLinearMatrices, keyMatrices, roundConstants);
-
+    generateMapping(map);
+    generateRoundKey(roundKeyRepresentation);
+    /*for(int i=0; i < roundKeyRepresentation.size(); ++i){
+        cout << "Key " << i << ": " << endl;
+        for(auto element: roundKeyRepresentation[i]){
+            cout << element << " " << endl;
+        }
+    }*/
+    roundKeyMapping(roundKeyRepresentation,resultRoundKey, invLinearMatrices);
+    /*for(int i=0; i < roundKeyRepresentation.size(); ++i){
+        cout << "Key " << i << ": " << endl;
+        for(auto element: roundKeyRepresentation[i]){
+            cout << element << " " << endl;
+        }
+    }*/
 
     
     //Operational functions
     //extractMonomialsKeys(relationMap[targetBit], monomials, keysMonomials);
     //setUpLinearEquationKeyAlphas(keysMonomials);
+    //extractMonomialsRoundKeys(resultRoundKey, monomials, roundKeyMonomials);
+    //generateRoundKeyEquation(equationSystem, roundKeyMonomials, map);
     
     //Printing Functions
-    printANF("reverse");
+    //printANF("reverse");
     //printVectorVectorsBlock(linearMatrices);
     //printVectorVectorsKeyBlock(keyMatrices);
     //printVectorVectorsBlock(invLinearMatrices);
@@ -1628,6 +1785,7 @@ int main(void) {
     //writePython(matrixE, a0);
     //writeRelationMap(relationMap);
     //writeRelationMapTarget(relationMap[targetBit]);
+    //writeRoundKeyEquationSystem(equationSystem,alpha_u);
 
 
     
