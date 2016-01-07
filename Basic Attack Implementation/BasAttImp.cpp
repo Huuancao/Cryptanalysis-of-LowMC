@@ -27,7 +27,7 @@ const unsigned relationLength = 27;
 const unsigned identitysize = blocksize - 3*numofboxes;
 const unsigned targetBit = 9;
 const unsigned roundKeyRepresentationSize = 42;
-const unsigned mappingSize= 253;
+const unsigned mappingSize= 231;
 const std::vector<unsigned> Sbox = {0x00, 0x01, 0x03, 0x06, 0x07, 0x04, 0x05, 0x02}; // Sboxes
 const std::vector<unsigned> invSbox = {0x00, 0x01, 0x07, 0x02, 0x05, 0x06, 0x03, 0x04}; // Invers Sboxes
 
@@ -340,9 +340,15 @@ choose(unsigned long long n, unsigned long long k){
     }
     return r;
 }
-/*
-Compute Rank of a Matrix.
-*/
+/**
+ * <Invert a matrix>
+ *
+ * <Longer description>
+ * <May span multiple lines or paragraphs as needed>
+ *
+ * @param  std::vector<block> matrix
+ * @return The iverse of matrix
+ */
 unsigned rank_of_Matrix (const std::vector<block> matrix) {
     std::vector<block> mat; //Copy of the matrix 
     for (auto u : matrix) {
@@ -373,9 +379,18 @@ unsigned rank_of_Matrix (const std::vector<block> matrix) {
     }
     return row;
 }
-/*
-Compute preprocessed free coefs.
-*/
+/**
+ * Compute the free-coefficients
+ *
+ * 
+ *
+ * @param  vector<freeCoef>& a0 
+ * @param  peeledOffPartialCiphertexts: vector containing all partial encryption after 3 rounds
+ * @param  plaintexts: vector containing all generated plaintext
+ * @param  base: vector containing the basis of the big subspace S
+ * @param  subspace: vector allowing the construction of all subspaces 
+ * @return 
+ */
 void preprocessingFreeCoef(vector<freeCoef>& a0, const vector<block>& peeledOffPartialCiphertexts, 
                         const vector<block>& plaintexts,
                         const std::vector<block>& base, const vector<vecspace>& subspaces){
@@ -397,9 +412,16 @@ void preprocessingFreeCoef(vector<freeCoef>& a0, const vector<block>& peeledOffP
         }
     }
 }
-/*
-Generate next lexicographically permutation.
-*/
+/**
+ * Generate next lexicographically permutation.
+ *
+ * @param  vector<freeCoef>& a0 
+ * @param  peeledOffPartialCiphertexts: vector containing all partial encryption after 3 rounds
+ * @param  plaintexts: vector containing all generated plaintext
+ * @param  base: vector containing the basis of the big subspace S
+ * @param  subspace: vector allowing the construction of all subspaces 
+ * @return next lexicographically permutation
+ */
 unsigned int nextPermut(unsigned int currentPermut){
     unsigned int v(currentPermut); // current permutation of bits 
     unsigned int w; // next permutation of bits
@@ -413,9 +435,12 @@ unsigned int nextPermut(unsigned int currentPermut){
     //cout << "current: " << v1 << " next: " << v2 << endl;
     return w;
 }
-/*
-Generate C(12,8) subspaces.
-*/
+/**
+ * Generate C(12,8) subspaces.
+ *
+ * @param  subspace: vector allowing the construction of all subspaces 
+ * @return Generated C(12,8) subspaces.
+ */
 void setSubspaces(vector<vecspace>& subspaces){
     unsigned int current(firstpermut);
     do {
@@ -423,9 +448,12 @@ void setSubspaces(vector<vecspace>& subspaces){
             current = nextPermut(current);
     }while(current <= maxpermut);
 }
-/*
-Generate vector space 12x16.
-*/
+/**
+ * Generate vector space 12x21.
+ *
+ * @param  subspace: vector allowing the construction of all subspaces 
+ * @return subspace filled with basis a vector space 12x21..
+ */
 void setVectorSpace(vector<block>& base){
     block tempVector(0);
     tempVector[0]=1;
@@ -434,9 +462,11 @@ void setVectorSpace(vector<block>& base){
         tempVector = tempVector << 1;
     }
 }
-/*
-Print vector of vectors
-*/
+/**
+ * Print vector of vector
+ *
+ * @param  vector: element to print  
+ */
 void printVectorVectors(vector<vector<double>>& vector){
     for(int i=0; i< vector.size(); ++i){
         cout << "Entry n" <<i << ": ";
@@ -446,59 +476,73 @@ void printVectorVectors(vector<vector<double>>& vector){
         cout << endl;
     }
 }
-/*
-Print Bitset freeCoef.
-*/
+/**
+ * Print Bitset freeCoef.
+ *
+ * @param  vector: element to print  
+ */
 void printFreeCoef(freeCoef& vector){
     for(int i=0; i<vector.size();++i){
         cout<<vector[i];
     }
     cout << endl;
 }
-/*
-Print vector of integers.
-*/
+/**
+ * Print vector of integers.
+ *
+ * @param  vector: element to print  
+ */
 void printVector(vector<double>& vector){
     for(int i=0; i<vector.size();++i){
         cout<<vector[i];
     }
     cout << endl;
 }
-/*
-Print vector of sequences of blocks.
-*/
+/**
+ * Print vector of sequences of blocks.
+ *
+ * @param  sequences: element to print  
+ */
 void printSequencesBlocks(const vector<block>& sequences){
     for(int i=0; i< sequences.size(); ++i){
         cout << "Entry n" <<i << ": " << sequences[i] << endl;
     }
 }
-/*
-Print set of blocks.
-*/
+/**
+ * Print set of blocks.
+ *
+ * @param  blockSet: element to print  
+ */
 void printSequencesBlocks(const blockSetType& blockSet){
     for(blockSetType::iterator i=blockSet.begin(); i!=blockSet.end();++i){
         cout << "Entry n" << distance(blockSet.begin(),i) << ": " << *i << endl;
     }
 }
-/*
-Print vector of sequences of vecspaces.
-*/
+/**
+ * Print vector of sequences of vecspaces.
+ *
+ * @param  sequences: element to print  
+ */
 void printSequencesVecspaces(const std::vector<vecspace>& sequences){
     for(int i=0; i< sequences.size(); ++i){
         cout << "Entry n" <<i << ": " << sequences[i] << endl;
     }
 }
-/*
-Print vector of sequences of vecspaces.
-*/
+/**
+ * Print vector of bitset.
+ *
+ * @param  sequences: element to print  
+ */
 void printSequencesMonoMatrices(const std::vector<monomatrix>& sequences){
     for(int i=0; i< sequences.size(); ++i){
         cout << "Entry n" <<i << ": " << sequences[i] << endl;
     }
 }
-/*
-Print vector of vectors
-*/
+/**
+ * Print vector of vectors of bitset
+ *
+ * @param  vector: element to print  
+ */
 void printVectorVectorsBlock(vector<vector<block>>& vector){
     for(int i=0; i< vector.size(); ++i){
         cout << "Entry n" <<i << ": "<<endl;
@@ -508,6 +552,11 @@ void printVectorVectorsBlock(vector<vector<block>>& vector){
         cout << endl;
     }
 }
+/**
+ * Print vector of vectors of bitset
+ *
+ * @param  vector: element to print  
+ */
 void printVectorVectorsKeyBlock(vector<vector<keyblock>>& vector){
     for(int i=0; i< vector.size(); ++i){
         cout << "Entry n" <<i << ": " << endl;
@@ -517,9 +566,12 @@ void printVectorVectorsKeyBlock(vector<vector<keyblock>>& vector){
         cout << endl;
     }
 }
-/*
-Read file and set inputs in vector of vector of blocks vector<vector<block> linearMatrices.
-*/
+/**
+ * Read file and set inputs in vector of vector of blocks
+ *
+ * @param  linearMatrices: element in which the file readed is stored
+ * @param  filePath: path to the file to read
+ */
 void initInputsLinearMatrices(vector<vector<block>>& linearMatrices, string filePath){
     ifstream myFile(filePath.c_str());
 
@@ -547,9 +599,12 @@ void initInputsLinearMatrices(vector<vector<block>>& linearMatrices, string file
     }
     myFile.close();
 }
-/*
-Read file and set inputs in vector of vector of blocks vector<vector<block> linearMatrices.
-*/
+/**
+ * Read file and set inputs in vector of vector of keyblocks
+ *
+ * @param  keyMatrices: element in which the file readed is stored
+ * @param  filePath: path to the file to read
+ */
 void initInputsKeyMatrices(vector<vector<keyblock>>& keyMatrices, string filePath){
     ifstream myFile(filePath.c_str());
     if(myFile){
@@ -576,9 +631,12 @@ void initInputsKeyMatrices(vector<vector<keyblock>>& keyMatrices, string filePat
     }
     myFile.close();
 }
-/*
-Read file and set inputs in vector of blocks.
-*/
+/**
+ * Read file and set inputs in vector of blocks
+ *
+ * @param  textfile: element in which the file readed is stored
+ * @param  filePath: path to the file to read
+ */
 void initInputs(vector<block>& textfile, string filePath){
     ifstream myFile(filePath.c_str());
     if(myFile){
@@ -594,9 +652,12 @@ void initInputs(vector<block>& textfile, string filePath){
     }
     myFile.close();
 }
-/*
-Read file and set inputs in vector of blocks.
-*/
+/**
+ * Read file and set inputs in vector of bitset freeCoef
+ *
+ * @param  inputs: element in which the file readed is stored
+ * @param  filePath: path to the file to read
+ */
 void initInputs(vector<freeCoef>& inputs, string filePath){
     ifstream myFile(filePath.c_str());
     if(myFile){
@@ -614,9 +675,12 @@ void initInputs(vector<freeCoef>& inputs, string filePath){
     }
     myFile.close();
 }
-/*
-Read file and set inputs in set of blocks.
-*/
+/**
+ * Read file and set inputs in set of bitset block
+ *
+ * @param  monomials: element in which the file readed is stored
+ * @param  filePath: path to the file to read
+ */
 void initInputs(blockSetType& monomials, string filePath){
     ifstream myFile(filePath.c_str());
     if(myFile){
@@ -632,9 +696,12 @@ void initInputs(blockSetType& monomials, string filePath){
     }
     myFile.close();
 }
-/*
-Read file and set inputs in vector of blocks.
-*/
+/**
+ * Read file and set inputs in set of bitset relationRepresentation
+ *
+ * @param  textfile: element in which the file readed is stored
+ * @param  filePath: path to the file to read
+ */
 void initInputs(relationSetType& textfile, string filePath){
     ifstream myFile(filePath.c_str());
     if(myFile){
@@ -650,9 +717,11 @@ void initInputs(relationSetType& textfile, string filePath){
     }
     myFile.close();
 }
-/*
-Write Relations map.
-*/
+/**
+ * Write Relationsmapping in file
+ *
+ * @param  relationMap: element to write
+ */
 void writeRelationMap(vector<relationSetType>& relationMap){
     ofstream myFile;
     remove(relationRepresentationPath.c_str());
@@ -667,9 +736,11 @@ void writeRelationMap(vector<relationSetType>& relationMap){
     }
     myFile.close();
 }
-/*
-Write Relations map on target bit.
-*/
+/**
+ * Write the relations mapping of the target bit in file
+ *
+ * @param  relationMap: element to write
+ */
 void writeRelationMapTarget(relationSetType& relationMap){
     ofstream myFile;
     remove(relationRepresentationTargetPath.c_str());
@@ -680,9 +751,11 @@ void writeRelationMapTarget(relationSetType& relationMap){
     }
     myFile.close();
 }
-/*
-Write preprocessed free coefs in file.
-*/
+/**
+ * Write preprocessed free coefs in file.
+ *
+ * @param  a0: element to write
+ */
 void writeFreeCoef(const vector<freeCoef>& a0){
     ofstream myFile;
     remove(freeCoefPath.c_str());
@@ -695,8 +768,12 @@ void writeFreeCoef(const vector<freeCoef>& a0){
     }
     myFile.close();
 }
-/*
-Write Inputs for Sage.
+
+/**
+ * Write matrices in term of Sage.
+ *
+ * @param  matrixE: element to write
+ * @param  a0: element to write
 */
 void writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
     ofstream myFile;
@@ -742,65 +819,97 @@ void writePython(vector<monomatrix>& matrixE, vector<freeCoef>& a0){
     myFile << "]";
     myFile.close();
 }
-void writeRoundKeyEquationSystem(vector<roundKeyMap>& equationSystem, vector<int> alpha_u){
+/**
+ * Write the round key polynomials for Sage.
+ *
+ * @param  equationSystem: element to write
+*/
+void writeRoundKeyEquationSystem(vector<roundKeyMap>& equationSystem){
     ofstream myFile;
     myFile.open(RoundKeyEquationSystemPath.c_str());
     myFile << "[";
     for(int i=0; i< equationSystem.size(); ++i){
+        myFile << "[";
         for(int j=0; j< equationSystem[0].size(); ++j){
-            if (j==equationSystem[0].size()-1 && i!= equationSystem.size()-1){
-                    myFile << equationSystem[i][j] << ";";
+            if (j==equationSystem[0].size()-1){
+                    myFile << equationSystem[i][j];
             }else{
                  myFile << equationSystem[i][j]<< " ";
             }
+        }
+        if(i != equationSystem.size()-1) 
+            {
+                myFile << "],";
+        }else{
+            myFile << "]";
         }
     }
     myFile << "]";
     myFile.close();
 
-    myFile.open(alpha_uPath.c_str());
-    myFile << "[";
-    for (int i = 0; i < alpha_u.size(); ++i){
-        if(i != alpha_u.size()-1){
-            myFile << alpha_u[i] << "; ";
-    }else{
-        myFile << alpha_u[i];
-    }
-   }
-    myFile << "]";
-    myFile.close();
 }
-/*
-Functions to multiply bitsets.
+/**
+ * Multiplication bitsets block.
+ *
+ * @param  x: element to multiply
+ * @param  y: element to multiply
+ * @param  result: result of the multiplication
 */
 void bitsetMultiply(block& result, const block& x, const block& y){
     result = x|y;
 }
-/*
-Functions to multiply bitsets.
+/**
+ * Multiplication bitsets relationRepresentation.
+ *
+ * @param  x: element to multiply
+ * @param  y: element to multiply
+ * @param  result: result of the multiplication
 */
 void relationRepresentationMultiply(relationRepresentation& result, 
                                     const relationRepresentation& x, 
                                     const relationRepresentation& y){
     result = x|y;
 }
+/**
+ * Multiplication bitsets roundKeyRepresentation.
+ *
+ * @param  x: element to multiply
+ * @param  y: element to multiply
+ * @param  result: result of the multiplication
+*/
 void roundKeyMultiply(roundKeyRepresentation& result, 
                                     const roundKeyRepresentation& x, 
                                     const roundKeyRepresentation& y){
     result = x|y;
 }
+/**
+ * Xor bitsets relationRepresentation.
+ *
+ * @param  x: element to multiply
+ * @param  y: element to multiply
+ * @param  result: result of the multiplication
+*/
 void relationRepresentationXoring(relationRepresentation& result, 
                                     const relationRepresentation& x, 
                                     const relationRepresentation& y){
     result = x^y;
 }
+/**
+ * Addition bitsets relationRepresentation.
+ *
+ * @param  x: element to multiply
+ * @param  y: element to multiply
+ * @param  result: result of the multiplication
+*/
 void relationRepresentationAdd(relationRepresentation& result, 
                                     const relationRepresentation& x, 
                                     const relationRepresentation& y){
     result = x&y;
 }
-/*
-Generate monomials.
+/**
+ * Generate monomials of the set U. 
+ *
+ * @param  monomials: empty set in wich all monomials will be stored
 */
 void generateMonomials(blockSetType& monomials){
     //u1 generation
@@ -833,9 +942,12 @@ void generateMonomials(blockSetType& monomials){
         monomials.insert(element);
     }
 }
-/*
-Write blocks in file.
-*/
+/**
+ * Write vector of bitset block in a file.
+ *
+ * @param  vectorBlocks: element to write
+ * @param  fileName: path to the file
+ */
 void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName){
     ofstream myFile;
     //myFile.open("ciphertexts.txt");
@@ -845,10 +957,12 @@ void writeVectorsBlocks(const vector<block>& vectorBlocks, const string fileName
     }
     myFile.close();
 }
-
-/*
-Write blocks in file.
-*/
+/**
+ * Write set of bitset block in a file.
+ *
+ * @param  blockSet: element to write
+ * @param  fileName: path to the file
+ */
 void writeBlockSet(const blockSetType& blockSet, const string fileName){
     ofstream myFile;
     //myFile.open("ciphertexts.txt");
@@ -858,9 +972,12 @@ void writeBlockSet(const blockSetType& blockSet, const string fileName){
     }
     myFile.close();
 }
-/*
-Write Matrices in file.
-*/
+/**
+ * Write Matrices in file.
+ *
+ * @param  blockSet: element to write
+ * @param  fileName: path to the file
+ */
 void writeMatrices(std::vector<std::vector<block>> matrix, std::string fileName){
     std::ofstream myFile;
     remove(fileName.c_str());
@@ -873,10 +990,13 @@ void writeMatrices(std::vector<std::vector<block>> matrix, std::string fileName)
     }
     myFile.close();
 }
-
-/*
-Generate Matrix A, Prod c_i^u_i.
-*/
+/**
+ * Generate Matrix A, Prod c_i^u_i.
+ *
+ * @param  monomials: set containing all monomials
+ * @param  peeledOffCiphertexts: vector containing all peeledOffCiphertexts
+ * @param  matrixA: the output generated matrix A
+ */
 void generateMatrixA(blockSetType& monomials, vector<block>& peeledOffCiphertexts, vector<monomatrix>& matrixA){
     for (int i = 0; i < peeledOffCiphertexts.size(); ++i){
         for (blockSetType::iterator j = monomials.begin(); j != monomials.end(); ++j){
@@ -1166,7 +1286,7 @@ void linearLayerMixing(vector<roundKeySetType>& relationMap,
 }
 
 /*
-Adding key function.
+Adding key function .
 */
 void keyRoundAdd(vector<relationSetType>& relationMap, const vector<keyblock>& keyMatrix){
     vector<relationSetType> tempRelation;
@@ -1185,6 +1305,9 @@ void keyRoundAdd(vector<relationSetType>& relationMap, const vector<keyblock>& k
         relationMap.push_back(tempRelation[k]);
     }
 }
+/*
+Adding key function .
+*/
 void keyRoundAdd(vector<roundKeySetType>& relationMap){
     vector<roundKeySetType> tempRelation;
     for(int i=0; i< blocksize; ++i){
@@ -1414,7 +1537,7 @@ void roundKeyMapping(vector<roundKeySetType>& keyRoundMap,
     }
 }
 /*
-Generate the monomials for roundKey
+Generate the monomials for roundKeySetype
 */
 void generateRoundKey(vector<roundKeySetType>& roundKey){
     roundKeyRepresentation tempRelation(1);
@@ -1505,6 +1628,7 @@ roundKeySetType hammingWeithSort(roundKeySetType& resultRoundKey, int weight){
     }
     return sortedSet;
 }
+
 void sortRoundKeys(roundKeySetType& relationMapBit, vector<blockSetType> keyByMono){
     blockSetType tempKeyBlock;
     for (int i = 0; i < nummonomials; ++i){
@@ -1542,6 +1666,9 @@ void sortRoundKeys(roundKeySetType& relationMapBit, vector<blockSetType> keyByMo
     relationMapBit.clear();
     insertRemastered(relationMapBit, relationMapMonoKeys);
 }
+/*
+Extract round Key information according to monomials precomputed.
+*/
 void extractMonomialsRoundKeys(const roundKeySetType& relationMapTarget,
                             const blockSetType& monomials,
                             vector<blockSetType>& keysMonomials){
@@ -1574,6 +1701,7 @@ void extractMonomialsRoundKeys(const roundKeySetType& relationMapTarget,
         keysMonomials.push_back(tempKeyBlockSet);
     }
 }
+
 int findIndex(blockSetType& monomials, block toSearch){
     int counter(0);
     for(auto element: monomials){
@@ -1585,6 +1713,9 @@ int findIndex(blockSetType& monomials, block toSearch){
     }
     return counter;
 }
+/*
+to DElETE
+*/
 void setVaudenayEquation(blockSetType& monomials, roundKeySetType& roundKeyMap, vector<blockSetType>& Vaudenay ){
     blockSetType temp;
     for (int i = 0; i < monomials.size(); ++i){
@@ -1607,13 +1738,6 @@ void setVaudenayEquation(blockSetType& monomials, roundKeySetType& roundKeyMap, 
         }
     }
 
-}
-void findAlpha_u(vector<blockSetType>& roundKeyMonomials, vector<int>& alpha_u, freeCoef& a0){
-    for (int i = 0; i < roundKeyMonomials.size(); ++i){
-        if(!roundKeyMonomials[i].empty()){
-            alpha_u.push_back(a0[i]);
-        }
-    }
 }
 /*
 Generate the mapping 
@@ -1640,21 +1764,76 @@ Generate the equation system with for the round key Mapping
 void generateRoundKeyEquation(vector<roundKeyMap>& equationSystem, const vector<blockSetType>& roundKeyMonomials, const vector<block>& map){
     vector<blockSetType> tempRoundKeysMono;
     for (int i = 0; i < roundKeyMonomials.size(); ++i){
-        if(!roundKeyMonomials[i].empty()){
-            tempRoundKeysMono.push_back(roundKeyMonomials[i]);
-        }
+        tempRoundKeysMono.push_back(roundKeyMonomials[i]);
+        
     }
     for (int i = 0; i < tempRoundKeysMono.size(); ++i){
         for(auto element : tempRoundKeysMono[i]){
             block temp(element.to_ullong());
             for (int j = 0; j < map.size(); ++j){
                 if(temp==map[j]){
+                    cout << "i: " << i  << "j: " << j << endl;
                     equationSystem[i].set(j);
                     break;
                 }
             }
         }
     }
+}
+void testOurRoundKey(const vector<roundKeyMap>& equationSystem, const vector<block>& map, block& roundKey){
+    vector<int> temp;
+    vector<block> t;
+    vector<int> index;
+    for (int i = 0; i < blocksize; ++i){
+        if (roundKey[i]){
+            temp.push_back(i);
+        }
+    }
+    for (int i = 0; i < temp.size(); ++i){
+        cout << "K" << i << endl;
+    }
+    for (int i = 0; i < temp.size(); ++i){
+        block add(pow(2,temp[i]));
+        t.push_back(add);
+    }
+    for (int i = 0; i < temp.size(); ++i){
+        for (int j = 0; j < temp.size(); ++j){
+            if (i<j){
+             block add(pow(2,temp[i])+pow(2,temp[j]));
+             t.push_back(add);
+            }
+        }
+    }
+    for (int i = 0; i < t.size(); ++i){
+        for (int j = 0; j < map.size(); ++j){
+            if(t[i]==map[j]){
+                index.push_back(j);
+                break;
+            }
+        }
+    }
+    cout << t.size() << endl;
+    cout << index.size() << endl;
+    for (int i = 0; i < index.size(); ++i){
+        cout << index[i] << endl;
+    }
+    vector <int> alpha_u; 
+    for (int i = 0; i < equationSystem.size(); ++i){
+        int sum(0);
+        for (int j = 0; j < index.size(); ++j){
+            sum= (sum+equationSystem[i][index[j]])%2;
+            
+        }
+        alpha_u.push_back(sum);
+        cout << i << ": " << sum << endl;
+    }
+    int counter(0);
+    for (int i = 0; i < alpha_u.size(); ++i){
+        if (alpha_u[i]==1){
+            counter++;
+        }
+    }
+    cout << counter << endl;
 }
 //////////////////
 //     MAIN     //
@@ -1693,8 +1872,9 @@ int main(void) {
     vector<blockSetType> roundKeyMonomials;
     vector<block> map;
     vector<blockSetType> Vaudenay;
-    vector<roundKeyMap> equationSystem(213, 0);//Warning magical number
+    vector<roundKeyMap> equationSystem(nummonomials, 0);//Warning magical number
     vector<int> alpha_u;
+    //block roundKey(1539553);//101110111110111100001
     //Pre-generating variables Functions
     //generateMonomials(monomials);
     setVectorSpace(base);
@@ -1708,7 +1888,7 @@ int main(void) {
     initInputs(monomials, monomialsPath);
     initInputs(peeledOffCiphertexts, peelOffCipherPath);
     initInputs(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
-    //initInputs(relationMapTarget, relationRepresentationTargetPath);
+    initInputs(relationMapTarget, relationRepresentationTargetPath);
     initInputsLinearMatrices(linearMatrices, linMatPath);
     initInputsKeyMatrices(keyMatrices, keyMatPath);
     initInputs(roundConstants, roundConstPath);
@@ -1759,7 +1939,8 @@ int main(void) {
     //setUpLinearEquationKeyAlphas(keysMonomials);
     extractMonomialsRoundKeys(resultRoundKey, monomials, roundKeyMonomials);
     generateRoundKeyEquation(equationSystem, roundKeyMonomials, map);
-    
+    //cout << equationSystem[0][4] << "YEEEEEESSSS" <<endl ;
+
     //Printing Functions
     //printANF("reverse");
     //printVectorVectorsBlock(linearMatrices);
@@ -1785,10 +1966,10 @@ int main(void) {
     //writePython(matrixE, a0);
     //writeRelationMap(relationMap);
     //writeRelationMapTarget(relationMap[targetBit]);
-    //writeRoundKeyEquationSystem(equationSystem,alpha_u);
+    writeRoundKeyEquationSystem(equationSystem);
 
 
-    
+    //testOurRoundKey(equationSystem,map,roundKey);
 
     //Testing functions
     /*for(int i=0; i < keysMonomials.size(); ++i){
