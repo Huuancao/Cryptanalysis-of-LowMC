@@ -1098,7 +1098,7 @@ vector<vector<unsigned>> sboxToANF(vector<unsigned> Box){
 /*
  * Print ANF
  * 
- * @param mode: string to either print in right or inverse order
+ * @param mode: string to indicate order of the Sbox (normal or reverse)
 */
 void printANF(string mode){
     vector<unsigned> Box;
@@ -1276,7 +1276,7 @@ void setInsertRoundKey(roundKeySetType& set, roundKeySetType& toAdd){
 /*
  * Linear layer function
  * 
- * @param relationmap: vector relationSetType storing the result of the linear mixing function
+ * @param relationMap: vector of relationSetType storing the result of the linear mixing function
  * @param invLinearMatrix: vector of blocks representing the inverse linear matrix of the linear layer
 */
 void linearLayerMixing(vector<relationSetType>& relationMap,
@@ -1308,6 +1308,12 @@ void linearLayerMixing(vector<relationSetType>& relationMap,
         relationMap.push_back(tempRelationMap[k]);
     }
 }
+/*
+ * Linear layer function
+ * 
+ * @param relationMap: vector of roundKeySetType storing the result of the linear mixing function
+ * @param invLinearMatrix: vector of blocks representing the inverse linear matrix of the linear layer
+*/
 void linearLayerMixing(vector<roundKeySetType>& relationMap,
                       const vector<block>& invLinearMatrices){
     vector<roundKeySetType> tempRelationMap;
@@ -1339,7 +1345,10 @@ void linearLayerMixing(vector<roundKeySetType>& relationMap,
 }
 
 /*
-Adding key function .
+ * Adding key function
+ * 
+ * @param relationMap: vector of relationSetType storing the result of the linear mixing function
+ * @param keyMatrix: vector of keyblocks representing the sub key rounds to add to the elements of relationMap
 */
 void keyRoundAdd(vector<relationSetType>& relationMap, const vector<keyblock>& keyMatrix){
     vector<relationSetType> tempRelation;
@@ -1359,7 +1368,9 @@ void keyRoundAdd(vector<relationSetType>& relationMap, const vector<keyblock>& k
     }
 }
 /*
-Adding key function .
+ * Adding key function
+ * 
+ * @param relationMap: vector of roundKeySetType storing the result of the linear mixing function
 */
 void keyRoundAdd(vector<roundKeySetType>& relationMap){
     vector<roundKeySetType> tempRelation;
@@ -1380,7 +1391,11 @@ void keyRoundAdd(vector<roundKeySetType>& relationMap){
     }
 }
 /*
-Init iniput first round & key whitening.
+ * Init inputs of first round & key whitening 
+ * 
+ * @param relationMap: vector of relationSetType storing the result of the linear mixing function
+ * @param keyMatrices: vector of vectors of keyblocks representing all the key matrices
+ * @param mode: string to indicate direction of the function (normal or reverse)
 */
 void initRelationWhitening(vector<relationSetType>& relationMap,
                         const vector<vector<keyblock>>& keyMatrices,
@@ -1398,24 +1413,34 @@ void initRelationWhitening(vector<relationSetType>& relationMap,
     if(mode == ""){
         keyRoundAdd(relationMap, keyMatrices[0]);
     }
-}/*
-void insertRemastered(vector<relationRepresentation>& InsertionResult, vector<relationRepresentation>& toInsert){
-    for (int i = 0; i < toInsert.size(); ++i){
-        InsertionResult.push_back(toInsert[i]);
-    }
-}*/
+}
+/*
+ * Insert all element of a set in another set
+ * 
+ * @param InsertionResult: result set of type relationSetType of insertions
+ * @param toInsert: set of elements to insert
+*/
 void insertRemastered(relationSetType& InsertionResult, const relationSetType& toInsert){
     for (auto element : toInsert){
         setInsert(InsertionResult, element);
     }
 }
+/*
+ * Insert all element of a set in another set
+ * 
+ * @param InsertionResult: result set of type roundKeySetType of insertions
+ * @param toInsert: set of elements to insert
+*/
 void insertRemastered(roundKeySetType& InsertionResult, const roundKeySetType& toInsert){
     for (auto element : toInsert){
         setInsert(InsertionResult, element);
     }
 }
 /*
-SBoxes function for a vector of bitset of size relationLength 
+ * Generate all relations going through the Sboxes
+ * 
+ * @param relationMap: vector of relationSetType storing the result of the linear mixing function
+ * @param mode: string to indicate direction of the function (normal or reverse)
 */
 void SBoxRelation(vector<relationSetType>& relationMap, string mode){
     vector<relationSetType> tempRelationMap;
@@ -1461,7 +1486,10 @@ void SBoxRelation(vector<relationSetType>& relationMap, string mode){
     }
 }
 /*
-SBoxes function for a vector of bitset of size relationLength 
+ * Generate all relations going through the Sboxes
+ * 
+ * @param relationMap: vector of roundKeySetType storing the result of the linear mixing function
+ * @param mode: string to indicate direction of the function (normal or reverse)
 */
 void SBoxRelation(vector<roundKeySetType>& relationMap, string mode){
     vector<roundKeySetType> tempRelationMap;
@@ -1507,7 +1535,13 @@ void SBoxRelation(vector<roundKeySetType>& relationMap, string mode){
     }
 }
 /*
-Relation mapping creation.
+ * Relation mapping creation
+ * 
+ * @param relationMap: vector of roundKeySetType storing the result of the linear mixing function 
+ * @param invLinearMatrix: vector of blocks representing the inverse linear matrix of the linear layer
+ * @param keyMatrices: vector of vectors of keyblocks representing all the key matrices
+ * @param roundConstant: constant to add in the linear layer
+
 */
 void relationMapping(vector<relationSetType>& relationMap,
                     const vector<vector<block>>& invLinearMatrices,
@@ -1605,7 +1639,11 @@ void generateRoundKey(vector<roundKeySetType>& roundKey){
 }
 
 /*
-Extract Key information according to monomials precomputed.
+ * Extract Key information according to monomials precomputed
+ *
+ * @param relationMapTarget: set containing all the relationRepresentation corresponding to the target bit b
+ * @param monomials: set of precomputed monomials
+ * @param keysMonomials: vector of keyBlockSetType storing all the key blocks correponding the to monomials contained in monomials set
 */
 void extractMonomialsKeys(const relationSetType& relationMapTarget,
                             const blockSetType& monomials,
@@ -1640,7 +1678,9 @@ void extractMonomialsKeys(const relationSetType& relationMapTarget,
     }
 }
 /*  
-Setup linear equation system Keys per monomial and alpha_u per monomial.
+ * Setup linear equation system Keys per monomial and alpha_u per monomial
+ *
+ * @param keysMonomials: vector of sets of key blocks correponding the the precomputed monomials
 */
 void setUpLinearEquationKeyAlphas(const vector<keyBlockSetType>& keysMonomials){
     ofstream myFile;
@@ -1720,7 +1760,10 @@ void sortRoundKeys(roundKeySetType& relationMapBit, vector<blockSetType> keyByMo
     insertRemastered(relationMapBit, relationMapMonoKeys);
 }
 /*
-Extract round Key information according to monomials precomputed.
+ * Extract round Key information according to monomials precomputed
+ *
+ * @param monomials: set of precomputed monomials
+ * @param keysMonomials: vector of keyBlockSetType storing all the key blocks correponding the to monomials contained in monomials set
 */
 void extractMonomialsRoundKeys(const roundKeySetType& relationMapTarget,
                             const blockSetType& monomials,
