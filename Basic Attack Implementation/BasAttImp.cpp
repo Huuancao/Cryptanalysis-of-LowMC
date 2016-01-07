@@ -1045,7 +1045,9 @@ void generateMatrixE(const vector<monomatrix>& A,const vector<block>& plaintexts
     }      
 }
 /*
-Generate all components of a given integer such that n&i == i
+ * Generate all components of a given integer such that n&i == i
+ *
+ * @param  n: counter
 */
 vector<unsigned> components(int n){
     vector<unsigned> list;
@@ -1057,7 +1059,10 @@ vector<unsigned> components(int n){
     return list;
 }
 /*
-Generate inverted matrices of linear matrices.
+ * Generate inverted matrices of linear matrices
+ *
+ * @param  linearMatrices: vector of vectors of blocks representing the linear matrix of the linear layer
+ * @param  invLinearMatrices: vector of vectors of blocks representing the inverse linear matrix of the linear layer
 */
 void generateInvMatrices(vector<vector<block>>& linearMatrices, vector<vector<block>>& invLinearMatrices){
     for(int i=0; i < linearMatrices.size(); ++i){
@@ -1065,7 +1070,9 @@ void generateInvMatrices(vector<vector<block>>& linearMatrices, vector<vector<bl
     }
 }
 /*
-Transform Sbox to ANF
+ * Transform Sbox to ANF
+ * 
+ * @param  Box: vector of unsigned integers representing the Sboxes
 */
 vector<vector<unsigned>> sboxToANF(vector<unsigned> Box){
     unsigned num = Box.size();
@@ -1089,7 +1096,9 @@ vector<vector<unsigned>> sboxToANF(vector<unsigned> Box){
     return ls;
 }
 /*
-Print ANF
+ * Print ANF
+ * 
+ * @param mode: string to either print in right or inverse order
 */
 void printANF(string mode){
     vector<unsigned> Box;
@@ -1135,7 +1144,9 @@ void printANF(string mode){
     }
 }
 /*
-Invert Matrix.
+ * Inverse matrices
+ * 
+ * @param matrix: vector of blocks representing a matrix
 */
 vector<block> invertMatrix(const vector<block>& matrix){
     std::vector<block> mat; //Copy of the matrix 
@@ -1186,7 +1197,10 @@ vector<block> invertMatrix(const vector<block>& matrix){
     return invmat;
 }
 /*
-Multiply with matrix in GF(2).
+ * Multiply with matrix in GF(2).
+ * 
+ * @param matrix: vector of blocks representing a matrix
+ * @param message: block multiplied with the matrix
 */
 block MultiplyWithGF2Matrix(const std::vector<block> matrix, const block message) {
     block temp = 0;
@@ -1196,7 +1210,12 @@ block MultiplyWithGF2Matrix(const std::vector<block> matrix, const block message
     return temp;
 }
 /*
-Peel off last layer by adding the last round constants and multiplying with inverse of last linear matrix.
+ * Peel off last layer by adding the last round constants and multiplying with inverse of last linear matrix
+ * 
+ * @param ciphertexts: vector of blocks containing the ciphertexts
+ * @param roundConstant: constant to add in the linear layer
+ * @param invLinearMatrix: vector of blocks representing the inverse linear matrix of the linear layer
+ * @param peeledOffCiphertexts: vector of blocks storing the result of the peel off operation
 */
 void peelingOffCiphertexts(const vector<block>& ciphertexts, const block& roundConstant, 
                         const vector<block>& invLinearMatrix, vector<block>& peeledOffCiphertexts){
@@ -1206,6 +1225,14 @@ void peelingOffCiphertexts(const vector<block>& ciphertexts, const block& roundC
         peeledOffCiphertexts.push_back(MultiplyWithGF2Matrix(invLinearMatrix, temp));
     }
 }
+
+/*
+ * Inserting function in sets that will test if the element to insert already is in the set
+ * If it is the case, the function will not insert it, and remove the element already in the set
+ *
+ * @param set: set of elements of type relationRepresentation
+ * @param element: element to insert
+*/
 void setInsert(relationSetType& set, relationRepresentation element){
     if(set.find(element)!=set.end()){
         set.erase(element);
@@ -1214,6 +1241,13 @@ void setInsert(relationSetType& set, relationRepresentation element){
         set.insert(element);
     }
 }
+/*
+ * Inserting function in sets that will test if the element to insert already is in the set
+ * If it is the case, the function will not insert it, and remove the element already in the set
+ *
+ * @param set: set of elements of type roundKeyRepresentation
+ * @param element: element to insert
+*/
 void setInsert(roundKeySetType& set, roundKeyRepresentation element){
     if(set.find(element)!=set.end()){
         set.erase(element);
@@ -1222,6 +1256,13 @@ void setInsert(roundKeySetType& set, roundKeyRepresentation element){
         set.insert(element);
     }
 }
+/*
+ * Inserting function in sets that will test if the element of another set to insert already is in the set
+ * If it is the case, the function will not insert it, and remove the element already in the set
+ *
+ * @param set: set of elements 
+ * @param toAdd: set of elements to insert in set
+*/
 void setInsertRoundKey(roundKeySetType& set, roundKeySetType& toAdd){
     for(auto element : toAdd){
         if(set.find(element)!=set.end()){
@@ -1233,7 +1274,10 @@ void setInsertRoundKey(roundKeySetType& set, roundKeySetType& toAdd){
     }
 }
 /*
-Linear layer function.
+ * Linear layer function
+ * 
+ * @param relationmap: vector relationSetType storing the result of the linear mixing function
+ * @param invLinearMatrix: vector of blocks representing the inverse linear matrix of the linear layer
 */
 void linearLayerMixing(vector<relationSetType>& relationMap,
                       const vector<block>& invLinearMatrices){
