@@ -1578,7 +1578,6 @@ void extractMonomialsKeys(const relationSetType& relationMapTarget,
             for(int i=0; i < keysize; ++i){
                 tempMonoKey.set(i);
             }
-            cout << tempMonoKey << endl;
             tempMonoKey&=*it1;
             keyblock tempKeyBlock(tempMonoKey.to_ullong());
             tempKeyBlockSet.insert(tempKeyBlock);
