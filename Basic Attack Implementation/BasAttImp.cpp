@@ -1014,8 +1014,17 @@ void generateMatrixA(blockSetType& monomials, vector<block>& peeledOffCiphertext
     }
 }
 /*
-Generate Matrix E by testing if ciphertext J belong to subspace i and then adding the corresponding jth row of A in the ith-row of E
+
 */
+/**
+ * Generate Matrix E by testing if ciphertext J belong to subspace i and then adding the corresponding jth row of A in the ith-row of E
+ *
+ * @param  A: matrix A
+ * @param  plaintexts: vector containing all plaintexts
+ * @param  ciphertexts: vector containing all ciphertexts
+ * @param  subspaces: vector containing all subspaces
+ * @param  base: vector containing the 12-dimension space
+ */
 void generateMatrixE(const vector<monomatrix>& A,const vector<block>& plaintexts,  const vector<block>& ciphertexts, 
                     const vector<vecspace>& subspaces,const std::vector<block>& base, 
                     vector<monomatrix>& E){
