@@ -380,9 +380,7 @@ unsigned rank_of_Matrix (const std::vector<block> matrix) {
     return row;
 }
 /**
- * Compute the free-coefficients
- *
- * 
+ * Compute the value with the key set to 0
  *
  * @param  vector<freeCoef>& a0 
  * @param  peeledOffPartialCiphertexts: vector containing all partial encryption after 3 rounds
@@ -1013,9 +1011,15 @@ void generateMatrixA(blockSetType& monomials, vector<block>& peeledOffCiphertext
         }
     }
 }
-/*
-Generate Matrix E by testing if ciphertext J belong to subspace i and then adding the corresponding jth row of A in the ith-row of E
-*/
+/**
+ * Generate Matrix E by testing if ciphertext J belong to subspace i 
+ * and then adding the corresponding jth row of A in the ith-row of E
+ *
+ * @param  A: The matrix A computed before
+ * @param  plaintexts: vector of bitset reprenting all plaintext
+ * @param  subspaces: vector of bitset representig the subspaces S_i
+ * @param  base: vector of bitsets representing the subspace S
+ */
 void generateMatrixE(const vector<monomatrix>& A,const vector<block>& plaintexts,  const vector<block>& ciphertexts, 
                     const vector<vecspace>& subspaces,const std::vector<block>& base, 
                     vector<monomatrix>& E){
@@ -1035,9 +1039,12 @@ void generateMatrixE(const vector<monomatrix>& A,const vector<block>& plaintexts
         }        
     }      
 }
-/*
-Generate all components of a given integer such that n&i == i
-*/
+/**
+ * Generate all components of a given integer such that n&i == i
+ *
+ * @param  n: 
+ * @return vector<unsigned>
+ */
 vector<unsigned> components(int n){
     vector<unsigned> list;
     for(int i=0; i < n+1; i++){
@@ -1047,17 +1054,23 @@ vector<unsigned> components(int n){
     }
     return list;
 }
-/*
-Generate inverted matrices of linear matrices.
-*/
+/**
+ * Generate inverted matrices of linear matrices
+ *
+ * @param  linearMatrices: 
+ * @param  invLinearMatrices
+ */
 void generateInvMatrices(vector<vector<block>>& linearMatrices, vector<vector<block>>& invLinearMatrices){
     for(int i=0; i < linearMatrices.size(); ++i){
         invLinearMatrices.push_back(invertMatrix(linearMatrices[i]));
     }
 }
-/*
-Transform Sbox to ANF
-*/
+/**
+ * Transform Sbox to ANF
+ *
+ * @param  Box: reprenting the SBox 
+ * @return vector<vector<unsigned>> the ANF of the SBox
+ */
 vector<vector<unsigned>> sboxToANF(vector<unsigned> Box){
     unsigned num = Box.size();
     unsigned dim = log2(num);
@@ -1079,9 +1092,11 @@ vector<vector<unsigned>> sboxToANF(vector<unsigned> Box){
     }
     return ls;
 }
-/*
-Print ANF
-*/
+/**
+ * Print the ANF
+ *
+ * @param  mode: ANF to print
+ */
 void printANF(string mode){
     vector<unsigned> Box;
     if(mode == "reverse"){
@@ -1125,9 +1140,12 @@ void printANF(string mode){
         cout << endl;
     }
 }
-/*
-Invert Matrix.
-*/
+/**
+ * Invert Matrix
+ *
+ * @param  matrix: matrix to inverted
+ * @return vector<block> matrix inverted
+ */
 vector<block> invertMatrix(const vector<block>& matrix){
     std::vector<block> mat; //Copy of the matrix 
     for (auto u : matrix) {
@@ -1176,9 +1194,12 @@ vector<block> invertMatrix(const vector<block>& matrix){
     }
     return invmat;
 }
-/*
-Multiply with matrix in GF(2).
-*/
+/**
+ * Multiply with matrix in GF(2).
+ *
+ * @param  matrix: matrix to inverted
+ * @return vector<block> matrix inverted
+ */
 block MultiplyWithGF2Matrix(const std::vector<block> matrix, const block message) {
     block temp = 0;
     for (unsigned i = 0; i < blocksize; ++i) {
@@ -1186,9 +1207,15 @@ block MultiplyWithGF2Matrix(const std::vector<block> matrix, const block message
     }
     return temp;
 }
-/*
-Peel off last layer by adding the last round constants and multiplying with inverse of last linear matrix.
-*/
+/**
+ * Peel off last layer by adding the last round constants and 
+ * multiplying with inverse of last linear matrix.
+ *
+ * @param  ciphertexts: vector of bitsets representing the ciphertexts
+ * @param  roundConstant: the round constant
+ * @param  invLinearMatrix: vector storing all inverted linear Matrix
+ * @param  peeledOffCiphertexts: vector storing all generated peel off 
+ */
 void peelingOffCiphertexts(const vector<block>& ciphertexts, const block& roundConstant, 
                         const vector<block>& invLinearMatrix, vector<block>& peeledOffCiphertexts){
     for(int i=0; i< ciphertexts.size(); ++i){
@@ -1197,6 +1224,12 @@ void peelingOffCiphertexts(const vector<block>& ciphertexts, const block& roundC
         peeledOffCiphertexts.push_back(MultiplyWithGF2Matrix(invLinearMatrix, temp));
     }
 }
+/**
+ * Insert element in a set if the element is not already in the set
+ *
+ * @param  set:
+ * @param  element: element to insert
+ */
 void setInsert(relationSetType& set, relationRepresentation element){
     if(set.find(element)!=set.end()){
         set.erase(element);
@@ -1223,9 +1256,12 @@ void setInsertRoundKey(roundKeySetType& set, roundKeySetType& toAdd){
         }
     }
 }
-/*
-Linear layer function.
-*/
+/**
+ * Mapping of the linearLayer
+ *
+ * @param  relationMap: set 
+ * @param  invLinearMatrices: inverse of linear Matrice use to perform the linear mapping
+ */
 void linearLayerMixing(vector<relationSetType>& relationMap,
                       const vector<block>& invLinearMatrices){
     vector<relationSetType> tempRelationMap;
@@ -1284,10 +1320,12 @@ void linearLayerMixing(vector<roundKeySetType>& relationMap,
         relationMap.push_back(tempRelationMap[k]);
     }
 }
-
-/*
-Adding key function .
-*/
+/**
+ * Adding key function
+ *
+ * @param  relationMap: set representing the symbolic representation
+ * @param  keyMatrix: Key Matrices use to perform the key round Add
+ */
 void keyRoundAdd(vector<relationSetType>& relationMap, const vector<keyblock>& keyMatrix){
     vector<relationSetType> tempRelation;
     for(int i=0; i< blocksize; ++i){
@@ -1351,6 +1389,12 @@ void insertRemastered(vector<relationRepresentation>& InsertionResult, vector<re
         InsertionResult.push_back(toInsert[i]);
     }
 }*/
+/**
+ * Insert a set in another set
+ *
+ * @param  InsertionResult: set resulting of the insertion
+ * @param  toInsert: set to insert
+ */
 void insertRemastered(relationSetType& InsertionResult, const relationSetType& toInsert){
     for (auto element : toInsert){
         setInsert(InsertionResult, element);
@@ -1361,9 +1405,12 @@ void insertRemastered(roundKeySetType& InsertionResult, const roundKeySetType& t
         setInsert(InsertionResult, element);
     }
 }
-/*
-SBoxes function for a vector of bitset of size relationLength 
-*/
+/**
+ * Perform the SboxLayer interm of the symbolic representation
+ *
+ * @param  relationMap: set reprenting the symbolic representation
+ * @param  mode: Use to know if we perform the inverse Sboxlayer or not
+ */
 void SBoxRelation(vector<relationSetType>& relationMap, string mode){
     vector<relationSetType> tempRelationMap;
     tempRelationMap.clear();
@@ -1453,9 +1500,14 @@ void SBoxRelation(vector<roundKeySetType>& relationMap, string mode){
         relationMap.push_back(tempRelationMap[k]);
     }
 }
-/*
-Relation mapping creation.
-*/
+/**
+ * Perform the SboxLayer interm of the symbolic representation
+ *
+ * @param  relationMap: set reprenting the symbolic representation
+ * @param  invLinearMatrices: vector containing all inverse linear matrices
+ * @param  keyMatrices: vector containing  all Keymatrices
+ * @param  roundConstants: vector containing  all roundConstants
+ */
 void relationMapping(vector<relationSetType>& relationMap,
                     const vector<vector<block>>& invLinearMatrices,
                     const vector<vector<keyblock>>& keyMatrices,
@@ -1578,6 +1630,7 @@ void extractMonomialsKeys(const relationSetType& relationMapTarget,
             for(int i=0; i < keysize; ++i){
                 tempMonoKey.set(i);
             }
+            cout << tempMonoKey << endl;
             tempMonoKey&=*it1;
             keyblock tempKeyBlock(tempMonoKey.to_ullong());
             tempKeyBlockSet.insert(tempKeyBlock);
