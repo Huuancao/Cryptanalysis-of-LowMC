@@ -1968,13 +1968,13 @@ int main(void) {
     vector<blockSetType> Vaudenay;
     vector<roundKeyMap> equationSystem(nummonomials, 0);//Warning magical number
     vector<int> alpha_u;
-    //block roundKey(1539553);//101110111110111100001
     //Pre-generating variables Functions
     //generateMonomials(monomials);
     setVectorSpace(base);
     setSubspaces(subspaces);
 
     //Initialize variables functions
+
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
@@ -1987,23 +1987,9 @@ int main(void) {
     initInputsKeyMatrices(keyMatrices, keyMatPath);
     initInputs(roundConstants, roundConstPath);
     initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
-    //Test
-    
-    
-    //setVaudenayEquation(monomials, resultRoundKey, Vaudenay);
-    
-    /*for (int i = 0; i < map.size(); ++i){
-        cout << map[i] << endl;
-    }*/
-    //cout << alpha_u.size() << endl;
-    
-    
-    /*
-    cout << "The size is: " << resultRoundKey.size() << endl;
-    for(auto element: resultRoundKey){
-        cout << element << endl;
-    }*/
+
     //Post-generating elements functions
+
     //generateInvMatrices(linearMatrices, invLinearMatrices);
     //peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
     //peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-3], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
@@ -2013,29 +1999,18 @@ int main(void) {
     //relationMapping(relationMap, invLinearMatrices, keyMatrices, roundConstants);
     generateMapping(map);
     generateRoundKey(roundKeyRepresentation);
-    /*for(int i=0; i < roundKeyRepresentation.size(); ++i){
-        cout << "Key " << i << ": " << endl;
-        for(auto element: roundKeyRepresentation[i]){
-            cout << element << " " << endl;
-        }
-    }*/
     roundKeyMapping(roundKeyRepresentation,resultRoundKey, invLinearMatrices);
-    /*for(int i=0; i < roundKeyRepresentation.size(); ++i){
-        cout << "Key " << i << ": " << endl;
-        for(auto element: roundKeyRepresentation[i]){
-            cout << element << " " << endl;
-        }
-    }*/
 
     
     //Operational functions
+
     //extractMonomialsKeys(relationMap[targetBit], monomials, keysMonomials);
     //setUpLinearEquationKeyAlphas(keysMonomials);
     extractMonomialsRoundKeys(resultRoundKey, monomials, roundKeyMonomials);
     generateRoundKeyEquation(equationSystem, roundKeyMonomials, map);
-    //cout << equationSystem[0][4] << "YEEEEEESSSS" <<endl ;
 
     //Printing Functions
+
     //printANF("reverse");
     //printVectorVectorsBlock(linearMatrices);
     //printVectorVectorsKeyBlock(keyMatrices);
@@ -2065,94 +2040,7 @@ int main(void) {
 
     //testOurRoundKey(equationSystem,map,roundKey);
 
-    //Testing functions
-    /*for(int i=0; i < keysMonomials.size(); ++i){
 
-        cout << "Monomials " << i << ": " << endl;
-        for(auto element: keysMonomials[i]){
-            cout << element << " " << element.to_ulong() << endl;
-        }
-    }*/
-    /*keyblock tempKey(27);
-    cout << "Key: " << tempKey << endl;
-    relationSetType::iterator iter2=reverseRelationMapMonoKeys.begin();
-    for(relationSetType::iterator iter1=relationMapMonoKeys.begin(); iter1 != relationMapMonoKeys.end(); ++iter1, ++iter2){
-        relationRepresentation tempMono(0);
-        relationRepresentation reverseTempMono(0);
-        relationRepresentation MonoKey(*iter1);
-        relationRepresentation ReverseMonoKey(*iter2);
-        for(int j=0; j<keysize; ++j){
-            if(MonoKey[j]){
-                tempMono[0] = tempMono[0]^tempKey[j];
-            }
-            else if(ReverseMonoKey[j]){
-
-                reverseTempMono[0] = reverseTempMono[0]^tempKey[j];
-            }
-        }
-        cout << "Monokey: " << MonoKey << " ReverseMonoKey" << ReverseMonoKey << "Xor result: " << (tempMono[0] == reverseTempMono[0]) << endl;
-    }
-
-    //cout << "Previous monomials equal to new monomials set? " << (monomials == monomialsv1) << endl;
-    
-    //testSubstitution(3);
-
-    /*relationSetType relationMap1;
-    relationSetType relationMap2;
-    relationRepresentation temp(22);
-    relationRepresentation temp2(24);
-    relationRepresentation temp21(1942);
-    relationRepresentation temp1(0);
-    relationRepresentation temp3(26);
-
-
-    relationMap1.insert(temp);
-    relationMap2.insert(temp);
-    relationMap1.insert(temp2);
-
-    cout << (relationMap1==relationMap2) << endl;
-    relationMap1.insert(temp2);
-    relationMap1.insert(temp21);
-    relationMap1.insert(temp1);
-    relationMap1.insert(temp3);
-    for(relationSetType::iterator i = relationMap1.begin();i!=relationMap.end(); ++i){
-        cout << *i << endl;
-    }
-    /*
-    relationSetType::iterator it1=relationMap1.lower_bound(22);
-    relationSetType::iterator it2=relationMap1.upper_bound(30);
-    for(it1; it1!=it2; ++it1){
-        cout << *it1 << endl;
-    }*/
-
-
-    /*cout << "Reverse Relation" <<endl;
-    for(int i=0; i< relationMap.size(); ++i){
-        for(auto element : relationMap[targetBit]){
-            cout << element << endl;
-        }
-    }
-    cout << "Reverse Relation" <<endl;
-    for(int i=0; i< reverseRelationMap.size(); ++i){
-        for(auto element : reverseRelationMap[targetBit]){
-            cout << element << endl;
-        }
-    }
-    /*
-    for(auto element : reverseRelationMap[targetBit]){
-        cout << element << endl;
-    }
-
-    /*cout << relationMapMonoKeys.size() << endl;
-
-    cout << reverseRelationMapMonoKeys.size() << endl;
-
-
-    cout << (relationMapMonoKeys == reverseRelationMapMonoKeys) << endl;
-    /*for(auto element : relationMapMonoKeys){
-        //cout << relationMapMonoKeys.size() << endl;
-        cout << element << endl;
-    }*/
 
     return 0;
 }
