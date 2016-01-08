@@ -1011,14 +1011,17 @@ void generateMatrixA(blockSetType& monomials, vector<block>& peeledOffCiphertext
         }
     }
 }
+/*
+
+*/
 /**
- * Generate Matrix E by testing if ciphertext J belong to subspace i 
- * and then adding the corresponding jth row of A in the ith-row of E
+ * Generate Matrix E by testing if ciphertext J belong to subspace i and then adding the corresponding jth row of A in the ith-row of E
  *
- * @param  A: The matrix A computed before
- * @param  plaintexts: vector of bitset reprenting all plaintext
- * @param  subspaces: vector of bitset representig the subspaces S_i
- * @param  base: vector of bitsets representing the subspace S
+ * @param  A: matrix A
+ * @param  plaintexts: vector containing all plaintexts
+ * @param  ciphertexts: vector containing all ciphertexts
+ * @param  subspaces: vector containing all subspaces
+ * @param  base: vector containing the 12-dimension space
  */
 void generateMatrixE(const vector<monomatrix>& A,const vector<block>& plaintexts,  const vector<block>& ciphertexts, 
                     const vector<vecspace>& subspaces,const std::vector<block>& base, 
@@ -1039,12 +1042,11 @@ void generateMatrixE(const vector<monomatrix>& A,const vector<block>& plaintexts
         }        
     }      
 }
-/**
+/*
  * Generate all components of a given integer such that n&i == i
  *
- * @param  n: 
- * @return vector<unsigned>
- */
+ * @param  n: counter
+*/
 vector<unsigned> components(int n){
     vector<unsigned> list;
     for(int i=0; i < n+1; i++){
@@ -1054,23 +1056,22 @@ vector<unsigned> components(int n){
     }
     return list;
 }
-/**
+/*
  * Generate inverted matrices of linear matrices
  *
- * @param  linearMatrices: 
- * @param  invLinearMatrices
- */
+ * @param  linearMatrices: vector of vectors of blocks representing the linear matrix of the linear layer
+ * @param  invLinearMatrices: vector of vectors of blocks representing the inverse linear matrix of the linear layer
+*/
 void generateInvMatrices(vector<vector<block>>& linearMatrices, vector<vector<block>>& invLinearMatrices){
     for(int i=0; i < linearMatrices.size(); ++i){
         invLinearMatrices.push_back(invertMatrix(linearMatrices[i]));
     }
 }
-/**
+/*
  * Transform Sbox to ANF
- *
- * @param  Box: reprenting the SBox 
- * @return vector<vector<unsigned>> the ANF of the SBox
- */
+ * 
+ * @param  Box: vector of unsigned integers representing the Sboxes
+*/
 vector<vector<unsigned>> sboxToANF(vector<unsigned> Box){
     unsigned num = Box.size();
     unsigned dim = log2(num);
@@ -1092,11 +1093,11 @@ vector<vector<unsigned>> sboxToANF(vector<unsigned> Box){
     }
     return ls;
 }
-/**
- * Print the ANF
- *
- * @param  mode: ANF to print
- */
+/*
+ * Print ANF
+ * 
+ * @param mode: string to indicate order of the Sbox (normal or reverse)
+*/
 void printANF(string mode){
     vector<unsigned> Box;
     if(mode == "reverse"){
@@ -1140,12 +1141,11 @@ void printANF(string mode){
         cout << endl;
     }
 }
-/**
- * Invert Matrix
- *
- * @param  matrix: matrix to inverted
- * @return vector<block> matrix inverted
- */
+/*
+ * Inverse matrices
+ * 
+ * @param matrix: vector of blocks representing a matrix
+*/
 vector<block> invertMatrix(const vector<block>& matrix){
     std::vector<block> mat; //Copy of the matrix 
     for (auto u : matrix) {
@@ -1194,12 +1194,12 @@ vector<block> invertMatrix(const vector<block>& matrix){
     }
     return invmat;
 }
-/**
+/*
  * Multiply with matrix in GF(2).
- *
- * @param  matrix: matrix to inverted
- * @return vector<block> matrix inverted
- */
+ * 
+ * @param matrix: vector of blocks representing a matrix
+ * @param message: block multiplied with the matrix
+*/
 block MultiplyWithGF2Matrix(const std::vector<block> matrix, const block message) {
     block temp = 0;
     for (unsigned i = 0; i < blocksize; ++i) {
@@ -1207,15 +1207,14 @@ block MultiplyWithGF2Matrix(const std::vector<block> matrix, const block message
     }
     return temp;
 }
-/**
- * Peel off last layer by adding the last round constants and 
- * multiplying with inverse of last linear matrix.
- *
- * @param  ciphertexts: vector of bitsets representing the ciphertexts
- * @param  roundConstant: the round constant
- * @param  invLinearMatrix: vector storing all inverted linear Matrix
- * @param  peeledOffCiphertexts: vector storing all generated peel off 
- */
+/*
+ * Peel off last layer by adding the last round constants and multiplying with inverse of last linear matrix
+ * 
+ * @param ciphertexts: vector of blocks containing the ciphertexts
+ * @param roundConstant: constant to add in the linear layer
+ * @param invLinearMatrix: vector of blocks representing the inverse linear matrix of the linear layer
+ * @param peeledOffCiphertexts: vector of blocks storing the result of the peel off operation
+*/
 void peelingOffCiphertexts(const vector<block>& ciphertexts, const block& roundConstant, 
                         const vector<block>& invLinearMatrix, vector<block>& peeledOffCiphertexts){
     for(int i=0; i< ciphertexts.size(); ++i){
@@ -1224,12 +1223,14 @@ void peelingOffCiphertexts(const vector<block>& ciphertexts, const block& roundC
         peeledOffCiphertexts.push_back(MultiplyWithGF2Matrix(invLinearMatrix, temp));
     }
 }
-/**
- * Insert element in a set if the element is not already in the set
+
+/*
+ * Inserting function in sets that will test if the element to insert already is in the set
+ * If it is the case, the function will not insert it, and remove the element already in the set
  *
- * @param  set:
- * @param  element: element to insert
- */
+ * @param set: set of elements of type relationRepresentation
+ * @param element: element to insert
+*/
 void setInsert(relationSetType& set, relationRepresentation element){
     if(set.find(element)!=set.end()){
         set.erase(element);
@@ -1238,6 +1239,13 @@ void setInsert(relationSetType& set, relationRepresentation element){
         set.insert(element);
     }
 }
+/*
+ * Inserting function in sets that will test if the element to insert already is in the set
+ * If it is the case, the function will not insert it, and remove the element already in the set
+ *
+ * @param set: set of elements of type roundKeyRepresentation
+ * @param element: element to insert
+*/
 void setInsert(roundKeySetType& set, roundKeyRepresentation element){
     if(set.find(element)!=set.end()){
         set.erase(element);
@@ -1246,6 +1254,13 @@ void setInsert(roundKeySetType& set, roundKeyRepresentation element){
         set.insert(element);
     }
 }
+/*
+ * Inserting function in sets that will test if the element of another set to insert already is in the set
+ * If it is the case, the function will not insert it, and remove the element already in the set
+ *
+ * @param set: set of elements 
+ * @param toAdd: set of elements to insert in set
+*/
 void setInsertRoundKey(roundKeySetType& set, roundKeySetType& toAdd){
     for(auto element : toAdd){
         if(set.find(element)!=set.end()){
@@ -1256,12 +1271,12 @@ void setInsertRoundKey(roundKeySetType& set, roundKeySetType& toAdd){
         }
     }
 }
-/**
- * Mapping of the linearLayer
- *
- * @param  relationMap: set 
- * @param  invLinearMatrices: inverse of linear Matrice use to perform the linear mapping
- */
+/*
+ * Linear layer function
+ * 
+ * @param relationMap: vector of relationSetType storing the result of the linear mixing function
+ * @param invLinearMatrix: vector of blocks representing the inverse linear matrix of the linear layer
+*/
 void linearLayerMixing(vector<relationSetType>& relationMap,
                       const vector<block>& invLinearMatrices){
     vector<relationSetType> tempRelationMap;
@@ -1291,6 +1306,12 @@ void linearLayerMixing(vector<relationSetType>& relationMap,
         relationMap.push_back(tempRelationMap[k]);
     }
 }
+/*
+ * Linear layer function
+ * 
+ * @param relationMap: vector of roundKeySetType storing the result of the linear mixing function
+ * @param invLinearMatrix: vector of blocks representing the inverse linear matrix of the linear layer
+*/
 void linearLayerMixing(vector<roundKeySetType>& relationMap,
                       const vector<block>& invLinearMatrices){
     vector<roundKeySetType> tempRelationMap;
@@ -1320,12 +1341,12 @@ void linearLayerMixing(vector<roundKeySetType>& relationMap,
         relationMap.push_back(tempRelationMap[k]);
     }
 }
-/**
+/*
  * Adding key function
- *
- * @param  relationMap: set representing the symbolic representation
- * @param  keyMatrix: Key Matrices use to perform the key round Add
- */
+ * 
+ * @param relationMap: vector of relationSetType storing the result of the linear mixing function
+ * @param keyMatrix: vector of keyblocks representing the sub key rounds to add to the elements of relationMap
+*/
 void keyRoundAdd(vector<relationSetType>& relationMap, const vector<keyblock>& keyMatrix){
     vector<relationSetType> tempRelation;
     for(int i=0; i< blocksize; ++i){
@@ -1344,7 +1365,9 @@ void keyRoundAdd(vector<relationSetType>& relationMap, const vector<keyblock>& k
     }
 }
 /*
-Adding key function .
+ * Adding key function
+ * 
+ * @param relationMap: vector of roundKeySetType storing the result of the linear mixing function
 */
 void keyRoundAdd(vector<roundKeySetType>& relationMap){
     vector<roundKeySetType> tempRelation;
@@ -1365,7 +1388,11 @@ void keyRoundAdd(vector<roundKeySetType>& relationMap){
     }
 }
 /*
-Init iniput first round & key whitening.
+ * Init inputs of first round & key whitening 
+ * 
+ * @param relationMap: vector of relationSetType storing the result of the linear mixing function
+ * @param keyMatrices: vector of vectors of keyblocks representing all the key matrices
+ * @param mode: string to indicate direction of the function (normal or reverse)
 */
 void initRelationWhitening(vector<relationSetType>& relationMap,
                         const vector<vector<keyblock>>& keyMatrices,
@@ -1383,34 +1410,36 @@ void initRelationWhitening(vector<relationSetType>& relationMap,
     if(mode == ""){
         keyRoundAdd(relationMap, keyMatrices[0]);
     }
-}/*
-void insertRemastered(vector<relationRepresentation>& InsertionResult, vector<relationRepresentation>& toInsert){
-    for (int i = 0; i < toInsert.size(); ++i){
-        InsertionResult.push_back(toInsert[i]);
-    }
-}*/
-/**
- * Insert a set in another set
- *
- * @param  InsertionResult: set resulting of the insertion
- * @param  toInsert: set to insert
- */
+
+}
+/*
+ * Insert all element of a set in another set
+ * 
+ * @param InsertionResult: result set of type relationSetType of insertions
+ * @param toInsert: set of elements to insert
+*/
 void insertRemastered(relationSetType& InsertionResult, const relationSetType& toInsert){
     for (auto element : toInsert){
         setInsert(InsertionResult, element);
     }
 }
+/*
+ * Insert all element of a set in another set
+ * 
+ * @param InsertionResult: result set of type roundKeySetType of insertions
+ * @param toInsert: set of elements to insert
+*/
 void insertRemastered(roundKeySetType& InsertionResult, const roundKeySetType& toInsert){
     for (auto element : toInsert){
         setInsert(InsertionResult, element);
     }
 }
-/**
- * Perform the SboxLayer interm of the symbolic representation
- *
- * @param  relationMap: set reprenting the symbolic representation
- * @param  mode: Use to know if we perform the inverse Sboxlayer or not
- */
+/*
+ * Generate all relations going through the Sboxes
+ * 
+ * @param relationMap: vector of relationSetType storing the result of the linear mixing function
+ * @param mode: string to indicate direction of the function (normal or reverse)
+*/
 void SBoxRelation(vector<relationSetType>& relationMap, string mode){
     vector<relationSetType> tempRelationMap;
     tempRelationMap.clear();
@@ -1455,7 +1484,10 @@ void SBoxRelation(vector<relationSetType>& relationMap, string mode){
     }
 }
 /*
-SBoxes function for a vector of bitset of size relationLength 
+ * Generate all relations going through the Sboxes
+ * 
+ * @param relationMap: vector of roundKeySetType storing the result of the linear mixing function
+ * @param mode: string to indicate direction of the function (normal or reverse)
 */
 void SBoxRelation(vector<roundKeySetType>& relationMap, string mode){
     vector<roundKeySetType> tempRelationMap;
@@ -1500,14 +1532,15 @@ void SBoxRelation(vector<roundKeySetType>& relationMap, string mode){
         relationMap.push_back(tempRelationMap[k]);
     }
 }
-/**
- * Perform the SboxLayer interm of the symbolic representation
- *
- * @param  relationMap: set reprenting the symbolic representation
- * @param  invLinearMatrices: vector containing all inverse linear matrices
- * @param  keyMatrices: vector containing  all Keymatrices
- * @param  roundConstants: vector containing  all roundConstants
- */
+/*
+ * Relation mapping creation
+ * 
+ * @param relationMap: vector of roundKeySetType storing the result of the linear mixing function 
+ * @param invLinearMatrix: vector of blocks representing the inverse linear matrix of the linear layer
+ * @param keyMatrices: vector of vectors of keyblocks representing all the key matrices
+ * @param roundConstant: constant to add in the linear layer
+
+*/
 void relationMapping(vector<relationSetType>& relationMap,
                     const vector<vector<block>>& invLinearMatrices,
                     const vector<vector<keyblock>>& keyMatrices,
@@ -1604,7 +1637,11 @@ void generateRoundKey(vector<roundKeySetType>& roundKey){
 }
 
 /*
-Extract Key information according to monomials precomputed.
+ * Extract Key information according to monomials precomputed
+ *
+ * @param relationMapTarget: set containing all the relationRepresentation corresponding to the target bit b
+ * @param monomials: set of precomputed monomials
+ * @param keysMonomials: vector of keyBlockSetType storing all the key blocks correponding the to monomials contained in monomials set
 */
 void extractMonomialsKeys(const relationSetType& relationMapTarget,
                             const blockSetType& monomials,
@@ -1639,7 +1676,9 @@ void extractMonomialsKeys(const relationSetType& relationMapTarget,
     }
 }
 /*  
-Setup linear equation system Keys per monomial and alpha_u per monomial.
+ * Setup linear equation system Keys per monomial and alpha_u per monomial
+ *
+ * @param keysMonomials: vector of sets of key blocks correponding the the precomputed monomials
 */
 void setUpLinearEquationKeyAlphas(const vector<keyBlockSetType>& keysMonomials){
     ofstream myFile;
@@ -1719,7 +1758,10 @@ void sortRoundKeys(roundKeySetType& relationMapBit, vector<blockSetType> keyByMo
     insertRemastered(relationMapBit, relationMapMonoKeys);
 }
 /*
-Extract round Key information according to monomials precomputed.
+ * Extract round Key information according to monomials precomputed
+ *
+ * @param monomials: set of precomputed monomials
+ * @param keysMonomials: vector of keyBlockSetType storing all the key blocks correponding the to monomials contained in monomials set
 */
 void extractMonomialsRoundKeys(const roundKeySetType& relationMapTarget,
                             const blockSetType& monomials,
