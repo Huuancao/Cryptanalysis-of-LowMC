@@ -1607,7 +1607,11 @@ void relationMapping(vector<relationSetType>& relationMap,
     linearLayerMixing(relationMap, invLinearMatrices[rounds-3]); 
 }
 /*
-Mapping of the last roundKey
+ * Relation mapping  in terms of the last roundKey creation
+ * 
+ * @param keyRoundMap: vector of roundKeySetType storing the result of the linear mixing function 
+ * @param invLinearMatrices: vector of blocks representing the inverse linear matrix of the linear layer
+ * @param resultRoundKey: set containing resulting mapping in term of the last roundKey 
 */
 void roundKeyMapping(vector<roundKeySetType>& keyRoundMap,
                     roundKeySetType& resultRoundKey,
@@ -1622,7 +1626,9 @@ void roundKeyMapping(vector<roundKeySetType>& keyRoundMap,
     }
 }
 /*
-Generate the monomials for roundKeySetype
+ * Generate the monomials for roundKeySetype and the mapping of the last roundKey
+ * 
+ * @param roundKey: vector of roundKeySetType containing all monomials of degree 1
 */
 void generateRoundKey(vector<roundKeySetType>& roundKey){
     roundKeyRepresentation tempRelation(1);
@@ -1710,16 +1716,6 @@ void setUpLinearEquationKeyAlphas(const vector<keyBlockSetType>& keysMonomials){
     myFile << "]";
     myFile.close();
 }
-roundKeySetType hammingWeithSort(roundKeySetType& resultRoundKey, int weight){
-    roundKeySetType sortedSet;
-    for(auto element : resultRoundKey){
-        if (element.count()==weight){
-            sortedSet.insert(element);
-        }
-    }
-    return sortedSet;
-}
-
 void sortRoundKeys(roundKeySetType& relationMapBit, vector<blockSetType> keyByMono){
     blockSetType tempKeyBlock;
     for (int i = 0; i < nummonomials; ++i){
@@ -1761,7 +1757,7 @@ void sortRoundKeys(roundKeySetType& relationMapBit, vector<blockSetType> keyByMo
  * Extract round Key information according to monomials precomputed
  *
  * @param monomials: set of precomputed monomials
- * @param keysMonomials: vector of keyBlockSetType storing all the key blocks correponding the to monomials contained in monomials set
+ * @param keysMonomials: vector of BlockSetType storing all the key blocks correponding the to monomials contained in monomials set
 */
 void extractMonomialsRoundKeys(const roundKeySetType& relationMapTarget,
                             const blockSetType& monomials,
@@ -1806,32 +1802,6 @@ int findIndex(blockSetType& monomials, block toSearch){
         }
     }
     return counter;
-}
-/*
-to DElETE
-*/
-void setVaudenayEquation(blockSetType& monomials, roundKeySetType& roundKeyMap, vector<blockSetType>& Vaudenay ){
-    blockSetType temp;
-    for (int i = 0; i < monomials.size(); ++i){
-        Vaudenay.push_back(temp);
-    }
-    for (auto element1 : monomials){
-        for (auto element2 : roundKeyMap){
-            roundKeyRepresentation tempRoundKey(element2.to_ullong());
-            tempRoundKey <<= blocksize;
-            tempRoundKey >>= blocksize;
-            block toInsert(tempRoundKey.to_ullong());
-            element2 >>= blocksize;
-            if (element1.to_ullong()==element2.to_ullong()){
-                block tempBlock(element1.to_ullong());
-                int index=findIndex(monomials, tempBlock);
-                Vaudenay[index].insert(toInsert);
-                
-            }
-
-        }
-    }
-
 }
 /*
 Generate the mapping 
