@@ -343,9 +343,6 @@ choose(unsigned long long n, unsigned long long k){
 /**
  * <Invert a matrix>
  *
- * <Longer description>
- * <May span multiple lines or paragraphs as needed>
- *
  * @param  std::vector<block> matrix
  * @return The iverse of matrix
  */
@@ -1804,7 +1801,9 @@ int findIndex(blockSetType& monomials, block toSearch){
     return counter;
 }
 /*
-Generate the mapping 
+ * Generate mapping to set the equation system in fucntion of the last round key
+ *
+ * @param map: generated mapping
 */
 void generateMapping(vector<block>& map){
     for (int i = 0; i < blocksize; ++i){
@@ -1822,8 +1821,13 @@ void generateMapping(vector<block>& map){
             }
     }
 }
+
 /*
-Generate the equation system with for the round key Mapping 
+ * Generate the equation system  for the round key 
+ *
+ * @param equationSystem: generated equation system
+ * @param roundKeyMonomials: the round regrouped by monomials
+ * @param map: map for the position of the variable in the equation system
 */
 void generateRoundKeyEquation(vector<roundKeyMap>& equationSystem, const vector<blockSetType>& roundKeyMonomials, const vector<block>& map){
     vector<blockSetType> tempRoundKeysMono;
@@ -1844,6 +1848,13 @@ void generateRoundKeyEquation(vector<roundKeyMap>& equationSystem, const vector<
         }
     }
 }
+/*
+ * test the attempt for the last equation equation
+ *
+ * @param equationSystem:  equation system
+ * @param map: map for the position of the variable in the equation system
+ * @param roundKey: the last round key
+*/
 void testOurRoundKey(const vector<roundKeyMap>& equationSystem, const vector<block>& map, block& roundKey){
     vector<int> temp;
     vector<block> t;
@@ -1995,6 +2006,7 @@ int main(void) {
     //printSequencesBlocks(plaintexts);
     //printSequencesBlocks(ciphertexts);
     //printSequencesBlocks(partialCiphertexts);
+    //testOurRoundKey(equationSystem,map,roundKey);
 
     //Writing Functions
     //writeBlockSet(monomials, monomialsPath);
@@ -2006,9 +2018,6 @@ int main(void) {
     //writeRelationMap(relationMap);
     //writeRelationMapTarget(relationMap[targetBit]);
     writeRoundKeyEquationSystem(equationSystem);
-
-
-    //testOurRoundKey(equationSystem,map,roundKey);
 
 
 
