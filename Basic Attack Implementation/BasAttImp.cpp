@@ -1939,7 +1939,7 @@ int main(void) {
     vector<roundKeyMap> equationSystem(nummonomials, 0);//Warning magical number
     vector<int> alpha_u;
     //Pre-generating variables Functions
-    //generateMonomials(monomials);
+    generateMonomials(monomials);
     setVectorSpace(base);
     setSubspaces(subspaces);
 
@@ -1948,25 +1948,25 @@ int main(void) {
     initInputs(plaintexts, plainPath);
     initInputs(ciphertexts, cipherPath);
     initInputs(partialCiphertexts, partialCipherPath);
-    initInputs(a0, freeCoefPath);
-    initInputs(monomials, monomialsPath);
-    initInputs(peeledOffCiphertexts, peelOffCipherPath);
-    initInputs(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
-    initInputs(relationMapTarget, relationRepresentationTargetPath);
+    //initInputs(a0, freeCoefPath);
+    //initInputs(monomials, monomialsPath);
+    //initInputs(peeledOffCiphertexts, peelOffCipherPath);
+    //initInputs(peeledOffPartialCiphertexts, peeledOffPartialCiphertextsPath);
+    //initInputs(relationMapTarget, relationRepresentationTargetPath);
     initInputsLinearMatrices(linearMatrices, linMatPath);
     initInputsKeyMatrices(keyMatrices, keyMatPath);
     initInputs(roundConstants, roundConstPath);
-    initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
+    //initInputsLinearMatrices(invLinearMatrices, invLinMatPath);
 
     //Post-generating elements functions
 
-    //generateInvMatrices(linearMatrices, invLinearMatrices);
-    //peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
-    //peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-3], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
-    //preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
-    //generateMatrixA(monomials, ciphertexts, matrixA);
-    //generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
-    //relationMapping(relationMap, invLinearMatrices, keyMatrices, roundConstants);
+    generateInvMatrices(linearMatrices, invLinearMatrices);
+    peelingOffCiphertexts(ciphertexts, roundConstants[rounds-1], invLinearMatrices[rounds-1], peeledOffCiphertexts);
+    peelingOffCiphertexts(partialCiphertexts, roundConstants[rounds-3], invLinearMatrices[rounds-3], peeledOffPartialCiphertexts);
+    preprocessingFreeCoef(a0, peeledOffPartialCiphertexts, plaintexts, base, subspaces);
+    generateMatrixA(monomials, ciphertexts, matrixA);
+    generateMatrixE(matrixA, plaintexts, ciphertexts,subspaces, base, matrixE);
+    relationMapping(relationMap, invLinearMatrices, keyMatrices, roundConstants);
     generateMapping(map);
     generateRoundKey(roundKeyRepresentation);
     roundKeyMapping(roundKeyRepresentation,resultRoundKey, invLinearMatrices);
@@ -1974,8 +1974,8 @@ int main(void) {
     
     //Operational functions
 
-    //extractMonomialsKeys(relationMap[targetBit], monomials, keysMonomials);
-    //setUpLinearEquationKeyAlphas(keysMonomials);
+    extractMonomialsKeys(relationMap[targetBit], monomials, keysMonomials);
+    setUpLinearEquationKeyAlphas(keysMonomials);
     extractMonomialsRoundKeys(resultRoundKey, monomials, roundKeyMonomials);
     generateRoundKeyEquation(equationSystem, roundKeyMonomials, map);
 
